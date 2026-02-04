@@ -1,40 +1,59 @@
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 class UserLogin {
     public static void main(String[] args) {
 
-        //instantiate JFrame for user login
-        JFrame loginFrame = new JFrame();
-        loginFrame.setTitle("AOMA-Heritage Monitor - Login Account");
-        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        loginFrame.setSize(1920, 1080);
-        //loginFrame.getContentPane().setBackground(new Color(0x1A3263)); //background color for user login frame
-
-        //this button will directly go to the landing page when clicked
-        new LandingPage(); 
-
-
-
-
+        //DONE
+        //centered panel for login 
+        JPanel loginPanel = new JPanel();
+        loginPanel.setBackground(Color.LIGHT_GRAY);
+        loginPanel.setPreferredSize(new Dimension(500, 700));
+        loginPanel.setMaximumSize(new Dimension(500, 700));
+        loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.Y_AXIS));
+        
+        //DONE
         // create and customize JLabels for title
         JLabel loginTitleLabel = new JLabel();
         loginTitleLabel.setText("AOMA-Heritage Monitor"); 
         loginTitleLabel.setFont(new Font("Arial", Font.BOLD,25)); //title font size
         loginTitleLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT); //centers the label
 
-        // create and customize JLabels for title
+        //DONE
+        // create and customize JLabels for subtitle
         JLabel loginSubtitleLabel = new JLabel();
         loginSubtitleLabel.setText("Login Account"); 
         loginSubtitleLabel.setFont(new Font("Arial", Font.BOLD,20)); //subtitle font size
         loginSubtitleLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT); //centers the label
 
+        loginPanel.add(Box.createVerticalStrut(30));
+        loginPanel.add(loginTitleLabel);
+        loginPanel.add(Box.createVerticalStrut(10));
+        loginPanel.add(loginSubtitleLabel);
+        loginPanel.add(Box.createVerticalStrut(40));
+
+        //centering the login panel
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        centerPanel.add(loginPanel);
+
+        //instantiate JFrame for user login
+        JFrame loginFrame = new JFrame();
+        loginFrame.setTitle("AOMA-Heritage Monitor - Login Account");
+        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        loginFrame.setSize(1920, 1080);
+
         //shows the outputs on the frame
         loginFrame.setLayout(new BoxLayout(loginFrame.getContentPane(), BoxLayout.Y_AXIS));
-        loginFrame.add(loginTitleLabel);
-        loginFrame.add(loginSubtitleLabel);
+        loginFrame.add(Box.createVerticalGlue());
+        loginFrame.add(centerPanel);
+        loginFrame.add(Box.createVerticalGlue());
 
         //to prevent the frame/display from not showing up dito ko nilagay sa dulo...
         loginFrame.setVisible(true); //this will get the frame to show up
