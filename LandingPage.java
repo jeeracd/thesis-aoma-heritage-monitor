@@ -20,9 +20,6 @@ public class LandingPage extends JFrame implements ActionListener{
         imageLabel.setIcon(landingIcon); //set the image icon to the label
         imageLabel.setBounds(200, 250, landingIcon.getIconWidth(), landingIcon.getIconHeight()); //set position of the image
 
-
-
-
         landingButton = new JButton();
         landingButton.setBounds(200, 100, 400, 100);
         landingButton.addActionListener(this);
