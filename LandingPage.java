@@ -3,14 +3,26 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 
 public class LandingPage extends JFrame implements ActionListener{
 
     JButton landingButton;
 
     LandingPage(){
+
+        ImageIcon landingIcon = new ImageIcon("esp-wroom-32.jpg"); //load image icon
+
+        JLabel imageLabel = new JLabel(); //create JLabel to hold the image
+        imageLabel.setIcon(landingIcon); //set the image icon to the label
+        imageLabel.setBounds(200, 250, landingIcon.getIconWidth(), landingIcon.getIconHeight()); //set position of the image
+
+
+
+
         landingButton = new JButton();
         landingButton.setBounds(200, 100, 400, 100);
         landingButton.addActionListener(this);
@@ -21,7 +33,7 @@ public class LandingPage extends JFrame implements ActionListener{
         landingButton.setForeground(Color.WHITE);
         landingButton.setBorderPainted(false);
         landingButton.setBackground(Color.BLUE);
-        
+
 
         this.setTitle("AOMA-Heritage Monitor - Landing Page");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -30,6 +42,8 @@ public class LandingPage extends JFrame implements ActionListener{
         this.setVisible(true);
 
         this.add(landingButton); //show button to the frame
+        this.add(imageLabel);
+
     }
 
     @Override
