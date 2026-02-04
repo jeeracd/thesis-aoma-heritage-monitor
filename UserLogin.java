@@ -14,8 +14,8 @@ class UserLogin {
         //centered panel for login 
         JPanel loginPanel = new JPanel();
         loginPanel.setBackground(Color.LIGHT_GRAY);
-        loginPanel.setPreferredSize(new Dimension(500, 700));
-        loginPanel.setMaximumSize(new Dimension(500, 700));
+        loginPanel.setPreferredSize(new Dimension(500, 500));
+        loginPanel.setMaximumSize(new Dimension(500, 500));
         loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.Y_AXIS));
         
         //DONE
@@ -32,11 +32,30 @@ class UserLogin {
         loginSubtitleLabel.setFont(new Font("Arial", Font.BOLD,20)); //subtitle font size
         loginSubtitleLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT); //centers the label
 
+        //recently added: 
+        JLabel emailLabel = new JLabel();
+        emailLabel.setText("Email:");
+        emailLabel.setFont(new Font("Arial", Font.BOLD,15));
+        emailLabel.setAlignmentX(JLabel.LEFT);
+
+        JLabel passwordLabel = new JLabel();
+        passwordLabel.setText("Password:");
+        passwordLabel.setFont(new Font("Arial", Font.BOLD,15));
+        passwordLabel.setAlignmentX(JLabel.LEFT);
+
         loginPanel.add(Box.createVerticalStrut(30));
         loginPanel.add(loginTitleLabel);
         loginPanel.add(Box.createVerticalStrut(10));
         loginPanel.add(loginSubtitleLabel);
         loginPanel.add(Box.createVerticalStrut(40));
+
+        //recently added: 
+        loginPanel.add(Box.createVerticalStrut(10));
+        loginPanel.add(emailLabel);
+        
+        loginPanel.add(Box.createVerticalStrut(50));
+        loginPanel.add(passwordLabel);
+
 
         //centering the login panel
         JPanel centerPanel = new JPanel();
@@ -47,7 +66,7 @@ class UserLogin {
         JFrame loginFrame = new JFrame();
         loginFrame.setTitle("AOMA-Heritage Monitor - Login Account");
         loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        loginFrame.setSize(1920, 1080);
+        loginFrame.setSize(1220, 1080);
 
         //shows the outputs on the frame
         loginFrame.setLayout(new BoxLayout(loginFrame.getContentPane(), BoxLayout.Y_AXIS));
