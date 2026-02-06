@@ -4,7 +4,20 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
+        {
+            "type": "java",
+            "name": "LandingPage",
+            "request": "launch",
+            "mainClass": "LandingPage",
+            "projectName": "thesis-aoma-heritage-monitor_1672cd82"
+        },
+        {
+            "type": "java",
+            "name": "UserLogin",
+            "request": "launch",
+            "mainClass": "UserLogin",
+            "projectName": "thesis-aoma-heritage-monitor_1672cd82"
+        },
         {
             "type": "java",
             "name": "Current File",
