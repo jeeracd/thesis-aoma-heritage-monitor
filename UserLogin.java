@@ -9,7 +9,6 @@ import java.awt.RenderingHints;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -88,13 +87,6 @@ class UserLogin {
         loginPanel.add(passwordLabel);
         loginPanel.add(Box.createVerticalStrut(10));
         loginPanel.add(passwordTextField);
-
-        JCheckBox loginCheckBox = new JCheckBox();
-        loginCheckBox.setText("Agree to our Terms and Conditions");
-        loginCheckBox.setFont(new Font("Arial", Font.BOLD,13));
-        loginCheckBox.setOpaque(false);
-        loginCheckBox.setAlignmentX(JCheckBox.LEFT_ALIGNMENT);
-        loginPanel.add(loginCheckBox);
 
         //login button
         JButton loginButton = new JButton("Login Account");
