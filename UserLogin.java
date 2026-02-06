@@ -9,6 +9,7 @@ import java.awt.RenderingHints;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -39,10 +40,8 @@ class UserLogin {
         loginTitleLabel.setText("AOMA-Heritage Monitor"); 
         loginTitleLabel.setFont(new Font("Arial", Font.BOLD,25)); 
         loginTitleLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT); 
-
         loginPanel.add(Box.createVerticalStrut(30));
         loginPanel.add(loginTitleLabel);
-
         loginPanel.add(Box.createVerticalStrut(50)); //para may space between title and subtitle
 
         //customize JLabels for subtitle
@@ -50,7 +49,6 @@ class UserLogin {
         loginSubtitleLabel.setText("Login Account"); 
         loginSubtitleLabel.setFont(new Font("Arial", Font.BOLD,20)); 
         loginSubtitleLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT); 
-        
         loginPanel.add(loginSubtitleLabel);
         loginPanel.add(Box.createVerticalStrut(40));
 
@@ -90,6 +88,13 @@ class UserLogin {
         loginPanel.add(passwordLabel);
         loginPanel.add(Box.createVerticalStrut(10));
         loginPanel.add(passwordTextField);
+
+        JCheckBox loginCheckBox = new JCheckBox();
+        loginCheckBox.setText("Agree to our Terms and Conditions");
+        loginCheckBox.setFont(new Font("Arial", Font.BOLD,13));
+        loginCheckBox.setOpaque(false);
+        loginCheckBox.setAlignmentX(JCheckBox.LEFT_ALIGNMENT);
+        loginPanel.add(loginCheckBox);
 
         //login button
         JButton loginButton = new JButton("Login Account");
