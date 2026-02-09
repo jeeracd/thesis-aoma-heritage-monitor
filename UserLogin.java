@@ -90,11 +90,25 @@ class UserLogin {
 
         //login button
         JButton loginButton = new JButton("Login Account");
+        loginButton.setAlignmentX(JButton.CENTER_ALIGNMENT);
+        loginButton.setFont(new Font("Arial", Font.BOLD,16));
         loginButton.addActionListener(null);
 
         //spacing before button
         loginPanel.add(Box.createVerticalStrut(30));
         loginPanel.add(loginButton);
+
+        JLabel dontHaveAccountLabel = new JLabel();
+        dontHaveAccountLabel.setText("Don't have an account?");
+        dontHaveAccountLabel.setFont(new Font("Arial", Font.BOLD,13));
+        dontHaveAccountLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        loginPanel.add(Box.createVerticalStrut(20));
+        loginPanel.add(dontHaveAccountLabel);
+
+        
+
+
+
 
         //centering the login panel
         JPanel centerPanel = new JPanel();
