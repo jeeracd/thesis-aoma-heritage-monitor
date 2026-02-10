@@ -15,8 +15,14 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.AbstractBorder;
 
-class UserLogin {
-    public static void main(String[] args) {
+class UserLogin extends JFrame{
+    public UserLogin() {
+
+        //instantiate JFrame for user login
+        JFrame loginFrame = new JFrame();
+        loginFrame.setTitle("AOMA-Heritage Monitor - Login Account");
+        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        loginFrame.setSize(1220, 1080);
 
         //centered panel for login 
         JPanel loginPanel = new JPanel();
@@ -24,10 +30,10 @@ class UserLogin {
         loginPanel.setPreferredSize(new Dimension(500, 700));
         loginPanel.setMaximumSize(new Dimension(500, 700));
         loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.Y_AXIS));
-        loginPanel.setBorder(new RoundBorderPanel(50));
+        loginPanel.setBorder(new LoginRoundBorderPanel(50));
 
         //para maging round ung bg panel
-        RoundBackgroundPanel backgroundPanel = new RoundBackgroundPanel(50);
+        LoginRoundBackgroundPanel backgroundPanel = new LoginRoundBackgroundPanel(50);
         backgroundPanel.setBackground(Color.LIGHT_GRAY);
         backgroundPanel.setPreferredSize(new Dimension(500, 700));
         backgroundPanel.setMaximumSize(new Dimension(500, 700));
@@ -105,21 +111,22 @@ class UserLogin {
         loginPanel.add(Box.createVerticalStrut(20));
         loginPanel.add(dontHaveAccountLabel);
 
+        JButton signUpButton = new JButton();
+        signUpButton.setText("Sign Up");
+        signUpButton.setFont(new Font("Arial", Font.BOLD,13));
+        signUpButton.setAlignmentX(JButton.CENTER_ALIGNMENT);
+        loginPanel.add(Box.createVerticalStrut(10));
+        loginPanel.add(signUpButton);
+
+        signUpButton.addActionListener(e -> {
+            loginFrame.dispose();
+            new UserRegistration();
+        });
         
-
-
-
-
         //centering the login panel
         JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.add(backgroundPanel);
-
-        //instantiate JFrame for user login
-        JFrame loginFrame = new JFrame();
-        loginFrame.setTitle("AOMA-Heritage Monitor - Login Account");
-        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        loginFrame.setSize(1220, 1080);
 
         //shows the outputs on the frame
         loginFrame.setLayout(new BoxLayout(loginFrame.getContentPane(), BoxLayout.Y_AXIS));
@@ -129,15 +136,18 @@ class UserLogin {
 
         //to prevent the frame/display from not showing up dito ko nilagay sa dulo...
         loginFrame.setVisible(true); //this will get the frame to show up
-
+        loginFrame.setLocationRelativeTo(null); 
+    }
+    public static void main(String[] args) {
+        new UserLogin();
     }
 }
 
-class RoundBackgroundPanel extends JPanel {
+class LoginRoundBackgroundPanel extends JPanel {
 
     private int radius;
 
-    RoundBackgroundPanel(int radius) {
+    LoginRoundBackgroundPanel(int radius) {
         this.radius = radius;
         setOpaque(false);
     }
@@ -156,10 +166,10 @@ class RoundBackgroundPanel extends JPanel {
     }
 }
 
-class RoundBorderPanel extends AbstractBorder{
+class LoginRoundBorderPanel extends AbstractBorder{
     private int radius;
 
-    RoundBorderPanel(int radius) {
+    LoginRoundBorderPanel(int radius) {
         this.radius = radius;
     }
 
