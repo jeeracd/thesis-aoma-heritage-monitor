@@ -99,6 +99,11 @@ class UserLogin extends JFrame{
         loginButton.setAlignmentX(JButton.CENTER_ALIGNMENT);
         loginButton.setFont(new Font("Arial", Font.BOLD,16));
         loginButton.addActionListener(null);
+        
+        loginButton.addActionListener(e -> {
+            loginFrame.dispose();
+            new LandingPage();
+        });
 
         //spacing before button
         loginPanel.add(Box.createVerticalStrut(30));

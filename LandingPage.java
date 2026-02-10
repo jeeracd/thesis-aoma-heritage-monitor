@@ -2,7 +2,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
-import com.fazecast.jSerialComm.SerialPort; //this is used for connecting the ESP32 
+//import com.fazecast.jSerialComm.SerialPort; //this is used for connecting the ESP32 
 
 
 public class LandingPage extends JFrame implements ActionListener {

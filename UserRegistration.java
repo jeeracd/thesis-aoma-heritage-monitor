@@ -102,6 +102,11 @@ public class UserRegistration extends JFrame {
         registerButton.setFont(new Font("Arial", Font.BOLD, 16));
         registerButton.addActionListener(null);
 
+        registerButton.addActionListener(e -> {
+            this.dispose();
+            new LandingPage();
+        });
+
         registrationPanel.add(Box.createVerticalStrut(30));
         registrationPanel.add(registerButton);
 
