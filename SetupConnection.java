@@ -1,6 +1,7 @@
 import java.awt.Color;
 import java.awt.Font;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
@@ -13,14 +14,25 @@ public class SetupConnection extends JFrame {
         setLocationRelativeTo(null);
 
         JTabbedPane setupTabs = new JTabbedPane(JTabbedPane.TOP);
-
-        setupTabs.addTab("Setup & Connection", new JPanel());
-        setupTabs.addTab("Analysis", new JPanel());
-        setupTabs.addTab("Report", new JPanel());
-        setupTabs.setFont(new Font("Arial", Font.BOLD,17));
+        setupTabs.setFont(new Font("Arial", Font.BOLD, 17));
         setupTabs.setBackground(Color.LIGHT_GRAY);
         setupTabs.setForeground(Color.BLACK);
-        
+
+        // 🔹 Setup & Connection panel
+        JPanel setupPanel = new JPanel();
+        setupPanel.setLayout(null);
+
+        JLabel buildingProfileInfoLabel =
+                new JLabel("Building Profile Information");
+        buildingProfileInfoLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        buildingProfileInfoLabel.setForeground(Color.BLACK);
+        buildingProfileInfoLabel.setBounds(30, 30, 300, 30);
+
+        setupPanel.add(buildingProfileInfoLabel);
+
+        setupTabs.addTab("Setup & Connection", setupPanel);
+        setupTabs.addTab("Analysis", new JPanel());
+        setupTabs.addTab("Report", new JPanel());
 
         setupTabs.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
             @Override
@@ -29,11 +41,9 @@ public class SetupConnection extends JFrame {
                     int tabIndex, int x, int y, int w, int h,
                     boolean isSelected) {
 
-                if (isSelected) {
-                    g.setColor(new Color(0, 102, 204)); 
-                } else {
-                    g.setColor(Color.LIGHT_GRAY);
-                }
+                g.setColor(isSelected
+                        ? new Color(0, 102, 204)
+                        : Color.LIGHT_GRAY);
                 g.fillRect(x, y, w, h);
             }
 
@@ -47,7 +57,9 @@ public class SetupConnection extends JFrame {
 
                 g.setFont(font);
                 g.setColor(isSelected ? Color.WHITE : Color.BLACK);
-                g.drawString(title, textRect.x, textRect.y + metrics.getAscent());
+                g.drawString(title,
+                        textRect.x,
+                        textRect.y + metrics.getAscent());
             }
         });
 
