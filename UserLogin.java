@@ -22,7 +22,7 @@ class UserLogin extends JFrame{
         JFrame loginFrame = new JFrame();
         loginFrame.setTitle("AOMA-Heritage Monitor - Login Account");
         loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        loginFrame.setSize(1220, 1080);
+        loginFrame.setSize(1400, 850);
 
         //centered panel for login 
         JPanel loginPanel = new JPanel();

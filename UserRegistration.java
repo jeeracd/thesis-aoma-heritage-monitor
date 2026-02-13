@@ -20,7 +20,7 @@ public class UserRegistration extends JFrame {
     public UserRegistration() {
         this.setTitle("AOMA-Heritage Monitor - Register Account");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(1220, 1080);
+        this.setSize(1400, 850);
 
         JPanel registrationPanel = new JPanel();
         registrationPanel.setOpaque(false);
