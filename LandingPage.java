@@ -22,7 +22,7 @@ public class LandingPage extends JFrame implements ActionListener {
     LandingPage() {
         this.setTitle("AOMA-Heritage Monitor - Landing Page");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(1220, 1080); 
+        this.setSize(1400, 850); 
         this.setLocationRelativeTo(null); 
         this.setLayout(new BorderLayout());
 
