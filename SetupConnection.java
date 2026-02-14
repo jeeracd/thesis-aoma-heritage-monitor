@@ -183,10 +183,41 @@ public class SetupConnection extends JFrame {
         sensorSetupGuidePanel.setBorder(sensorSetupGuideTitle);
         setupPanel.add(sensorSetupGuidePanel);
 
+        JPanel systemLogsPanel = new JPanel();
+        systemLogsPanel.setLayout(null);
+        systemLogsPanel.setBounds(370 + 700 + 10, 60 + 350 + 10, 310, 320);
 
+        Border systemLogsBorder = BorderFactory.createLineBorder(Color.BLACK);
+        TitledBorder systemLogsTitle = BorderFactory.createTitledBorder(systemLogsBorder, "System Logs");
+        systemLogsTitle.setTitleFont(new Font("Arial", Font.BOLD, 17));
+        systemLogsTitle.setTitleColor(Color.BLACK);
+        systemLogsPanel.setBorder(systemLogsTitle);
+        setupPanel.add(systemLogsPanel);
 
-
-
+        String systemLogsCols[] = {"Time", "Sensor ID", "Status"};
+        Object systemLogsData[][] = {{"10:00:00", "Sensor 1-Test", "Connected"},
+                                     {"10:05:00", "Sensor 2-Test", "Connected"},
+                                     {"10:10:00", "Sensor 3-Test", "Disconnected"},
+                                     {"10:15:00", "Sensor 4-Test", "Connected"},
+                                     {"10:20:00", "Sensor 5-Test", "Disconnected"}};
+        JTable systemLogsTable = new JTable(systemLogsData, systemLogsCols);
+        systemLogsTable.setFont(new Font("Arial", Font.BOLD, 13));
+        systemLogsTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        systemLogsTable.setRowHeight(24);
+        systemLogsTable.setFillsViewportHeight(true);
+        systemLogsTable.setFocusable(true);
+        //helps centerin the data in the table
+        DefaultTableCellRenderer systemLogsCenterRenderer = new DefaultTableCellRenderer();
+        systemLogsCenterRenderer.setHorizontalAlignment(JLabel.CENTER);
+        for (int i = 0; i < systemLogsTable.getColumnCount(); i++) {
+            systemLogsTable.getColumnModel().getColumn(i).setCellRenderer(systemLogsCenterRenderer);
+        }
+        //helps centerin the header of the table
+        ((DefaultTableCellRenderer) systemLogsTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+        JScrollPane systemLogsScrollPane = new JScrollPane(systemLogsTable);
+        systemLogsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        systemLogsScrollPane.setBounds(10, 30, 290, 270);
+        systemLogsPanel.add(systemLogsScrollPane);
 
      
 
