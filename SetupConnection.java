@@ -145,7 +145,47 @@ public class SetupConnection extends JFrame {
         configureSensorPanel.add(configureTitleLabel, BorderLayout.NORTH);
         setupPanel.add(configureSensorPanel);
 
-        
+        String configureSensorCols[] = {"Sensor ID", "Location", "Status", "Device Type"};
+        Object configureSensorData[][] = {{"Sensor 1-Test", "Lobby", "Connected", "HUB"},
+                                         {"Sensor 2-Test", "Hallway", "Connected", "ACCELEROMETER"},
+                                         {"Sensor 3-Test", "Roof", "Disconnected", "ACCELEROMETER"},
+                                         {"Sensor 4-Test", "Basement", "Connected", "ACCELEROMETER"},
+                                         {"Sensor 5-Test", "Garden", "Disconnected", "ACCELEROMETER"}};
+
+        JTable configureSensorTable = new JTable(configureSensorData, configureSensorCols);
+        configureSensorTable.setFont(new Font("Arial", Font.BOLD, 13));
+        configureSensorTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        configureSensorTable.setRowHeight(24);
+        configureSensorTable.setFillsViewportHeight(true);
+        configureSensorTable.setFocusable(true);
+
+        //helps centerin the data in the table
+        DefaultTableCellRenderer configureCenterRenderer = new DefaultTableCellRenderer();
+        configureCenterRenderer.setHorizontalAlignment(JLabel.CENTER);
+        for (int i = 0; i < configureSensorTable.getColumnCount(); i++) {
+            configureSensorTable.getColumnModel().getColumn(i).setCellRenderer(configureCenterRenderer);
+        }
+        //helps centerin the header of the table
+        ((DefaultTableCellRenderer) configureSensorTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+        JScrollPane configureSensorScrollPane = new JScrollPane(configureSensorTable);
+        configureSensorScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        configureSensorPanel.add(configureSensorScrollPane, BorderLayout.CENTER);
+
+        //sensor setup guide panel
+        JPanel sensorSetupGuidePanel = new JPanel();
+        sensorSetupGuidePanel.setLayout(null);
+        sensorSetupGuidePanel.setBounds(370 + 700 + 10,60,310,350);
+
+        Border sensorSetupGuideBorder = BorderFactory.createLineBorder(Color.BLACK);
+        TitledBorder sensorSetupGuideTitle = BorderFactory.createTitledBorder(sensorSetupGuideBorder, "Sensor Setup Guide");
+        sensorSetupGuideTitle.setTitleFont(new Font("Arial", Font.BOLD, 17));
+        sensorSetupGuideTitle.setTitleColor(Color.BLACK);
+        sensorSetupGuidePanel.setBorder(sensorSetupGuideTitle);
+        setupPanel.add(sensorSetupGuidePanel);
+
+
+
+
 
 
      
