@@ -4,9 +4,12 @@ import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class SetupConnection extends JFrame {
 
@@ -28,7 +31,8 @@ public class SetupConnection extends JFrame {
         JPanel buildingInfoPanel = new JPanel();
         buildingInfoPanel.setLayout(null);
         buildingInfoPanel.setBounds(10, 10, 350, 300);
-
+    
+        //building information panel
         Border buildingBorder = BorderFactory.createLineBorder(Color.BLACK);
         TitledBorder buildingTitle = BorderFactory.createTitledBorder(buildingBorder,"Building Profile Information");
         buildingTitle.setTitleFont(new Font("Arial", Font.BOLD, 17));
@@ -72,11 +76,7 @@ public class SetupConnection extends JFrame {
         descriptionLabel.setBounds(20, 150, 150, 25);
         buildingInfoPanel.add(descriptionLabel);
 
-        
-
-
-
-
+        //esp32 status panel
         JPanel esp32StatusPanel = new JPanel();
         esp32StatusPanel.setLayout(null);
         esp32StatusPanel.setBounds(10, 320, 350, 420);
@@ -86,6 +86,27 @@ public class SetupConnection extends JFrame {
         espTitle.setTitleFont(new Font("Arial", Font.BOLD, 17));
         espTitle.setTitleColor(Color.BLACK);
         esp32StatusPanel.setBorder(espTitle);
+        setupPanel.add(esp32StatusPanel);
+
+        String[] sensorCols = {"Sensor ID", "Location", "Status"};
+        Object[][] sensorData = {};
+
+        JTable sensorTable = new JTable(sensorData, sensorCols);
+        sensorTable.setFont(new Font("Arial", Font.BOLD, 13));
+        sensorTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+
+        //helps centerin the data in the table
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        for (int i = 0; i < sensorTable.getColumnCount(); i++) {
+            sensorTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
+        //helps centerin the header of the table
+        ((DefaultTableCellRenderer) sensorTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+
+        JScrollPane sensorScrollPane = new JScrollPane(sensorTable);
+        sensorScrollPane.setBounds(10, 20, 330, 385);
+        esp32StatusPanel.add(sensorScrollPane);
         setupPanel.add(esp32StatusPanel);
 
         setupTabs.addTab("Setup & Connection", setupPanel);
@@ -126,9 +147,6 @@ public class SetupConnection extends JFrame {
     public static void main(String[] args) {
         new SetupConnection();
     }
-
-    
-
 }
 
 
