@@ -1,3 +1,4 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import javax.swing.BorderFactory;
@@ -89,11 +90,18 @@ public class SetupConnection extends JFrame {
         setupPanel.add(esp32StatusPanel);
 
         String[] sensorCols = {"Sensor ID", "Location", "Status"};
-        Object[][] sensorData = {};
+        Object[][] sensorData = {{"Sensor 1-Test", "Lobby", "Connected"},
+                                 {"Sensor 2-Test", "Hallway", "Connected"},
+                                 {"Sensor 3-Test", "Roof", "Disconnected"},
+                                 {"Sensor 4-Test", "Basement", "Connected"},
+                                 {"Sensor 5-Test", "Garden", "Disconnected"}};
 
         JTable sensorTable = new JTable(sensorData, sensorCols);
         sensorTable.setFont(new Font("Arial", Font.BOLD, 13));
         sensorTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        sensorTable.setRowHeight(24);
+        sensorTable.setFillsViewportHeight(true);
+        sensorTable.setFocusable(true);
 
         //helps centerin the data in the table
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
@@ -105,9 +113,24 @@ public class SetupConnection extends JFrame {
         ((DefaultTableCellRenderer) sensorTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
 
         JScrollPane sensorScrollPane = new JScrollPane(sensorTable);
-        sensorScrollPane.setBounds(10, 20, 330, 385);
+        sensorScrollPane.setBounds(10, 30, 330, 380);
+        sensorScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+
+        esp32StatusPanel.setComponentZOrder(sensorScrollPane, 0);
+        esp32StatusPanel.revalidate();
+        esp32StatusPanel.repaint();
         esp32StatusPanel.add(sensorScrollPane);
-        setupPanel.add(esp32StatusPanel);
+
+        //description panel
+        JPanel centerPanelDescription = new JPanel(new BorderLayout());
+        centerPanelDescription.setBounds(370, 20, 1020, 40);
+        Border descriptionBorder = BorderFactory.createLineBorder(Color.GRAY);
+        centerPanelDescription.setBorder(descriptionBorder);
+
+        JLabel centerTitleLabel = new JLabel("Connect the ESP32 hub to monitor the condition of a heritage building",JLabel.CENTER);
+        centerTitleLabel.setFont(new Font("Arial", Font.ITALIC | Font.BOLD, 24));
+        centerPanelDescription.add(centerTitleLabel, BorderLayout.NORTH);
+        setupPanel.add(centerPanelDescription);
 
         setupTabs.addTab("Setup & Connection", setupPanel);
         setupTabs.addTab("Analysis", new JPanel());
@@ -148,5 +171,3 @@ public class SetupConnection extends JFrame {
         new SetupConnection();
     }
 }
-
-
