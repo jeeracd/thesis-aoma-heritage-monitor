@@ -128,9 +128,27 @@ public class SetupConnection extends JFrame {
         centerPanelDescription.setBorder(descriptionBorder);
 
         JLabel centerTitleLabel = new JLabel("Connect the ESP32 hub to monitor the condition of a heritage building",JLabel.CENTER);
-        centerTitleLabel.setFont(new Font("Arial", Font.ITALIC | Font.BOLD, 24));
+        centerTitleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        centerTitleLabel.setFont(new Font("Arial", Font.ITALIC | Font.BOLD, 20));
         centerPanelDescription.add(centerTitleLabel, BorderLayout.NORTH);
         setupPanel.add(centerPanelDescription);
+
+        //conifgure sensor panel
+        JPanel configureSensorPanel = new JPanel(new BorderLayout());
+        configureSensorPanel.setBounds(370, 70, 700, 670);
+        Border configureBorder = BorderFactory.createLineBorder(Color.GRAY);
+        configureSensorPanel.setBorder(configureBorder);
+
+        JLabel configureTitleLabel = new JLabel("Configure Sensors", JLabel.LEFT);
+        configureTitleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        configureTitleLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        configureSensorPanel.add(configureTitleLabel, BorderLayout.NORTH);
+        setupPanel.add(configureSensorPanel);
+
+        
+
+
+     
 
         setupTabs.addTab("Setup & Connection", setupPanel);
         setupTabs.addTab("Analysis", new JPanel());
@@ -157,9 +175,7 @@ public class SetupConnection extends JFrame {
 
                 g.setFont(font);
                 g.setColor(isSelected ? Color.WHITE : Color.BLACK);
-                g.drawString(title,
-                        textRect.x,
-                        textRect.y + metrics.getAscent());
+                g.drawString(title,textRect.x, textRect.y + metrics.getAscent());
             }
         });
 
