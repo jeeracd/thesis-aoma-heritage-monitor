@@ -2,6 +2,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -40,6 +41,21 @@ public class SetupConnection extends JFrame {
         buildingTitle.setTitleColor(Color.BLACK);
         buildingInfoPanel.setBorder(buildingTitle);
         setupPanel.add(buildingInfoPanel);
+
+        // Placing a small "Edit" button in the top-right corner of the panel
+        JButton editBuildingBtn = new JButton("Edit");
+        editBuildingBtn.setFont(new Font("Arial", Font.PLAIN, 11));
+        editBuildingBtn.setBounds(270, 20, 60, 25); // Positioned top-right inside the panel
+        editBuildingBtn.setFocusable(false);
+        editBuildingBtn.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                // Open the new EditStructuralDetails window
+                new EditStructuralDetails();
+            }
+        });
+        buildingInfoPanel.add(editBuildingBtn);
+
 
         //deets for Building Information and Edit Structural Details
         JLabel buildingNameLabel = new JLabel("Building Name:");
