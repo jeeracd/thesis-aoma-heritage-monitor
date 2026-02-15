@@ -109,6 +109,8 @@ public class SetupConnection extends JFrame {
         for (int i = 0; i < sensorTable.getColumnCount(); i++) {
             sensorTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
+        sensorTable.getColumnModel().getColumn(2).setCellRenderer(new StatusColorRenderer());
+
         //helps centerin the header of the table
         ((DefaultTableCellRenderer) sensorTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
 
@@ -165,6 +167,9 @@ public class SetupConnection extends JFrame {
         for (int i = 0; i < configureSensorTable.getColumnCount(); i++) {
             configureSensorTable.getColumnModel().getColumn(i).setCellRenderer(configureCenterRenderer);
         }
+
+        configureSensorTable.getColumnModel().getColumn(2).setCellRenderer(new StatusColorRenderer());
+
         //helps centerin the header of the table
         ((DefaultTableCellRenderer) configureSensorTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
         JScrollPane configureSensorScrollPane = new JScrollPane(configureSensorTable);
@@ -206,12 +211,16 @@ public class SetupConnection extends JFrame {
         systemLogsTable.setRowHeight(24);
         systemLogsTable.setFillsViewportHeight(true);
         systemLogsTable.setFocusable(true);
+        
         //helps centerin the data in the table
         DefaultTableCellRenderer systemLogsCenterRenderer = new DefaultTableCellRenderer();
         systemLogsCenterRenderer.setHorizontalAlignment(JLabel.CENTER);
         for (int i = 0; i < systemLogsTable.getColumnCount(); i++) {
             systemLogsTable.getColumnModel().getColumn(i).setCellRenderer(systemLogsCenterRenderer);
         }
+
+        systemLogsTable.getColumnModel().getColumn(2).setCellRenderer(new StatusColorRenderer());
+
         //helps centerin the header of the table
         ((DefaultTableCellRenderer) systemLogsTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
         JScrollPane systemLogsScrollPane = new JScrollPane(systemLogsTable);
@@ -219,7 +228,6 @@ public class SetupConnection extends JFrame {
         systemLogsScrollPane.setBounds(10, 30, 290, 270);
         systemLogsPanel.add(systemLogsScrollPane);
 
-     
 
         setupTabs.addTab("Setup & Connection", setupPanel);
         setupTabs.addTab("Analysis", new JPanel());
@@ -257,4 +265,25 @@ public class SetupConnection extends JFrame {
     public static void main(String[] args) {
         new SetupConnection();
     }
+class StatusColorRenderer extends DefaultTableCellRenderer {
+    @Override
+    public void setValue(Object value) {
+        super.setValue(value);
+
+        if (value != null) {
+            String text = value.toString().toLowerCase();
+
+            if (text.equals("connected")) {
+                setForeground(new Color(0, 153, 0)); // green
+            } else if (text.equals("disconnected")) {
+                setForeground(Color.RED);
+            } else {
+                setForeground(Color.BLACK);
+            }
+        }
+        setHorizontalAlignment(JLabel.CENTER);
+    }
 }
+
+}
+
