@@ -9,8 +9,13 @@ import com.fazecast.jSerialComm.SerialPort; //this is used for connecting the ES
 /*
 in order to use the jserialcomm tapos mag run ang landing page for the mean time type this in the vsc terminal mga pre::
 
+For Mac/Linux
 javac -cp .:jserialcomm-2.11.4.jar LandingPage.java
 java  -cp .:jserialcomm-2.11.4.jar LandingPage
+
+For Windows
+javac -cp .;jserialcomm-2.11.4.jar LandingPage.java
+java  -cp .;jserialcomm-2.11.4.jar LandingPage
 
 */
 
@@ -114,7 +119,6 @@ public class LandingPage extends JFrame implements ActionListener {
                 ESP32StatusLabel.setText("Status: Connected (" + sysName + ")");
                 ESP32StatusLabel.setForeground(Color.GREEN);
 
-                // Delay then go to SetupConnection
                 Timer timer = new Timer(5000, evt -> {
                     dispose();
                     new SetupConnection();
