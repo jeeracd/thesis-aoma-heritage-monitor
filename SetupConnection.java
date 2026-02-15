@@ -171,9 +171,25 @@ public class SetupConnection extends JFrame {
 
         //helps centerin the header of the table
         ((DefaultTableCellRenderer) configureSensorTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+
         JScrollPane configureSensorScrollPane = new JScrollPane(configureSensorTable);
         configureSensorScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         configureSensorPanel.add(configureSensorScrollPane, BorderLayout.CENTER);
+
+        //sensor status panel inside configure sensor panel
+        JPanel sensorStatusWrapper = new JPanel(new BorderLayout());
+        sensorStatusWrapper.setOpaque(false);
+
+        JPanel sensorStatusPanel = new JPanel(new BorderLayout());
+        sensorStatusPanel.setPreferredSize(new java.awt.Dimension(350, 350));
+
+        TitledBorder sensorStatusBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY),
+        "Sensor Status");
+        sensorStatusBorder.setTitleFont(new Font("Arial", Font.BOLD, 15));
+        sensorStatusPanel.setBorder(sensorStatusBorder);
+
+        sensorStatusWrapper.add(sensorStatusPanel, BorderLayout.WEST);
+        configureSensorPanel.add(sensorStatusWrapper, BorderLayout.SOUTH);
 
         //sensor setup guide panel
         JPanel sensorSetupGuidePanel = new JPanel();
