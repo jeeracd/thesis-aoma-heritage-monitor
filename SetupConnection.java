@@ -181,7 +181,7 @@ public class SetupConnection extends JFrame {
         sensorStatusWrapper.setOpaque(false);
 
         JPanel sensorStatusPanel = new JPanel(new BorderLayout());
-        sensorStatusPanel.setPreferredSize(new java.awt.Dimension(350, 350));
+        sensorStatusPanel.setPreferredSize(new java.awt.Dimension(690, 200));
 
         TitledBorder sensorStatusBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY),
         "Sensor Status");
@@ -252,7 +252,7 @@ public class SetupConnection extends JFrame {
         setupPanel.add(sensorConnectionStatusLabel);
 
         setupTabs.addTab("Setup & Connection", setupPanel);
-        setupTabs.addTab("Analysis", new JPanel());
+        setupTabs.addTab("Analysis", new AnalysisReport());
         setupTabs.addTab("Report", new JPanel());
 
         setupTabs.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
