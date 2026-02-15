@@ -1,12 +1,13 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.Timer;
 import javax.swing.*;
 import com.fazecast.jSerialComm.SerialPort; //this is used for connecting the ESP32 
 
 
 /*
-in order to use the jserialcomm for the mean time type this in the terminal mga pre::
+in order to use the jserialcomm tapos mag run ang landing page for the mean time type this in the vsc terminal mga pre::
 
 javac -cp .:jserialcomm-2.11.4.jar LandingPage.java
 java  -cp .:jserialcomm-2.11.4.jar LandingPage
@@ -77,32 +78,56 @@ public class LandingPage extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == landingButton) {
-            //System.out.println("Test click in landing page button");
-            boolean esp32Connected = checkESP32Connection();
-            if(esp32Connected){
-                ESP32StatusLabel.setText("Status: ESP32 Hub Connected");
-                ESP32StatusLabel.setForeground(Color.GREEN);
-            }
-            else{
-                ESP32StatusLabel.setText("Status: ESP32 Hub Not Connected");
-                ESP32StatusLabel.setForeground(Color.RED);
-            }
+            testAndConnectESP32();
         }
     }
-    private boolean checkESP32Connection() {
+
+    private void testAndConnectESP32() {
+
+        ESP32StatusLabel.setText("Status: Scanning ports...");
+        ESP32StatusLabel.setForeground(Color.BLACK);
+
         SerialPort[] ports = SerialPort.getCommPorts();
 
         for (SerialPort port : ports) {
-            System.out.println("Detected port: " + port.getDescriptivePortName());
 
-            if (port.getDescriptivePortName().toLowerCase().contains("usb")
-                    || port.getDescriptivePortName().toLowerCase().contains("cp210")
-                    || port.getDescriptivePortName().toLowerCase().contains("ch340")) {
+            String sysName = port.getSystemPortName();
+            String desc = port.getDescriptivePortName();
 
-                return true; // ESP32 detected
+            System.out.println("Trying port: " + sysName + " (" + desc + ")");
+
+            // Skip Bluetooth & virtual ports
+            if (desc.toLowerCase().contains("bluetooth")
+                    || desc.toLowerCase().contains("dial")
+                    || desc.toLowerCase().contains("debug")) {
+                continue;
+            }
+
+            port.setBaudRate(115200);
+            port.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 0);
+
+            if (port.openPort()) {
+
+                System.out.println("ESP32 connected on: " + sysName);
+                port.closePort();
+
+                ESP32StatusLabel.setText("Status: Connected (" + sysName + ")");
+                ESP32StatusLabel.setForeground(Color.GREEN);
+
+                // Delay then go to SetupConnection
+                Timer timer = new Timer(5000, evt -> {
+                    dispose();
+                    new SetupConnection();
+                });
+                timer.setRepeats(false);
+                timer.start();
+
+                return;
             }
         }
-        return false; // ESP32 not found
+
+        ESP32StatusLabel.setText("Status: ESP32 Hub Not Connected");
+        ESP32StatusLabel.setForeground(Color.RED);
     }
 
     public static void main(String[] args) {
