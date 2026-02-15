@@ -2,7 +2,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import javax.swing.BorderFactory;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -14,17 +13,15 @@ import javax.swing.table.DefaultTableCellRenderer;
 public class AnalysisReport extends JPanel {
 
     public AnalysisReport() {
-        setLayout(new BorderLayout());
-        JFrame analysisReportFrame = new JFrame("AOMA-Heritage Monitor - Analysis");
-        analysisReportFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        analysisReportFrame.setSize(1400, 850);
-        analysisReportFrame.setLocationRelativeTo(null);
-        
-        JPanel analysisReportPanel = new JPanel(new BorderLayout());
-        analysisReportPanel.setLayout(null);
+        setLayout(null);
+        setBounds(0, 0, 1400, 850);
 
-        JPanel buildingInfoPanel = new JPanel();
-        buildingInfoPanel.setLayout(null);
+         // MAIN container panel (your existing panel)
+        JPanel analysisReportPanel = new JPanel(null);
+        setPreferredSize(new java.awt.Dimension(1400, 850));
+        analysisReportPanel.setBounds(0, 0, 1400, 850);
+
+        JPanel buildingInfoPanel = new JPanel(null);
         buildingInfoPanel.setBounds(10, 10, 350, 300);
 
         //building information panel
@@ -242,10 +239,16 @@ public class AnalysisReport extends JPanel {
         systemLogsScrollPane.setBounds(10, 30, 290, 270);
         systemLogsPanel.add(systemLogsScrollPane);
 
+        JLabel sensorConnectionStatusLabel = new JLabel("Status: ESP32 Hub Connected", JLabel.LEFT);
+        sensorConnectionStatusLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        sensorConnectionStatusLabel.setForeground(new Color(0, 153, 0));
 
+        // BELOW esp32StatusPanel (outside it)
+        sensorConnectionStatusLabel.setBounds(10, 320 + 420 + 10, 350,25);
+        analysisReportPanel.add(sensorConnectionStatusLabel);
 
-        analysisReportFrame.add(analysisReportPanel);
-        analysisReportFrame.setVisible(true);
+        add(analysisReportPanel);
+        
     }
 
     public static void main(String[] args) {
