@@ -2,6 +2,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -16,7 +17,7 @@ public class AnalysisReport extends JPanel {
         setLayout(null);
         setBounds(0, 0, 1400, 850);
 
-         // MAIN container panel (your existing panel)
+        
         JPanel analysisReportPanel = new JPanel(null);
         setPreferredSize(new java.awt.Dimension(1400, 850));
         analysisReportPanel.setBounds(0, 0, 1400, 850);
@@ -31,6 +32,20 @@ public class AnalysisReport extends JPanel {
         buildingTitle.setTitleColor(Color.BLACK);
         buildingInfoPanel.setBorder(buildingTitle);
         analysisReportPanel.add(buildingInfoPanel);
+
+        // Placing a small "Edit" button in the top-right corner of the panel
+        JButton editBuildingBtn = new JButton("Edit");
+        editBuildingBtn.setFont(new Font("Arial", Font.PLAIN, 11));
+        editBuildingBtn.setBounds(270, 20, 60, 25); // Positioned top-right inside the panel
+        editBuildingBtn.setFocusable(false);
+        editBuildingBtn.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                // Open the new EditStructuralDetails window
+                new EditStructuralDetails();
+            }
+        });
+        buildingInfoPanel.add(editBuildingBtn);
         
         //deets for Building Information and Edit Structural Details
         JLabel buildingNameLabel = new JLabel("Building Name:");
@@ -79,6 +94,21 @@ public class AnalysisReport extends JPanel {
         espTitle.setTitleColor(Color.BLACK);
         esp32StatusPanel.setBorder(espTitle);
         analysisReportPanel.add(esp32StatusPanel);
+
+        // Placing a small "Configure Sensors" button in the top-right corner of the panel
+        JButton configureSensorsBtn = new JButton("Configure Sensors");
+        configureSensorsBtn.setFont(new Font("Arial", Font.PLAIN, 11));
+        configureSensorsBtn.setFocusable(false);
+        configureSensorsBtn.setBounds(340 - 10 - 90, 3, 100, 22);
+
+        configureSensorsBtn.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                // Open the new ConfigureSensors window
+                new ConfigureSensors();
+            }
+        });
+        esp32StatusPanel.add(configureSensorsBtn);
 
         String[] sensorCols = {"Sensor ID", "Location", "Status"};
         Object[][] sensorData = {{"Sensor 1-Test", "Lobby", "Connected"},
