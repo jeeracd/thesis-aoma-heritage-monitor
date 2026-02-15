@@ -111,7 +111,6 @@ public class SetupConnection extends JFrame {
         }
         sensorTable.getColumnModel().getColumn(2).setCellRenderer(new StatusColorRenderer());
 
-        //helps centerin the header of the table
         ((DefaultTableCellRenderer) sensorTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
 
         JScrollPane sensorScrollPane = new JScrollPane(sensorTable);
@@ -135,7 +134,7 @@ public class SetupConnection extends JFrame {
         centerPanelDescription.add(centerTitleLabel, BorderLayout.NORTH);
         setupPanel.add(centerPanelDescription);
 
-        //conifgure sensor panel
+        //configure sensor panel
         JPanel configureSensorPanel = new JPanel(new BorderLayout());
         configureSensorPanel.setBounds(370, 70, 700, 670);
         Border configureBorder = BorderFactory.createLineBorder(Color.GRAY);
@@ -228,6 +227,13 @@ public class SetupConnection extends JFrame {
         systemLogsScrollPane.setBounds(10, 30, 290, 270);
         systemLogsPanel.add(systemLogsScrollPane);
 
+        JLabel sensorConnectionStatusLabel = new JLabel("Status: ESP32 Hub Connected", JLabel.LEFT);
+        sensorConnectionStatusLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        sensorConnectionStatusLabel.setForeground(new Color(0, 153, 0));
+
+        // BELOW esp32StatusPanel (outside it)
+        sensorConnectionStatusLabel.setBounds(10, 320 + 420 + 10, 350,25);
+        setupPanel.add(sensorConnectionStatusLabel);
 
         setupTabs.addTab("Setup & Connection", setupPanel);
         setupTabs.addTab("Analysis", new JPanel());
