@@ -13,23 +13,19 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-
 public class LoginOptions extends JFrame {
 
     public LoginOptions() {
 
-        // JFrame settings
         setTitle("AOMA-Heritage Monitor - Login Options");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(700, 700);
         setLocationRelativeTo(null);
 
-        // Main panel (vertical layout)
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 80, 40, 80));
 
-        // Title
         JLabel optionTitleLabel = new JLabel("AOMA-Heritage Monitor");
         optionTitleLabel.setFont(new Font("Arial", Font.BOLD, 25));
         optionTitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -37,20 +33,17 @@ public class LoginOptions extends JFrame {
 
         mainPanel.add(Box.createVerticalStrut(10));
 
-        // Subtitle
         JLabel optionSubtitleLabel = new JLabel("By RJ13 Connectors");
         optionSubtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         optionSubtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(optionSubtitleLabel);
 
-        // Account Login label
         JLabel accountLoginLabel = new JLabel("Account Login");
         accountLoginLabel.setFont(new Font("Arial", Font.BOLD, 16));
         accountLoginLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(Box.createVerticalStrut(40));
         mainPanel.add(accountLoginLabel);
 
-        // Buttons
         JButton lguHeadBtn = new JButton("LGU Head");
         lguHeadBtn.addActionListener(e -> {
             new HeadLogin();
@@ -89,7 +82,6 @@ public class LoginOptions extends JFrame {
         engineerBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
         officerBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Create account label
         JLabel createAccountLabel = new JLabel("Don't have an account? Create an account here.");
         createAccountLabel.setFont(new Font("Arial", Font.BOLD, 12));
         createAccountLabel.setForeground(Color.BLACK);
@@ -99,8 +91,8 @@ public class LoginOptions extends JFrame {
         createAccountLabel.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
-            new CreateAccount();  // open CreateAccount window
-            dispose();            // close LoginOptions window
+            new CreateAccount();  
+            dispose();            
         }
     });
         mainPanel.add(Box.createVerticalStrut(40));
