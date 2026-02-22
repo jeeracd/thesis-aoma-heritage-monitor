@@ -10,7 +10,7 @@ public class OfficerLogin extends JFrame {
 
     public OfficerLogin() {
         setTitle("AOMA-Heritage Monitor - LGU Officer Login");
-        setSize(680, 600);
+        setSize(680, 590);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
