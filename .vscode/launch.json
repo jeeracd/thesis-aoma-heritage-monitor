@@ -6,6 +6,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "test",
+            "request": "launch",
+            "mainClass": "test",
+            "projectName": "thesis-aoma-heritage-monitor_1672cd82"
+        },
+        {
+            "type": "java",
+            "name": "SetupConnection",
+            "request": "launch",
+            "mainClass": "SetupConnection",
+            "projectName": "thesis-aoma-heritage-monitor_1672cd82"
+        },
+        {
+            "type": "java",
             "name": "LandingPage",
             "request": "launch",
             "mainClass": "LandingPage",

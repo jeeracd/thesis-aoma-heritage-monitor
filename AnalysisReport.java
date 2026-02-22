@@ -223,10 +223,11 @@ public class AnalysisReport extends JPanel {
         dampingRatiosLabel.setBounds(20, 170, 150, 25);
         omaAnalysisResults2Panel.add(dampingRatiosLabel);
 
-        JLabel structuralChangesLabel = new JLabel("Structural Changes:");
-        structuralChangesLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        structuralChangesLabel.setBounds(20, 300, 150, 25);
-        omaAnalysisResults2Panel.add(structuralChangesLabel);
+
+        JLabel modeShapeLabel = new JLabel("Mode Shape:");
+        modeShapeLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        modeShapeLabel.setBounds(20, 300, 150, 25);
+        omaAnalysisResults2Panel.add(modeShapeLabel);
 
         //system logs panel
         JPanel systemLogsPanel = new JPanel();

@@ -1,5 +1,7 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -56,7 +58,6 @@ public class SetupConnection extends JFrame {
         });
         buildingInfoPanel.add(editBuildingBtn);
 
-
         //deets for Building Information and Edit Structural Details
         JLabel buildingNameLabel = new JLabel("Building Name:");
         buildingNameLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -105,6 +106,7 @@ public class SetupConnection extends JFrame {
         esp32StatusPanel.setBorder(espTitle);
         setupPanel.add(esp32StatusPanel);
 
+
         // Placing a small "Configure Sensors" button in the top-right corner of the panel
         JButton configureSensorsBtn = new JButton("Configure Sensors");
         configureSensorsBtn.setFont(new Font("Arial", Font.PLAIN, 11));
@@ -119,7 +121,6 @@ public class SetupConnection extends JFrame {
             }
         });
         esp32StatusPanel.add(configureSensorsBtn);
-
 
         String[] sensorCols = {"Sensor ID", "Location", "Status"};
         Object[][] sensorData = {{"Sensor 1-Test", "Lobby", "Connected"},
@@ -153,9 +154,6 @@ public class SetupConnection extends JFrame {
         esp32StatusPanel.revalidate();
         esp32StatusPanel.repaint();
         esp32StatusPanel.add(sensorScrollPane);
-
-        
-
 
         //description panel
         JPanel centerPanelDescription = new JPanel(new BorderLayout());
@@ -216,20 +214,57 @@ public class SetupConnection extends JFrame {
         sensorStatusWrapper.setOpaque(false);
 
         JPanel sensorStatusPanel = new JPanel(new BorderLayout());
-        sensorStatusPanel.setPreferredSize(new java.awt.Dimension(690, 200));
+        sensorStatusPanel.setPreferredSize(new java.awt.Dimension(300, 200));
 
-        TitledBorder sensorStatusBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY),
-        "Sensor Status");
+        TitledBorder sensorStatusBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY),"Sensor Status");
         sensorStatusBorder.setTitleFont(new Font("Arial", Font.BOLD, 15));
         sensorStatusPanel.setBorder(sensorStatusBorder);
 
         sensorStatusWrapper.add(sensorStatusPanel, BorderLayout.WEST);
         configureSensorPanel.add(sensorStatusWrapper, BorderLayout.SOUTH);
 
+        // Center panel to prevent stretching
+        JPanel buttonHolder = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
+        buttonHolder.setOpaque(false);
+
+        JLabel sensorStatusLabel = new JLabel("Connection established. Start data acquisition.");
+        sensorStatusLabel.setFont(new Font("Arial", Font.BOLD, 11));
+        sensorStatusLabel.setHorizontalAlignment(JLabel.CENTER);
+        sensorStatusPanel.add(sensorStatusLabel, BorderLayout.CENTER);
+
+        // Small green button
+        JButton sensorStatusBtn = new JButton("Start Data Acquisition");
+        sensorStatusBtn.setFont(new Font("Arial", Font.BOLD, 12));
+        sensorStatusBtn.setPreferredSize(new Dimension(180, 28));
+        sensorStatusBtn.setFocusable(false);
+
+        sensorStatusBtn.setBackground(new Color(0, 153, 0));
+        sensorStatusBtn.setForeground(Color.WHITE);
+        sensorStatusBtn.setOpaque(true);
+        sensorStatusBtn.setBorderPainted(false);
+
+        sensorStatusBtn.addActionListener(e -> {
+            new AnalysisReport();
+        });
+
+        buttonHolder.setOpaque(false);
+        buttonHolder.add(sensorStatusBtn);
+        sensorStatusPanel.add(buttonHolder, BorderLayout.SOUTH);
+
+        //upload csv data panel inside configure sensor panel
+        JPanel uploadCSVDataPanel = new JPanel(new BorderLayout());
+        uploadCSVDataPanel.setPreferredSize(new java.awt.Dimension(400, 200));
+
+        TitledBorder uploadCSVBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY),"Upload CSV Data");
+        uploadCSVBorder.setTitleFont(new Font("Arial", Font.BOLD, 15));
+        uploadCSVDataPanel.setBorder(uploadCSVBorder);
+        sensorStatusWrapper.add(uploadCSVDataPanel, BorderLayout.EAST);
+
+
         //sensor setup guide panel
         JPanel sensorSetupGuidePanel = new JPanel();
         sensorSetupGuidePanel.setLayout(null);
-        sensorSetupGuidePanel.setBounds(370 + 700 + 10,60,310,350);
+        sensorSetupGuidePanel.setBounds(380 + 700 + 10,60,310,350);
 
         Border sensorSetupGuideBorder = BorderFactory.createLineBorder(Color.BLACK);
         TitledBorder sensorSetupGuideTitle = BorderFactory.createTitledBorder(sensorSetupGuideBorder, "Sensor Setup Guide");

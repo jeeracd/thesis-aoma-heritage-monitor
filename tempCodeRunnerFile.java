@@ -1,1 +1,1 @@
-AOMA-Heritage Monitor
+        mainPanel.add(Box.createVerticalStrut(40));
