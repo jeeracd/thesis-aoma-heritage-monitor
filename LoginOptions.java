@@ -1,6 +1,10 @@
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -8,6 +12,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
 
 public class LoginOptions extends JFrame {
 
@@ -47,8 +52,22 @@ public class LoginOptions extends JFrame {
 
         // Buttons
         JButton lguHeadBtn = new JButton("LGU Head");
+        lguHeadBtn.addActionListener(e -> {
+            new HeadLogin();
+            dispose();
+        });
+
         JButton engineerBtn = new JButton("Structural Engineer");
+        engineerBtn.addActionListener(e -> {
+            new EngineerLogin();
+            dispose();
+        });
+
         JButton officerBtn = new JButton("LGU Officer");
+        officerBtn.addActionListener(e -> {
+            new OfficerLogin();
+            dispose();
+        });
 
         mainPanel.add(Box.createVerticalStrut(30));
         mainPanel.add(lguHeadBtn);
@@ -72,9 +91,18 @@ public class LoginOptions extends JFrame {
 
         // Create account label
         JLabel createAccountLabel = new JLabel("Don't have an account? Create an account here.");
-        createAccountLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        createAccountLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        createAccountLabel.setForeground(Color.BLACK);
+        createAccountLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
         createAccountLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-                
+
+        createAccountLabel.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            new CreateAccount();  // open CreateAccount window
+            dispose();            // close LoginOptions window
+        }
+    });
         mainPanel.add(Box.createVerticalStrut(40));
         mainPanel.add(createAccountLabel);
 
