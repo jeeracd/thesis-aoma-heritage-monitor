@@ -116,9 +116,16 @@ public class CreateAccount extends JFrame {
         submitButton.setPreferredSize(new Dimension(120, 35));
         submitButton.setMaximumSize(new Dimension(120, 35));
         submitButton.setBorder(new LineBorder(Color.BLACK, 2));
+        submitButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
         submitButton.setFocusPainted(false);
 
-        
+        submitButton.addActionListener(e -> {
+        new CreateAccountConfirmation().setVisible(true);
+        dispose();
+        });
+
+
 
         JPanel submitPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         submitPanel.setAlignmentX(Component.LEFT_ALIGNMENT);

@@ -12,12 +12,14 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
 
 public class LoginOptions extends JFrame {
 
     public LoginOptions() {
 
-        setTitle("AOMA-Heritage Monitor - Login Options");
+        setTitle("AOMA-Heritage Monitor - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(700, 700);
         setLocationRelativeTo(null);
@@ -38,50 +40,37 @@ public class LoginOptions extends JFrame {
         optionSubtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(optionSubtitleLabel);
 
+        mainPanel.add(Box.createVerticalStrut(40));
         JLabel accountLoginLabel = new JLabel("Account Login");
         accountLoginLabel.setFont(new Font("Arial", Font.BOLD, 16));
         accountLoginLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(Box.createVerticalStrut(40));
         mainPanel.add(accountLoginLabel);
 
-        JButton lguHeadBtn = new JButton("LGU Head");
-        lguHeadBtn.addActionListener(e -> {
-            new HeadLogin();
-            dispose();
-        });
+        mainPanel.add(Box.createVerticalStrut(25));
+        JTextField emailField = new JTextField();
+        emailField.setMaximumSize(new Dimension(300, 40));
+        emailField.setFont(new Font("Arial", Font.PLAIN, 14));
+        emailField.setBorder(BorderFactory.createTitledBorder("Email"));
+        emailField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        mainPanel.add(emailField);
 
-        JButton engineerBtn = new JButton("Structural Engineer");
-        engineerBtn.addActionListener(e -> {
-            new EngineerLogin();
-            dispose();
-        });
-
-        JButton officerBtn = new JButton("LGU Officer");
-        officerBtn.addActionListener(e -> {
-            new OfficerLogin();
-            dispose();
-        });
-
-        mainPanel.add(Box.createVerticalStrut(30));
-        mainPanel.add(lguHeadBtn);
         mainPanel.add(Box.createVerticalStrut(15));
-        mainPanel.add(engineerBtn);
-        mainPanel.add(Box.createVerticalStrut(15));
-        mainPanel.add(officerBtn);
+        JPasswordField passwordField = new JPasswordField();
+        passwordField.setMaximumSize(new Dimension(300, 40));
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
+        passwordField.setBorder(BorderFactory.createTitledBorder("Password"));
+        passwordField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        mainPanel.add(passwordField);
 
-        Dimension buttonSize = new Dimension(300, 50);
-        lguHeadBtn.setMaximumSize(buttonSize);
-        engineerBtn.setMaximumSize(buttonSize);
-        officerBtn.setMaximumSize(buttonSize);
+        mainPanel.add(Box.createVerticalStrut(25));
+        JButton loginButton = new JButton("Login");
+        loginButton.setMaximumSize(new Dimension(300, 45));
+        loginButton.setFont(new Font("Arial", Font.BOLD, 14));
+        loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        loginButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        mainPanel.add(loginButton);
 
-        lguHeadBtn.setFont(new Font("Arial", Font.BOLD, 14));
-        engineerBtn.setFont(new Font("Arial", Font.BOLD, 14));
-        officerBtn.setFont(new Font("Arial", Font.BOLD, 14));
-
-        lguHeadBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        engineerBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        officerBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-
+        mainPanel.add(Box.createVerticalStrut(40));
         JLabel createAccountLabel = new JLabel("Don't have an account? Create an account here.");
         createAccountLabel.setFont(new Font("Arial", Font.BOLD, 12));
         createAccountLabel.setForeground(Color.BLACK);
@@ -89,13 +78,13 @@ public class LoginOptions extends JFrame {
         createAccountLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         createAccountLabel.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            new CreateAccount();  
-            dispose();            
-        }
-    });
-        mainPanel.add(Box.createVerticalStrut(40));
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                new CreateAccount();
+                dispose();
+            }
+        });
+
         mainPanel.add(createAccountLabel);
 
         add(mainPanel);
