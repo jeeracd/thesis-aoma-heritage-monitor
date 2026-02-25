@@ -77,10 +77,9 @@ public class EngineerDashboardNotifications {
         saveButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         saveButton.setPreferredSize(new Dimension(220, 45));
         saveButton.setFocusPainted(false);
-        saveButton.setBorder(new LineBorder(Color.BLACK, 2));
 
         JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        wrapper.setOpaque(false);
+        wrapper.setOpaque(false); 
         wrapper.add(saveButton);
 
         return wrapper;

@@ -1,1 +1,1 @@
-        mainPanel.add(Box.createVerticalStrut(40));
+class OfficerCreateAccount
