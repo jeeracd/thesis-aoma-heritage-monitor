@@ -1,4 +1,5 @@
 import java.awt.*;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.*;
 
@@ -26,6 +27,8 @@ public class EngineerDashboardUserSettings extends JFrame {
         mainPanel.add(title, BorderLayout.NORTH);
 
         JTabbedPane tabs = new JTabbedPane();
+        tabs.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
         tabs.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
         tabs.addTab("Name & Photo", createNamePhotoTab());
@@ -111,33 +114,55 @@ public class EngineerDashboardUserSettings extends JFrame {
     }
 
     private JPanel createPhotoSection() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(new CompoundBorder(
-                new LineBorder(Color.BLACK, 2),
-                new EmptyBorder(20, 20, 20, 20)
-        ));
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setBorder(new CompoundBorder(
+            new LineBorder(Color.BLACK, 2),
+            new EmptyBorder(20, 20, 20, 20)
+    ));
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
 
-        JLabel label = new JLabel("Photo");
-        label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        panel.add(label, BorderLayout.NORTH);
+    JLabel label = new JLabel("Photo");
+    label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+    panel.add(label, BorderLayout.NORTH);
 
-        JPanel content = new JPanel(new BorderLayout());
+    JPanel content = new JPanel(new BorderLayout());
 
-        content.add(new AvatarPanel(), BorderLayout.WEST);
+    AvatarPanel avatarPanel = new AvatarPanel();
+    content.add(avatarPanel, BorderLayout.WEST);
 
-        JButton uploadButton = new JButton("Upload Photo");
-        uploadButton.setPreferredSize(new Dimension(160, 40));
-        uploadButton.setFocusPainted(false);
+    JButton uploadButton = new JButton("Upload Photo");
+    uploadButton.setPreferredSize(new Dimension(160, 40));
+    uploadButton.setFocusPainted(false);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.add(uploadButton);
+    uploadButton.addActionListener(e -> {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Select Profile Photo");
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
-        content.add(buttonPanel, BorderLayout.CENTER);
-        panel.add(content, BorderLayout.CENTER);
+        int result = chooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            try {
+                Image image = ImageIO.read(chooser.getSelectedFile());
+                avatarPanel.setAvatarImage(image);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Invalid image file",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
+    });
 
-        return panel;
-    }
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    buttonPanel.add(uploadButton);
+
+    content.add(buttonPanel, BorderLayout.CENTER);
+    panel.add(content, BorderLayout.CENTER);
+
+    return panel;
+}
 
     private JPanel createSaveButton() {
     JButton saveButton = new JButton("Save Changes & Exit");
@@ -152,17 +177,49 @@ public class EngineerDashboardUserSettings extends JFrame {
     return wrapper;
     }
     static class AvatarPanel extends JPanel {
+
+        private Image avatarImage;
+
         AvatarPanel() {
             setPreferredSize(new Dimension(200, 200));
+            setOpaque(false);
+        }
+
+        public void setAvatarImage(Image image) {
+            this.avatarImage = image;
+            repaint();
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            Graphics2D g2 = (Graphics2D) g;
+            Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                                 RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.drawOval(20, 20, 160, 160);
+
+            int diameter = 160;
+            int x = (getWidth() - diameter) / 2;
+            int y = (getHeight() - diameter) / 2;
+
+            // Draw circular border
+            g2.setColor(Color.BLACK);
+            g2.drawOval(x, y, diameter, diameter);
+
+            if (avatarImage != null) {
+                Shape circle = new java.awt.geom.Ellipse2D.Double(x, y, diameter, diameter);
+                g2.setClip(circle);
+
+                g2.drawImage(
+                    avatarImage,
+                    x,
+                    y,
+                    diameter,
+                    diameter,
+                    this
+                );
+            }
+
+            g2.dispose();
         }
     }
 
