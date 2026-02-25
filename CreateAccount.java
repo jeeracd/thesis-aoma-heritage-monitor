@@ -73,7 +73,7 @@ public class CreateAccount extends JFrame {
         formWrapper.setLayout(new BoxLayout(formWrapper, BoxLayout.Y_AXIS));
         formWrapper.setPreferredSize(new Dimension(420, 0));
         formWrapper.setBorder(new CompoundBorder(
-                new LineBorder(Color.BLACK, 3),
+                new LineBorder(Color.BLACK, 2),
                 new EmptyBorder(15, 15, 15, 15)
         ));
 
@@ -124,8 +124,6 @@ public class CreateAccount extends JFrame {
         new CreateAccountConfirmation().setVisible(true);
         dispose();
         });
-
-
 
         JPanel submitPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         submitPanel.setAlignmentX(Component.LEFT_ALIGNMENT);

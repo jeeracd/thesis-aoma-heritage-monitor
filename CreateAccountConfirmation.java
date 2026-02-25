@@ -7,23 +7,20 @@ public class CreateAccountConfirmation extends JFrame {
     public CreateAccountConfirmation() {
         setTitle("Account Created");
         setSize(420, 260);
-        setLocationRelativeTo(null); // center on screen
+        setLocationRelativeTo(null); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
 
-        // Main panel
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
         mainPanel.setBackground(Color.WHITE);
 
-        // Title
         JLabel titleLabel = new JLabel("Creation of Account is Successful!");
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titleLabel.setForeground(new Color(40, 40, 40));
 
-        // Subtitle
         JLabel subtitleLabel = new JLabel("Click the button below to proceed to the Login.");
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -51,7 +48,6 @@ public class CreateAccountConfirmation extends JFrame {
             dispose();
         });
 
-        // Spacing
         mainPanel.add(Box.createVerticalGlue());
         mainPanel.add(titleLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
