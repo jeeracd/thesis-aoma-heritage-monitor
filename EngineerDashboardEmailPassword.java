@@ -33,17 +33,77 @@ public class EngineerDashboardEmailPassword {
         JLabel loginMethodLabel = new JLabel("You logged in via Email & Password");
         loginMethodLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        JLabel infoLabel = new JLabel("Your user account is registered with the email address:");
+        JLabel infoLabel = new JLabel("Your user account is registered with the email address & password:");
         infoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        JLabel emailLabel = new JLabel("JuanDelaCruz@gmail.com");
+        JLabel emailLabel = new JLabel("JuanDelaCruz@engr.com");
         emailLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+        String[] realPassword = { "dummypassword123" };
+        boolean[] isVisible = { false };
+
+        JLabel passwordLabel = new JLabel("********");
+        passwordLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+        JButton eyeButton = new JButton("👁");
+        eyeButton.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        eyeButton.setFocusPainted(false);
+        eyeButton.setPreferredSize(new Dimension(40, 26));
+
+        eyeButton.addActionListener(e -> {
+            if (isVisible[0]) {
+                passwordLabel.setText("********");
+            } else {
+                passwordLabel.setText(realPassword[0]);
+            }
+            isVisible[0] = !isVisible[0];
+        });
+
+        JPanel passwordWrapper = new JPanel(new BorderLayout(5, 0));
+        passwordWrapper.setOpaque(false);
+        passwordWrapper.add(eyeButton, BorderLayout.WEST);
+        passwordWrapper.add(passwordLabel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         buttonPanel.setOpaque(false);
 
         JButton changeEmailBtn = createOutlinedButton("Change Email");
         JButton changePasswordBtn = createOutlinedButton("Change Password");
+
+        changeEmailBtn.addActionListener(e -> {
+            String newEmail = JOptionPane.showInputDialog(
+                    panel,
+                    "Enter new email address:",
+                    emailLabel.getText()
+            );
+
+            if (newEmail != null && !newEmail.trim().isEmpty()) {
+                emailLabel.setText(newEmail.trim());
+            }
+        });
+
+        changePasswordBtn.addActionListener(e -> {
+            JPasswordField pwdField = new JPasswordField();
+            int result = JOptionPane.showConfirmDialog(
+                    panel,
+                    pwdField,
+                    "Enter new password",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE
+            );
+
+            if (result == JOptionPane.OK_OPTION) {
+                String newPassword = new String(pwdField.getPassword());
+                if (!newPassword.isEmpty()) {
+                    realPassword[0] = newPassword;
+                    if (isVisible[0]) {
+                        passwordLabel.setText(realPassword[0]);
+                    } else {
+                        passwordLabel.setText("********");
+                    }
+                }
+            }
+        });
 
         buttonPanel.add(changeEmailBtn);
         buttonPanel.add(changePasswordBtn);
@@ -58,6 +118,9 @@ public class EngineerDashboardEmailPassword {
         panel.add(emailLabel, gbc);
 
         gbc.gridy = 3;
+        panel.add(passwordWrapper, gbc);
+
+        gbc.gridy = 4;
         panel.add(buttonPanel, gbc);
 
         return panel;
@@ -65,10 +128,9 @@ public class EngineerDashboardEmailPassword {
 
     private JButton createOutlinedButton(String text) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setPreferredSize(new Dimension(180, 40));
         button.setFocusPainted(false);
-        button.setPreferredSize(new Dimension(150, 36));
-        button.setBorder(new LineBorder(Color.BLACK, 1));
         return button;
     }
 
