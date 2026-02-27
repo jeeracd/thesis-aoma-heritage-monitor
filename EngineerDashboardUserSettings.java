@@ -6,7 +6,7 @@ import javax.swing.border.*;
 public class EngineerDashboardUserSettings extends JFrame {
 
     public EngineerDashboardUserSettings() {
-        setTitle("AOMA-Heritage Monitor - User Settings");
+        setTitle("AOMA-Heritage Monitor - Engineer Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
         setLocationRelativeTo(null);
@@ -35,11 +35,9 @@ public class EngineerDashboardUserSettings extends JFrame {
         tabs.addTab("Email & Password", new EngineerDashboardEmailPassword().createEmailPasswordTab());
         tabs.addTab("Notifications", new EngineerDashboardNotifications().createNotificationsTab());
 
-        // Colors
-        Color selectedColor = new Color(30, 144, 255); // nice blue
+        Color selectedColor = new Color(30, 144, 255); 
         Color defaultColor = UIManager.getColor("TabbedPane.background");
 
-        // Initialize colors
         for (int i = 0; i < tabs.getTabCount(); i++) {
             tabs.setBackgroundAt(i, defaultColor);
         }
