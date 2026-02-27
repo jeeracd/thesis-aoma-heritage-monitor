@@ -6,29 +6,36 @@ public class EditStructuralDetails extends JFrame {
 
     public EditStructuralDetails() {
         setTitle("AOMA-Heritage Monitor");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // this button only closes this window, not the whole app
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
         setSize(600, 650);
         setLocationRelativeTo(null);
         setLayout(null);
 
-        // Main Header
-        JLabel headerLabel = new JLabel("Edit Structural Details");
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        headerLabel.setBounds(20, 20, 300, 30);
-        add(headerLabel);
-
-        // form fields
         int labelX = 40;
         int fieldX = 220;
-        int yStart = 70;
+        int yStart = 150;
         int yGap = 45;
         int fieldWidth = 320;
         int labelWidth = 180;
         int height = 30;
 
-        // helper method/logic for labels and fields
+        JLabel projectName = new JLabel("Project Name");
+        projectName.setFont(new Font("Arial", Font.BOLD, 20));
+        projectName.setBounds(20, 20, 300, 30);
+        add(projectName);
+
+        JTextField projectField = new JTextField("Monitoring of San Diego de Alcala Parish Church"); 
+        int projectFieldY = 55; 
+        setupTextField(projectField, 20, projectFieldY, 500, height);
+        add(projectField);   
+
+        JLabel headerLabel = new JLabel("Edit Structural Details");
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        headerLabel.setBounds(20, 100, 300, 30);
+        add(headerLabel);
+
         addLabel("Building Name:", labelX, yStart, labelWidth, height);
-        JTextField nameField = new JTextField("San Diego de Alcala Parish Church"); // example based sa wiredframe (mga placeholder muna habang walang database)
+        JTextField nameField = new JTextField("San Diego de Alcala Parish Church"); 
         setupTextField(nameField, fieldX, yStart, fieldWidth, height);
         add(nameField);
 
@@ -36,7 +43,7 @@ public class EditStructuralDetails extends JFrame {
         JTextField dateField = new JTextField("1697");
         setupTextField(dateField, fieldX, yStart + yGap, fieldWidth, height);
         add(dateField);
-        // Calendar icon placeholder (simulated with a button or label for now)
+
         JButton calendarBtn = new JButton("📅");
         calendarBtn.setBounds(fieldX + fieldWidth + 5, yStart + yGap, 30, 30);
         add(calendarBtn);
@@ -73,15 +80,14 @@ public class EditStructuralDetails extends JFrame {
         descScroll.setBorder(border);
         add(descScroll);
 
-        // Buttons
         int btnY = yStart + (yGap * 6) + 120;
         
         JButton cancelBtn = new JButton("Cancel");
         cancelBtn.setFont(new Font("Arial", Font.BOLD, 14));
         cancelBtn.setForeground(Color.RED);
-        cancelBtn.setBounds(180, btnY, 100, 35);
+        cancelBtn.setBounds(180, btnY, 100, 25);
         cancelBtn.addActionListener(e -> {
-            // Confirmation for Exit
+
             Confirmation exitConfirm = new Confirmation(
                 this, 
                 "Confirm Exit", 
@@ -94,18 +100,17 @@ public class EditStructuralDetails extends JFrame {
             exitConfirm.setVisible(true);
 
             if (exitConfirm.isConfirmActionTaken()) {
-                dispose(); // Close the window only if they clicked "Exit" button
+                dispose(); 
             }
         });
         add(cancelBtn);
 
-        // Confirmation for Save Changes
         JButton saveBtn = new JButton("Save Changes");
         saveBtn.setFont(new Font("Arial", Font.BOLD, 14));
         saveBtn.setForeground(new Color(0, 153, 0));
-        saveBtn.setBounds(300, btnY, 150, 35);
+        saveBtn.setBounds(300, btnY, 150, 25);
         saveBtn.addActionListener(e -> {
-            // Confirmation for Save
+
             Confirmation saveConfirm = new Confirmation(
                 this, 
                 "Confirm Save", 
@@ -124,10 +129,9 @@ public class EditStructuralDetails extends JFrame {
         });
         add(saveBtn);
 
-        // Footer Status
         JPanel footerPanel = new JPanel();
         footerPanel.setLayout(new BorderLayout());
-        footerPanel.setBounds(0, 570, 600, 30);
+        footerPanel.setBounds(0, 570, 600, 60);
         footerPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.BLACK));
         
         JLabel footerLabel = new JLabel(" Status: ESP32 Hub Is Connected");
@@ -139,7 +143,6 @@ public class EditStructuralDetails extends JFrame {
         setVisible(true);
     }
 
-    // code for style labels
     private void addLabel(String text, int x, int y, int w, int h) {
         JLabel label = new JLabel(text);
         label.setFont(new Font("Arial", Font.BOLD, 14));
@@ -147,7 +150,6 @@ public class EditStructuralDetails extends JFrame {
         add(label);
     }
 
-    // code for  style text fields
     private void setupTextField(JTextField tf, int x, int y, int w, int h) {
         tf.setFont(new Font("Arial", Font.PLAIN, 14));
         tf.setBounds(x, y, w, h);
