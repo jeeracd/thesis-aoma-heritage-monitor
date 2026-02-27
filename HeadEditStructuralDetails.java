@@ -5,7 +5,7 @@ import javax.swing.border.Border;
 public class HeadEditStructuralDetails extends JFrame {
 
     public HeadEditStructuralDetails() {
-        setTitle("AOMA-Heritage Monitor - LGU Head Account");
+        setTitle("AOMA-Heritage Monitor - Edit Structural Details");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
         setLocationRelativeTo(null);
