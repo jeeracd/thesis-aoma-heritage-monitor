@@ -1,12 +1,4 @@
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.Insets;
-import java.awt.Rectangle;
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.Border;
 
@@ -56,7 +48,7 @@ public class HeadStartingPage extends JFrame {
         projectsDropdownBtn.setForeground(Color.WHITE);
         projectsDropdownBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        projectsDropdownBtn.setBounds(95,13,28,22);
+        projectsDropdownBtn.setBounds(92,11,28,22);
 
         projectsDropdownBtn.addActionListener(e ->
         projectsMenu.show(projectsDropdownBtn,0,projectsDropdownBtn.getHeight())
@@ -187,12 +179,17 @@ public class HeadStartingPage extends JFrame {
                 BorderFactory.createEmptyBorder(10, 25, 10, 25)
         ));
 
-        newProjectButton.addActionListener(e ->
-                JOptionPane.showMessageDialog(
-                        this,
-                        "New Project initialization process will start.","New Project",JOptionPane.INFORMATION_MESSAGE
-                )
+        newProjectButton.addActionListener(e -> {
+        JOptionPane.showMessageDialog(
+                this,
+                "New Project initialization process will start.",
+                "New Project",
+                JOptionPane.INFORMATION_MESSAGE
         );
+        new HeadEditStructuralDetails();
+        this.dispose();
+        });
+
         textContainer.add(Box.createVerticalGlue());
         textContainer.add(imageLabel);
         textContainer.add(Box.createVerticalStrut(12)); 
@@ -221,11 +218,10 @@ public class HeadStartingPage extends JFrame {
         add(layeredPane, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         
-
         setVisible(true);
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(HeadStartingPage::new);
+        new HeadStartingPage();
     }
 }
