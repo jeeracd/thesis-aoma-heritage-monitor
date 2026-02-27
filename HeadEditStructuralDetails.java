@@ -1,0 +1,400 @@
+import java.awt.*;
+import javax.swing.*;
+import javax.swing.border.Border;
+
+public class HeadEditStructuralDetails extends JFrame {
+
+    public HeadEditStructuralDetails() {
+        setTitle("AOMA-Heritage Monitor - LGU Head Account");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1400, 850);
+        setLocationRelativeTo(null);
+
+        JTabbedPane tabsUI = new JTabbedPane(JTabbedPane.TOP);
+        tabsUI.setFont(new Font("Arial", Font.BOLD, 17));
+        tabsUI.setBackground(Color.LIGHT_GRAY);
+        tabsUI.setForeground(Color.BLACK);
+
+        JPanel headPanel = new JPanel(null);
+
+        tabsUI.addTab("Projects", headPanel);
+        tabsUI.addTab("View", new JPanel());
+        tabsUI.addTab("Help", new JPanel());
+
+        // PROJECTS DROPDOWN
+        JPopupMenu projectsMenu = new JPopupMenu();
+
+        JMenuItem newProject = new JMenuItem("New Project");
+        JMenuItem openProject = new JMenuItem("Open Project");
+        JMenuItem importCsv = new JMenuItem("Import Sensor Data (.csv)");
+        JMenuItem exportPdf = new JMenuItem("Export Report (PDF)");
+        JMenuItem preferences = new JMenuItem("Preferences");
+        JMenuItem exit = new JMenuItem("Exit");
+
+        projectsMenu.add(newProject);
+        projectsMenu.add(openProject);
+        projectsMenu.addSeparator();
+        projectsMenu.add(importCsv);
+        projectsMenu.add(exportPdf);
+        projectsMenu.addSeparator();
+        projectsMenu.add(preferences);
+        projectsMenu.addSeparator();
+        projectsMenu.add(exit);
+
+        JButton projectsDropdownBtn = new JButton("▼");
+        projectsDropdownBtn.setFont(new Font("Arial", Font.BOLD, 12));
+        projectsDropdownBtn.setFocusPainted(false);
+        projectsDropdownBtn.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
+        projectsDropdownBtn.setBackground(Color.LIGHT_GRAY);
+        projectsDropdownBtn.setForeground(Color.WHITE);
+        projectsDropdownBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
+        projectsDropdownBtn.setBounds(92,9, 28, 22);
+
+        projectsDropdownBtn.addActionListener(e ->
+                projectsMenu.show(projectsDropdownBtn, 0, projectsDropdownBtn.getHeight())
+        );
+
+        tabsUI.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
+            @Override
+            protected void paintTabBackground(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
+                if (isSelected) {
+                    g.setColor(new Color(0, 102, 204));
+                    g.fillRect(x, y, w, h);
+                }
+            }
+
+            @Override
+            protected void paintText(Graphics g, int tabPlacement, Font font, FontMetrics metrics, int tabIndex, String title, Rectangle textRect, boolean isSelected) {
+                g.setFont(font);
+                g.setColor(isSelected ? Color.WHITE : Color.BLACK);
+                g.drawString(title, textRect.x, textRect.y + metrics.getAscent());
+            }
+
+            @Override
+            protected Insets getTabInsets(int tabPlacement, int tabIndex) {
+                return new Insets(6, 20, 6, 20);
+            }
+        });
+
+        JLayeredPane layeredPane = new JLayeredPane();
+        layeredPane.setLayout(null);
+        layeredPane.setPreferredSize(new Dimension(1400, 850));
+
+        layeredPane.add(projectsDropdownBtn, JLayeredPane.PALETTE_LAYER);
+
+        tabsUI.setBounds(0, 0, 1395, 770);
+        layeredPane.add(tabsUI, JLayeredPane.DEFAULT_LAYER);
+
+        JLabel LGUHeadLabel = new JLabel("LGU HEAD ACCOUNT");
+        LGUHeadLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        LGUHeadLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        LGUHeadLabel.setBounds(1080, 5, 280, 38);
+
+        layeredPane.add(LGUHeadLabel, JLayeredPane.PALETTE_LAYER);
+
+        JPanel centerPanelDescription = new JPanel(new BorderLayout());
+        centerPanelDescription.setBounds(10, 20, 1380, 40);
+        Border firstBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
+        centerPanelDescription.setBorder(firstBorder);
+
+        JLabel centerTitleLabel = new JLabel(
+                "Automated - Operational Modal Analysis to Monitor the Safety and Serviceability of Heritage Buildings",JLabel.CENTER
+        );
+        centerTitleLabel.setFont(new Font("Arial", Font.ITALIC | Font.BOLD, 20));
+        centerTitleLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+        ImageIcon userIcon = new ImageIcon("usericon.png");
+        Image userImgScaled = userIcon.getImage().getScaledInstance(26, 26, Image.SCALE_SMOOTH);
+        JLabel userIconLabel = new JLabel(new ImageIcon(userImgScaled));
+        userIconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+
+        centerPanelDescription.add(centerTitleLabel, BorderLayout.CENTER);
+        centerPanelDescription.add(userIconLabel, BorderLayout.EAST);
+
+        headPanel.add(centerPanelDescription);
+
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBounds(10, 70, 1380, 648);
+        Border secondBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
+        centerPanel.setBorder(secondBorder);
+        headPanel.add(centerPanel);
+
+        JLabel headerLabel = new JLabel("New Project");
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        headerLabel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        centerPanel.add(headerLabel, BorderLayout.NORTH);
+
+        // FORM PANEL - ADD DATABASE HERE kasi FORM TYPE SHA!!
+        JPanel formPanel = new JPanel(null);
+        centerPanel.add(formPanel, BorderLayout.CENTER);
+
+        Font labelFont = new Font("Arial", Font.BOLD, 14);
+        Font fieldFont = new Font("Arial", Font.PLAIN, 14);
+        Border fieldBorder = BorderFactory.createLineBorder(Color.BLACK);
+
+        int leftX = 20;
+        int rightX = 700;
+        int y = 20;
+        int gap = 55;
+
+        JLabel projectNameLbl = new JLabel("Project Name");
+        projectNameLbl.setFont(labelFont);
+        projectNameLbl.setBounds(leftX, y, 200, 25);
+        formPanel.add(projectNameLbl);
+
+        //input fiedl
+        JTextField projectName = new JTextField("");
+        projectName.setFont(fieldFont);
+        projectName.setBorder(fieldBorder);
+        projectName.setBounds(leftX, y + 30, 1330, 35);
+        formPanel.add(projectName);
+
+        y += 80;
+
+        JLabel structuralLbl = new JLabel("Structural Details");
+        structuralLbl.setFont(new Font("Arial", Font.BOLD, 16));
+        structuralLbl.setBounds(leftX, y, 300, 30);
+        formPanel.add(structuralLbl);
+
+        y += 40;
+
+        JLabel buildingLbl = new JLabel("Building Name:");
+        buildingLbl.setFont(labelFont);
+        buildingLbl.setBounds(leftX, y, 150, 25);
+        formPanel.add(buildingLbl);
+
+        //input fiedl
+        JTextField buildingField = new JTextField("");
+        buildingField.setFont(fieldFont);
+        buildingField.setBorder(fieldBorder);
+        buildingField.setBounds(leftX + 160, y, 500, 30);
+        formPanel.add(buildingField);
+
+        JLabel materialsLbl = new JLabel("Materials Used:");
+        materialsLbl.setFont(labelFont);
+        materialsLbl.setBounds(rightX, y, 150, 25);
+        formPanel.add(materialsLbl);
+
+        //input fiedl
+        JTextField materialsField = new JTextField("");
+        materialsField.setFont(fieldFont);
+        materialsField.setBorder(fieldBorder);
+        materialsField.setBounds(rightX + 150, y, 500, 30);
+        formPanel.add(materialsField);
+
+        y += gap;
+
+        JLabel dateLbl = new JLabel("Date Constructed:");
+        dateLbl.setFont(labelFont);
+        dateLbl.setBounds(leftX, y, 150, 25);
+        formPanel.add(dateLbl);
+
+        JPanel datePanel = new JPanel(new BorderLayout());
+        datePanel.setBounds(leftX + 160, y, 300, 30);
+        datePanel.setBorder(fieldBorder);
+        datePanel.setBackground(Color.WHITE);
+
+        JTextField dateField = new JTextField();
+        dateField.setFont(fieldFont);
+        dateField.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+        datePanel.add(dateField, BorderLayout.CENTER);
+
+        ImageIcon calendarIcon = new ImageIcon(
+                new ImageIcon("calendaricon.png")
+                        .getImage()
+                        .getScaledInstance(18, 18, Image.SCALE_SMOOTH)
+        );
+
+        JButton calendarBtn = new JButton(calendarIcon);
+        calendarBtn.setFocusPainted(false);
+        calendarBtn.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        calendarBtn.setContentAreaFilled(false);
+        calendarBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        calendarBtn.setPreferredSize(new Dimension(36, 30));
+        calendarBtn.setToolTipText("Select date");
+
+        calendarBtn.addActionListener(e -> {
+        JDialog calendarDialog = new JDialog(this, "Select Date", true);
+        calendarDialog.setSize(340, 320);
+        calendarDialog.setLocationRelativeTo(this);
+        calendarDialog.setLayout(new BorderLayout());
+
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+
+        String[] months = {
+            "January","February","March","April","May","June",
+            "July","August","September","October","November","December"
+        };
+
+        JComboBox<String> monthBox = new JComboBox<>(months);
+        monthBox.setFont(new Font("Arial", Font.PLAIN, 12));
+
+        java.time.LocalDate now = java.time.LocalDate.now();
+        monthBox.setSelectedIndex(now.getMonthValue() - 1);
+
+        JSpinner yearSpinner = new JSpinner(
+            new SpinnerNumberModel(now.getYear(), 1500, 2100, 1)
+        );
+        yearSpinner.setFont(new Font("Arial", Font.PLAIN, 12));
+
+        topPanel.add(monthBox);
+        topPanel.add(yearSpinner);
+
+        calendarDialog.add(topPanel, BorderLayout.NORTH);
+
+        JPanel calendarPanel = new JPanel();
+        calendarPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        Runnable buildCalendar = () -> {
+            calendarPanel.removeAll();
+            calendarPanel.setLayout(new GridLayout(0, 7, 5, 5));
+
+            String[] days = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+            for (String d : days) {
+                JLabel lbl = new JLabel(d, SwingConstants.CENTER);
+                lbl.setFont(new Font("Arial", Font.BOLD, 12));
+                calendarPanel.add(lbl);
+            }
+
+            int year = (int) yearSpinner.getValue();
+            int month = monthBox.getSelectedIndex() + 1;
+
+            java.time.LocalDate firstDay =
+                    java.time.LocalDate.of(year, month, 1);
+
+            int startDay = firstDay.getDayOfWeek().getValue() % 7;
+            int daysInMonth = firstDay.lengthOfMonth();
+
+            for (int i = 0; i < startDay; i++) {
+                calendarPanel.add(new JLabel(""));
+            }
+
+            for (int day = 1; day <= daysInMonth; day++) {
+                JButton dayBtn = new JButton(String.valueOf(day));
+                dayBtn.setFocusPainted(false);
+
+                int selectedDay = day;
+                dayBtn.addActionListener(ev -> {
+                    dateField.setText(
+                        String.format("%04d-%02d-%02d",
+                            year, month, selectedDay)
+                    );
+                    calendarDialog.dispose();
+                });
+
+                calendarPanel.add(dayBtn);
+            }
+
+            calendarPanel.revalidate();
+            calendarPanel.repaint();
+        };
+
+        buildCalendar.run();
+
+        monthBox.addActionListener(ev -> buildCalendar.run());
+        yearSpinner.addChangeListener(ev -> buildCalendar.run());
+
+        calendarDialog.add(calendarPanel, BorderLayout.CENTER);
+        calendarDialog.setVisible(true);
+    });
+
+        datePanel.add(calendarBtn, BorderLayout.EAST);
+        formPanel.add(datePanel);
+
+
+        JLabel functionLbl = new JLabel("Function:");
+        functionLbl.setFont(labelFont);
+        functionLbl.setBounds(rightX, y, 150, 25);
+        formPanel.add(functionLbl);
+
+        //input fiedl
+        JTextField functionField = new JTextField("");
+        functionField.setFont(fieldFont);
+        functionField.setBorder(fieldBorder);
+        functionField.setBounds(rightX + 150, y, 500, 30);
+        formPanel.add(functionField);
+        y += gap;
+
+        JLabel conservationLbl = new JLabel("Conservation Status:");
+        conservationLbl.setFont(labelFont);
+        conservationLbl.setBounds(leftX, y, 170, 25);
+        formPanel.add(conservationLbl);
+
+        //input fiedl
+        JTextField conservationField = new JTextField("");
+        conservationField.setFont(fieldFont);
+        conservationField.setBorder(fieldBorder);
+        conservationField.setBounds(leftX + 160, y, 300, 30);
+        formPanel.add(conservationField);
+
+        y += gap;
+
+        JLabel addressLbl = new JLabel("Address:");
+        addressLbl.setFont(labelFont);
+        addressLbl.setBounds(leftX, y, 150, 25);
+        formPanel.add(addressLbl);
+
+        //input fiedl
+        JTextField addressField = new JTextField("");
+        addressField.setFont(fieldFont);
+        addressField.setBorder(fieldBorder);
+        addressField.setBounds(leftX + 160, y, 1170, 30);
+        formPanel.add(addressField);
+
+        y += gap;
+
+        JLabel descLbl = new JLabel("Description:");
+        descLbl.setFont(labelFont);
+        descLbl.setBounds(leftX, y, 150, 25);
+        formPanel.add(descLbl);
+
+        //input fiedl
+        JTextArea descArea = new JTextArea("");
+        descArea.setFont(fieldFont);
+        descArea.setLineWrap(true);
+        descArea.setWrapStyleWord(true);
+        descArea.setBorder(fieldBorder);
+
+        JScrollPane descScroll = new JScrollPane(descArea);
+        descScroll.setBounds(leftX + 160, y, 1170, 90);
+        formPanel.add(descScroll);
+
+        JButton cancelBtn = new JButton("Cancel");
+        cancelBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        cancelBtn.setForeground(Color.RED);     
+        cancelBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        cancelBtn.setBounds(520, 520, 140, 35);
+        formPanel.add(cancelBtn);
+
+        JButton createBtn = new JButton("Create a New Project");
+        createBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        createBtn.setForeground(new Color(0, 153, 0)); 
+        createBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        createBtn.setBounds(680, 520, 220, 35);
+        formPanel.add(createBtn);
+
+        JPanel footerPanel = new JPanel(new BorderLayout());
+        footerPanel.setPreferredSize(new Dimension(1400, 45));
+        footerPanel.setBorder(BorderFactory.createMatteBorder(3, 0, 0, 0, Color.GRAY));
+
+        JLabel statusLbl = new JLabel("Status: ESP32 Hub Not Connected");
+        statusLbl.setFont(new Font("Arial", Font.BOLD, 14));
+        statusLbl.setForeground(Color.RED);
+        statusLbl.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        footerPanel.add(statusLbl, BorderLayout.CENTER);
+
+        setLayout(new BorderLayout());
+        add(layeredPane, BorderLayout.CENTER);
+        add(footerPanel, BorderLayout.SOUTH);
+
+        setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        new HeadEditStructuralDetails();
+    }
+}
