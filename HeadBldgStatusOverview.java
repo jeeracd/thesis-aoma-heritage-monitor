@@ -28,39 +28,6 @@ public class HeadBldgStatusOverview extends JFrame {
         tabsUI.addTab("View", new JPanel());
         tabsUI.addTab("Help", new JPanel());
 
-        JPopupMenu projectsMenu = new JPopupMenu();
-
-        JMenuItem newProject = new JMenuItem("New Project");
-        JMenuItem openProject = new JMenuItem("Open Project");
-        JMenuItem importCsv = new JMenuItem("Import Sensor Data (.csv)");
-        JMenuItem exportPdf = new JMenuItem("Export Report (PDF)");
-        JMenuItem preferences = new JMenuItem("Preferences");
-        JMenuItem exit = new JMenuItem("Exit");
-
-        projectsMenu.add(newProject);
-        projectsMenu.add(openProject);
-        projectsMenu.addSeparator();
-        projectsMenu.add(importCsv);
-        projectsMenu.add(exportPdf);
-        projectsMenu.addSeparator();
-        projectsMenu.add(preferences);
-        projectsMenu.addSeparator();
-        projectsMenu.add(exit);
-
-        JButton projectsDropdownBtn = new JButton("▼");
-        projectsDropdownBtn.setFont(new Font("Arial", Font.BOLD, 12));
-        projectsDropdownBtn.setFocusPainted(false);
-        projectsDropdownBtn.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
-        projectsDropdownBtn.setBackground(Color.LIGHT_GRAY);
-        projectsDropdownBtn.setForeground(Color.WHITE);
-        projectsDropdownBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        projectsDropdownBtn.setBounds(92,11,28,22);
-
-        projectsDropdownBtn.addActionListener(e ->
-        projectsMenu.show(projectsDropdownBtn,0,projectsDropdownBtn.getHeight())
-        );
-
         tabsUI.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
     @Override
         protected void paintTabBackground(
@@ -102,14 +69,163 @@ public class HeadBldgStatusOverview extends JFrame {
             return new Insets(5, 10, 5, 0);
         }
     });
+
+        //projects menu
+        JPopupMenu projectsMenu = new JPopupMenu();
+
+        JMenuItem newProject = new JMenuItem("New Project");
+        JMenuItem openProject = new JMenuItem("Open Project");
+        JMenuItem importCsv = new JMenuItem("Import Sensor Data (.csv)");
+        JMenuItem exportPdf = new JMenuItem("Export Report (PDF)");
+        JMenuItem preferences = new JMenuItem("Preferences");
+        JMenuItem exit = new JMenuItem("Exit");
+
+        projectsMenu.add(newProject);
+        projectsMenu.add(openProject);
+        projectsMenu.addSeparator();
+        projectsMenu.add(importCsv);
+        projectsMenu.add(exportPdf);
+        projectsMenu.addSeparator();
+        projectsMenu.add(preferences);
+        projectsMenu.addSeparator();
+        projectsMenu.add(exit);
+
+        JButton projectsDropdownBtn = new JButton("▼");
+        projectsDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        projectsDropdownBtn.setFocusPainted(false);
+        projectsDropdownBtn.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
+        projectsDropdownBtn.setBackground(Color.LIGHT_GRAY);
+        projectsDropdownBtn.setForeground(Color.BLACK);
+        projectsDropdownBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        projectsDropdownBtn.setBounds(92,11,28,22);
+
+        projectsDropdownBtn.addActionListener(e ->
+        projectsMenu.show(projectsDropdownBtn,0,projectsDropdownBtn.getHeight())
+        );
+
+        //project dropdown button position
         JLayeredPane layeredPane = new JLayeredPane();
         layeredPane.setLayout(null);
         layeredPane.setPreferredSize(new java.awt.Dimension(1300, 850));
 
-        layeredPane.add(projectsDropdownBtn, JLayeredPane.PALETTE_LAYER); //for dropdown btn
+        layeredPane.add(projectsDropdownBtn, JLayeredPane.PALETTE_LAYER); 
 
         tabsUI.setBounds(0, 0, 1395, 770);
         layeredPane.add(tabsUI, JLayeredPane.DEFAULT_LAYER);
+
+        //VIEW MENU 
+        JPopupMenu viewMenu = new JPopupMenu();
+
+        JMenuItem dashboardView = new JMenuItem("Dashboard View");
+
+        JMenuItem setupConnection = new JMenuItem("Setup Connection");
+        JMenuItem configureSensor = new JMenuItem("Configure Sensor");
+        JMenuItem esp32Status = new JMenuItem("ESP32 Status");
+
+        JMenuItem vibrationData = new JMenuItem("Vibration Data");
+        JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
+
+        JMenuItem monitoringPeriod = new JMenuItem("Monitoring Period");
+        JMenuItem reportHistory = new JMenuItem("Report History");
+        JMenuItem pastReports = new JMenuItem("Past Reports");
+
+        JMenuItem recentEvents = new JMenuItem("Recent Events");
+        JMenuItem historicalTrends = new JMenuItem("Historical Trends");
+
+        viewMenu.add(dashboardView);
+        viewMenu.addSeparator();
+
+        viewMenu.add(setupConnection);
+        viewMenu.add(configureSensor);
+        viewMenu.add(esp32Status);
+        viewMenu.addSeparator();
+
+        viewMenu.add(vibrationData);
+        viewMenu.add(omaAnalysisResult);
+        viewMenu.addSeparator();
+
+        viewMenu.add(monitoringPeriod);
+        viewMenu.add(reportHistory);
+        viewMenu.add(pastReports);
+        viewMenu.addSeparator();
+
+        viewMenu.add(recentEvents);
+        viewMenu.add(historicalTrends);
+
+        JButton viewMenuDropdownBtn = new JButton("▼");
+        viewMenuDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14)); // bigger arrow
+        viewMenuDropdownBtn.setMargin(new Insets(0, 0, 0, 0));
+        viewMenuDropdownBtn.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
+
+        viewMenuDropdownBtn.setFocusPainted(false);
+        viewMenuDropdownBtn.setContentAreaFilled(false);   
+        viewMenuDropdownBtn.setBorderPainted(false);       
+        viewMenuDropdownBtn.setOpaque(false);            
+
+        viewMenuDropdownBtn.setForeground(Color.BLACK);
+        viewMenuDropdownBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        viewMenuDropdownBtn.addActionListener(e ->
+            viewMenu.show(viewMenuDropdownBtn, 0, viewMenuDropdownBtn.getHeight())
+        );
+
+        SwingUtilities.invokeLater(() -> {
+        Rectangle viewTabBounds = tabsUI.getBoundsAt(1);
+
+        int arrowSize = 22;
+
+        viewMenuDropdownBtn.setBounds(
+            viewTabBounds.x + viewTabBounds.width - arrowSize - 4,
+            viewTabBounds.y + (viewTabBounds.height - arrowSize) / 2,
+            arrowSize,
+            arrowSize
+        );
+
+        layeredPane.add(viewMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
+    });
+
+        //help menu
+        JPopupMenu helpMenu = new JPopupMenu();
+
+        JMenuItem sensorSetupGuide = new JMenuItem("Sensor Setup Guide");
+        JMenuItem userDocumentation = new JMenuItem("User Documentation");
+
+        JMenuItem aboutAOMA = new JMenuItem("About AOMA-Heritage Monitor");
+        JMenuItem contactSupport = new JMenuItem("Contact Support");
+
+        helpMenu.add(sensorSetupGuide);
+        helpMenu.add(userDocumentation);
+        helpMenu.addSeparator();
+        helpMenu.add(aboutAOMA);
+        helpMenu.add(contactSupport);
+
+        JButton helpMenuDropdownBtn = new JButton("▼");
+        helpMenuDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14)); 
+        helpMenuDropdownBtn.setMargin(new Insets(0, 0, 0, 0));
+        helpMenuDropdownBtn.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
+        helpMenuDropdownBtn.setFocusPainted(false);
+        helpMenuDropdownBtn.setContentAreaFilled(false);   
+        helpMenuDropdownBtn.setBorderPainted(false);       
+        helpMenuDropdownBtn.setOpaque(false);              
+        helpMenuDropdownBtn.setForeground(Color.BLACK);
+        helpMenuDropdownBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        helpMenuDropdownBtn.addActionListener(e ->
+            helpMenu.show(helpMenuDropdownBtn, 0, helpMenuDropdownBtn.getHeight())
+        ); 
+
+        SwingUtilities.invokeLater(() -> {
+        Rectangle helpTabBounds = tabsUI.getBoundsAt(2);    
+        int arrowSize = 22;
+        helpMenuDropdownBtn.setBounds(
+            helpTabBounds.x + helpTabBounds.width - arrowSize - 4,
+            helpTabBounds.y + (helpTabBounds.height - arrowSize) / 2,
+            arrowSize,
+            arrowSize
+        );
+        layeredPane.add(helpMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
+    });
 
         JLabel LGUHeadLabel = new JLabel("LGU HEAD ACCOUNT");
         LGUHeadLabel.setFont(new Font("Arial", Font.BOLD, 14));
