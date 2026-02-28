@@ -325,6 +325,11 @@ public class SetupConnection extends JFrame {
         setupTabs.addTab("Analysis", new AnalysisReport());
         setupTabs.addTab("Report", new JPanel());
 
+
+        
+
+
+
         setupTabs.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
             @Override
             protected void paintTabBackground(

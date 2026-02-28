@@ -1,1 +1,1 @@
-class OfficerCreateAccount
+sensorSetupPanel
