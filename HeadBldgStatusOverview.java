@@ -12,7 +12,7 @@ public class HeadBldgStatusOverview extends JFrame {
 
     public HeadBldgStatusOverview() {
         instance = this;
-        setTitle("AOMA-Heritage Monitor - LGU Head Account");
+        setTitle("AOMA-Heritage Monitor - Building Status Overview");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
         setLocationRelativeTo(null);
@@ -522,7 +522,19 @@ public class HeadBldgStatusOverview extends JFrame {
 
         JPanel rowActionsPanel = new JPanel(new BorderLayout());
         rowActionsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        rowActionsPanel.add(new JButton("View Details"), BorderLayout.CENTER);
+
+        JButton viewDetailsBtn = new JButton("View Details");
+        viewDetailsBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        viewDetailsBtn.setFocusPainted(false);
+
+        viewDetailsBtn.addActionListener(e -> {
+        SwingUtilities.invokeLater(() -> {
+            new HeadViewDetails();
+            instance.setVisible(false); 
+        });
+        });
+
+        rowActionsPanel.add(viewDetailsBtn, BorderLayout.CENTER);
 
         rowPanel.add(rowBldgPanel);
         rowPanel.add(rowLocationPanel);
