@@ -15,9 +15,9 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-public class LoginOptions extends JFrame {
+public class UsersLoginOptions extends JFrame {
 
-    public LoginOptions() {
+    public UsersLoginOptions() {
 
         setTitle("AOMA-Heritage Monitor - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -92,6 +92,6 @@ public class LoginOptions extends JFrame {
     }
 
     public static void main(String[] args) {
-        new LoginOptions();
+        new UsersLoginOptions();
     }
 }
