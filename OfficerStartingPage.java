@@ -70,16 +70,20 @@ public class OfficerStartingPage extends JFrame {
         JMenuItem openProject = new JMenuItem("Open Project");
         JMenuItem importCsv = new JMenuItem("Import Sensor Data (.csv)");
         JMenuItem exportPdf = new JMenuItem("Export Report (PDF)");
-        JMenuItem preferences = new JMenuItem("Preferences");
         JMenuItem exit = new JMenuItem("Exit");
+
+        //for reference greyout siya
+        newProject.setEnabled(false);
+        openProject.setEnabled(true);
+        importCsv.setEnabled(false);
+        exportPdf.setEnabled(false);
+        exit.setEnabled(true);
 
         projectsMenu.add(newProject);
         projectsMenu.add(openProject);
         projectsMenu.addSeparator();
         projectsMenu.add(importCsv);
         projectsMenu.add(exportPdf);
-        projectsMenu.addSeparator();
-        projectsMenu.add(preferences);
         projectsMenu.addSeparator();
         projectsMenu.add(exit);
 
@@ -111,40 +115,35 @@ public class OfficerStartingPage extends JFrame {
         JPopupMenu viewMenu = new JPopupMenu();
 
         JMenuItem dashboardView = new JMenuItem("Dashboard View");
-
         JMenuItem setupConnection = new JMenuItem("Setup Connection");
         JMenuItem configureSensor = new JMenuItem("Configure Sensor");
         JMenuItem esp32Status = new JMenuItem("ESP32 Status");
-
         JMenuItem vibrationData = new JMenuItem("Vibration Data");
         JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
+        JMenuItem reportHistory = new JMenuItem("View Report");
+        JMenuItem systemLogs = new JMenuItem("System Logs");
 
-        JMenuItem monitoringPeriod = new JMenuItem("Monitoring Period");
-        JMenuItem reportHistory = new JMenuItem("Report History");
-        JMenuItem pastReports = new JMenuItem("Past Reports");
-
-        JMenuItem recentEvents = new JMenuItem("Recent Events");
-        JMenuItem historicalTrends = new JMenuItem("Historical Trends");
-
+        dashboardView.setEnabled(true);
+        setupConnection.setEnabled(true);
+        configureSensor.setEnabled(true);
+        esp32Status.setEnabled(true);
+        vibrationData.setEnabled(false);
+        omaAnalysisResult.setEnabled(false);
+        reportHistory.setEnabled(false);
+        systemLogs.setEnabled(false);
+        
         viewMenu.add(dashboardView);
         viewMenu.addSeparator();
-
         viewMenu.add(setupConnection);
         viewMenu.add(configureSensor);
         viewMenu.add(esp32Status);
         viewMenu.addSeparator();
-
         viewMenu.add(vibrationData);
         viewMenu.add(omaAnalysisResult);
         viewMenu.addSeparator();
-
-        viewMenu.add(monitoringPeriod);
         viewMenu.add(reportHistory);
-        viewMenu.add(pastReports);
         viewMenu.addSeparator();
-
-        viewMenu.add(recentEvents);
-        viewMenu.add(historicalTrends);
+        viewMenu.add(systemLogs);
 
         JButton viewMenuDropdownBtn = new JButton("▼");
         viewMenuDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14)); // bigger arrow
@@ -243,9 +242,26 @@ public class OfficerStartingPage extends JFrame {
         JLabel userIconLabel = new JLabel(new ImageIcon(userImgScaled));
         userIconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
 
+        // officer POPUP MENU
+        JPopupMenu userMenu = new JPopupMenu();
+        JMenuItem userSettings = new JMenuItem("User Settings");
+        JMenuItem logout = new JMenuItem("Logout");
+
+        userMenu.add(userSettings);
+        userMenu.addSeparator();
+        userMenu.add(logout);
+        userIconLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        // Show popup when clicked
+        userIconLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                userMenu.show(userIconLabel, 0, userIconLabel.getHeight());
+            }
+        });
+
         centerPanelDescription.add(centerTitleLabel, BorderLayout.CENTER);
         centerPanelDescription.add(userIconLabel, BorderLayout.EAST);
-
         officerPanel.add(centerPanelDescription);
 
         JPanel centerPanel = new JPanel(new BorderLayout());
