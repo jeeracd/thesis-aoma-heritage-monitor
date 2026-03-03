@@ -11,6 +11,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -70,6 +71,35 @@ public class UsersLoginOptions extends JFrame {
         loginButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         mainPanel.add(loginButton);
 
+        loginButton.addActionListener(e -> {
+
+        String email = emailField.getText().trim();
+        String password = new String(passwordField.getPassword());
+
+        // Dummy accounts
+        if (email.equals("juandelacruz1@engr.com") && password.equals("dummy123")) {
+            JOptionPane.showMessageDialog(this, "Engineer Login Successful!");
+            new EngineerStartingPage();   
+            dispose();
+
+        } else if (email.equals("juandelacruz2@officer.com") && password.equals("dummy123")) {
+            JOptionPane.showMessageDialog(this, "Officer Login Successful!");
+            new OfficerStartingPage();    
+            dispose();
+
+        } else if (email.equals("juandelacruz3@head.com") && password.equals("dummy123")) {
+            JOptionPane.showMessageDialog(this, "Head Login Successful!");
+            new HeadStartingPage();      
+            dispose();
+
+        } else {
+            JOptionPane.showMessageDialog(this,
+                    "Invalid Email or Password!",
+                    "Login Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    });
+
         mainPanel.add(Box.createVerticalStrut(40));
         JLabel createAccountLabel = new JLabel("Don't have an account? Create an account here.");
         createAccountLabel.setFont(new Font("Arial", Font.BOLD, 12));
@@ -80,7 +110,7 @@ public class UsersLoginOptions extends JFrame {
         createAccountLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                new CreateAccount();
+                new CreateAccount().setVisible(true);
                 dispose();
             }
         });

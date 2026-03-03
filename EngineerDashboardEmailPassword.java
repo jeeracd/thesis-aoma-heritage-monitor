@@ -68,6 +68,7 @@ public class EngineerDashboardEmailPassword {
         buttonPanel.setOpaque(false);
 
         JButton changeEmailBtn = createOutlinedButton("Change Email");
+        changeEmailBtn.setEnabled(false);
         JButton changePasswordBtn = createOutlinedButton("Change Password");
 
         changeEmailBtn.addActionListener(e -> {
@@ -139,6 +140,19 @@ public class EngineerDashboardEmailPassword {
         saveButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         saveButton.setPreferredSize(new Dimension(220, 45));
         saveButton.setFocusPainted(false);
+
+        saveButton.addActionListener(e -> {
+        JOptionPane.showMessageDialog(
+                null,
+                "Changes saved successfully!",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+
+        new EngineerStartingPage().setVisible(true);
+
+        SwingUtilities.getWindowAncestor(saveButton).dispose();
+        });
 
         JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         wrapper.setOpaque(false);

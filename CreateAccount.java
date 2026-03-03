@@ -113,9 +113,9 @@ public class CreateAccount extends JFrame {
         JPasswordField password = new JPasswordField("password");
 
         JButton submitButton = new JButton("Submit");
-        submitButton.setPreferredSize(new Dimension(120, 35));
-        submitButton.setMaximumSize(new Dimension(120, 35));
-        submitButton.setBorder(new LineBorder(Color.BLACK, 2));
+        submitButton.setMaximumSize(new Dimension(300, 45));
+        submitButton.setFont(new Font("Arial", Font.BOLD, 14));
+        submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         submitButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         submitButton.setFocusPainted(false);

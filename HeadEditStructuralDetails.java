@@ -522,25 +522,28 @@ public class HeadEditStructuralDetails extends JFrame {
 
         formPanel.add(cancelBtn);
 
-        JButton createBtn = new JButton("Create a New Project");
-        createBtn.setFont(new Font("Arial", Font.BOLD, 14));
-        createBtn.setForeground(new Color(0, 153, 0)); 
-        createBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        createBtn.setBounds(680, 520, 220, 35);
-        formPanel.add(createBtn);
+        JButton submitBtn = new JButton("Submit");
+        submitBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        submitBtn.setForeground(new Color(0, 153, 0)); 
+        submitBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        submitBtn.setBounds(680, 520, 220, 35);
+        formPanel.add(submitBtn);
 
-        createBtn.addActionListener(e -> {
-        // TEMPorary DATA (NO DB YET)
+        submitBtn.addActionListener(e -> {
 
-        String buildingName = buildingField.getText().isEmpty()? "New Heritage Building " + HeadBldgStatusOverview.projectCount: buildingField.getText();
+        String buildingName = buildingField.getText().isEmpty()
+                ? "New Heritage Building " + HeadBldgStatusOverview.projectCount
+                : buildingField.getText();
 
-        String location = addressField.getText().isEmpty()? "Location Not Set": addressField.getText();
+        String location = addressField.getText().isEmpty()
+                ? "Location Not Set"
+                : addressField.getText();
 
-        String function = functionField.getText().isEmpty()? "Not Specified": functionField.getText();
+        String function = functionField.getText().isEmpty()
+                ? "Not Specified"
+                : functionField.getText();
 
         String healthStatus = "NO DATA";
-
-        HeadBldgStatusOverview.addNewProjectRow( buildingName,location,function,healthStatus);
 
         HeadBldgStatusOverview.projectCount++;
 
@@ -548,7 +551,8 @@ public class HeadEditStructuralDetails extends JFrame {
                 this,
                 "Project added to Dashboard!",
                 "Success",
-                JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.INFORMATION_MESSAGE
+        );
 
         dispose();
 
@@ -556,7 +560,6 @@ public class HeadEditStructuralDetails extends JFrame {
             HeadBldgStatusOverview dashboard = new HeadBldgStatusOverview();
             dashboard.setVisible(true);
 
-            // 🔥 NOW SAFE TO ADD ROW
             HeadBldgStatusOverview.addNewProjectRow(
                     buildingName,
                     location,

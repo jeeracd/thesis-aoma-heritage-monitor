@@ -10,6 +10,11 @@ public class HeadBldgStatusOverview extends JFrame {
     public static JPanel centerContentWrapper;
     public static int projectCount = 1;
 
+    public static JLabel totalBuildingsValue;
+    public static JLabel criticalValue;
+    public static int totalBuildingsCount = 0;
+    public static int criticalBuildingsCount = 0;
+
     public HeadBldgStatusOverview() {
         instance = this;
         setTitle("AOMA-Heritage Monitor - Building Status Overview");
@@ -24,9 +29,11 @@ public class HeadBldgStatusOverview extends JFrame {
 
         JPanel headPanel = new JPanel(null);
 
-        tabsUI.addTab("Projects", headPanel);
-        tabsUI.addTab("View", new JPanel());
+        tabsUI.addTab("Projects", new JPanel());
+        tabsUI.addTab("View", headPanel);
         tabsUI.addTab("Help", new JPanel());
+
+        tabsUI.setSelectedIndex(1); //set default tab
 
         tabsUI.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
     @Override
@@ -74,19 +81,60 @@ public class HeadBldgStatusOverview extends JFrame {
         JPopupMenu projectsMenu = new JPopupMenu();
 
         JMenuItem newProject = new JMenuItem("New Project");
+        newProject.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "New Project initialization process will start.",
+                    "New Project",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadEditStructuralDetails();
+            this.dispose();
+        });
+
         JMenuItem openProject = new JMenuItem("Open Project");
         JMenuItem importCsv = new JMenuItem("Import Sensor Data (.csv)");
-        JMenuItem exportPdf = new JMenuItem("Export Report (PDF)");
-        JMenuItem preferences = new JMenuItem("Preferences");
+        importCsv.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Import Sensor Data page.",
+                    "Import Sensor Data",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadImportSensorData();
+            this.dispose();
+        });
+
+        JMenuItem exportPDF = new JMenuItem("Export Report (PDF)");
+        exportPDF.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Export Report page.",
+                    "Export Report",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadExportSensorData();
+            this.dispose();
+        });
+
         JMenuItem exit = new JMenuItem("Exit");
+        exit.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to exit?",
+                    "Exit Confirmation",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                System.exit(0);
+            }
+        });
 
         projectsMenu.add(newProject);
         projectsMenu.add(openProject);
         projectsMenu.addSeparator();
         projectsMenu.add(importCsv);
-        projectsMenu.add(exportPdf);
-        projectsMenu.addSeparator();
-        projectsMenu.add(preferences);
+        projectsMenu.add(exportPDF);
         projectsMenu.addSeparator();
         projectsMenu.add(exit);
 
@@ -118,40 +166,114 @@ public class HeadBldgStatusOverview extends JFrame {
         JPopupMenu viewMenu = new JPopupMenu();
 
         JMenuItem dashboardView = new JMenuItem("Dashboard View");
+        dashboardView.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Dashboard View.",
+                    "Dashboard View",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadBldgStatusOverview();
+            this.dispose();
+        });
 
-        JMenuItem setupConnection = new JMenuItem("Setup Connection");
+        JMenuItem setupConnection = new JMenuItem("Setup & Connection");
+        setupConnection.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Setup & Connection page.",
+                    "Setup & Connection",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadSetupConnectionWindow();
+            this.dispose();
+        });
+
+
         JMenuItem configureSensor = new JMenuItem("Configure Sensor");
+        configureSensor.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Configure Sensor page.",
+                    "Configure Sensor",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadConfigureSensorWindow();
+            this.dispose();
+        });
+
         JMenuItem esp32Status = new JMenuItem("ESP32 Status");
+        esp32Status.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to ESP32 Status page.",
+                    "ESP32 Status",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadESP32StatusWindow();
+            this.dispose();
+        });
 
         JMenuItem vibrationData = new JMenuItem("Vibration Data");
+        vibrationData.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Vibration Data page.",
+                    "Vibration Data",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadVibrationDataWindow();
+            this.dispose();
+        }); 
+
         JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
+        omaAnalysisResult.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to OMA Analysis Result page.",
+                    "OMA Analysis Result",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadOMAAnalysisResultWindow();
+            this.dispose();
+        });
 
-        JMenuItem monitoringPeriod = new JMenuItem("Monitoring Period");
-        JMenuItem reportHistory = new JMenuItem("Report History");
-        JMenuItem pastReports = new JMenuItem("Past Reports");
+        JMenuItem reportHistory = new JMenuItem("View Report");
+        reportHistory.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to View Report page.",
+                    "View Report",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadViewReportWindow();
+            this.dispose();
+        });
 
-        JMenuItem recentEvents = new JMenuItem("Recent Events");
-        JMenuItem historicalTrends = new JMenuItem("Historical Trends");
+        JMenuItem systemLogs = new JMenuItem("System Logs");
+        systemLogs.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to System Logs page.",
+                    "System Logs",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadSystemLogsWindow();
+            this.dispose();
+        });
 
         viewMenu.add(dashboardView);
         viewMenu.addSeparator();
-
         viewMenu.add(setupConnection);
         viewMenu.add(configureSensor);
         viewMenu.add(esp32Status);
         viewMenu.addSeparator();
-
         viewMenu.add(vibrationData);
         viewMenu.add(omaAnalysisResult);
         viewMenu.addSeparator();
-
-        viewMenu.add(monitoringPeriod);
         viewMenu.add(reportHistory);
-        viewMenu.add(pastReports);
         viewMenu.addSeparator();
-
-        viewMenu.add(recentEvents);
-        viewMenu.add(historicalTrends);
+        viewMenu.add(systemLogs);
 
         JButton viewMenuDropdownBtn = new JButton("▼");
         viewMenuDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14)); // bigger arrow
@@ -189,10 +311,52 @@ public class HeadBldgStatusOverview extends JFrame {
         JPopupMenu helpMenu = new JPopupMenu();
 
         JMenuItem sensorSetupGuide = new JMenuItem("Sensor Setup Guide");
+        sensorSetupGuide.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Sensor Setup Guide.",
+                    "Sensor Setup Guide",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadSensorSetupGuide();
+            this.dispose();
+        });
+
         JMenuItem userDocumentation = new JMenuItem("User Documentation");
+        userDocumentation.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to User Documentation.",
+                    "User Documentation",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadUserDocumentation();
+            this.dispose();
+        });
 
         JMenuItem aboutAOMA = new JMenuItem("About AOMA-Heritage Monitor");
+        aboutAOMA.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to About AOMA-Heritage Monitor.",
+                    "About AOMA-Heritage Monitor",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadAboutAOMA();
+            this.dispose();
+        });
+
         JMenuItem contactSupport = new JMenuItem("Contact Support");
+        contactSupport.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Contact Support.",
+                    "Contact Support",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadContactSupport();
+            this.dispose();
+        });
 
         helpMenu.add(sensorSetupGuide);
         helpMenu.add(userDocumentation);
@@ -225,6 +389,32 @@ public class HeadBldgStatusOverview extends JFrame {
             arrowSize
         );
         layeredPane.add(helpMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
+    }); 
+
+        //para hindi ma-select yung view/help kapag clinick yung dropdown or text 
+        tabsUI.addChangeListener(e -> {
+        int selectedIndex = tabsUI.getSelectedIndex();
+
+        Rectangle bounds = tabsUI.getBoundsAt(selectedIndex);
+
+        if (selectedIndex == 0) { // Projects clicked
+            projectsMenu.show(
+                    tabsUI,
+                    bounds.x,
+                    bounds.y + bounds.height
+            );
+        }
+
+        if (selectedIndex == 2) { // Help clicked
+            helpMenu.show(
+                    tabsUI,
+                    bounds.x,
+                    bounds.y + bounds.height
+            );
+        }
+
+        // Always go back to View tab
+        SwingUtilities.invokeLater(() -> tabsUI.setSelectedIndex(1));
     });
 
         JLabel LGUHeadLabel = new JLabel("LGU HEAD ACCOUNT");
@@ -249,6 +439,41 @@ public class HeadBldgStatusOverview extends JFrame {
         Image userImgScaled = userIcon.getImage().getScaledInstance(26, 26, Image.SCALE_SMOOTH);
         JLabel userIconLabel = new JLabel(new ImageIcon(userImgScaled));
         userIconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+
+        // Head POPUP MENU
+        JPopupMenu userMenu = new JPopupMenu();
+        JMenuItem userSettings = new JMenuItem("User Settings");
+        userSettings.addActionListener(e -> {
+            dispose(); 
+            new HeadDashboardUserSettings(); // opens settings window
+        });
+
+        JMenuItem logout = new JMenuItem("Logout");
+        logout.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to logout?",
+                    "Logout Confirmation",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                dispose(); 
+                new UsersLoginOptions(); // opens login page
+            }
+        });
+
+        userMenu.add(userSettings);
+        userMenu.addSeparator();
+        userMenu.add(logout);
+        userIconLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        // Show popup when clicked
+        userIconLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                userMenu.show(userIconLabel, 0, userIconLabel.getHeight());
+            }
+        });
 
         centerPanelDescription.add(centerTitleLabel, BorderLayout.CENTER);
         centerPanelDescription.add(userIconLabel, BorderLayout.EAST);
@@ -317,7 +542,7 @@ public class HeadBldgStatusOverview extends JFrame {
         JLabel totalBuildingsLabel = new JLabel("Total Buildings", SwingConstants.CENTER);
         totalBuildingsLabel.setFont(new Font("Arial", Font.BOLD, 14));
 
-        JLabel totalBuildingsValue = new JLabel("1", SwingConstants.CENTER);
+        totalBuildingsValue = new JLabel(String.valueOf(totalBuildingsCount), SwingConstants.CENTER);
         totalBuildingsValue.setFont(new Font("Arial", Font.BOLD, 20));
 
         totalBuildingsPanel.add(totalBuildingsLabel, BorderLayout.NORTH);
@@ -331,7 +556,7 @@ public class HeadBldgStatusOverview extends JFrame {
         criticalLabel.setFont(new Font("Arial", Font.BOLD, 14));
         criticalLabel.setForeground(Color.RED);
 
-        JLabel criticalValue = new JLabel("1", SwingConstants.CENTER);
+        criticalValue = new JLabel(String.valueOf(criticalBuildingsCount), SwingConstants.CENTER);
         criticalValue.setFont(new Font("Arial", Font.BOLD, 20));
         criticalValue.setForeground(Color.RED);
 
@@ -482,20 +707,27 @@ public class HeadBldgStatusOverview extends JFrame {
         add(layeredPane, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         
-
         setVisible(true);
     }
 
-    public static void addNewProjectRow(
-        String buildingName,
-        String location,
-        String function,
-        String healthStatus) {
+        public static void addNewProjectRow(
+            String buildingName,
+            String location,
+            String function,
+            String healthStatus) {
 
-    if (projectsContainer == null) {
-        System.err.println("Projects container not initialized!");
-        return;
-    }
+        if (projectsContainer == null) {
+            System.err.println("Projects container not initialized!");
+            return;
+        }
+
+        totalBuildingsCount++;
+        totalBuildingsValue.setText(String.valueOf(totalBuildingsCount));
+
+        if (healthStatus.equalsIgnoreCase("CRITICAL")) {
+            criticalBuildingsCount++;
+            criticalValue.setText(String.valueOf(criticalBuildingsCount));
+        }
 
         JPanel rowPanel = new JPanel(new GridLayout(1, 5, 10, 0));
         rowPanel.setPreferredSize(new Dimension(1600, 50));
@@ -528,10 +760,10 @@ public class HeadBldgStatusOverview extends JFrame {
         viewDetailsBtn.setFocusPainted(false);
 
         viewDetailsBtn.addActionListener(e -> {
-        SwingUtilities.invokeLater(() -> {
-            new HeadViewDetails();
-            instance.setVisible(false); 
-        });
+            SwingUtilities.invokeLater(() -> {
+                new HeadViewDetails();
+                instance.setVisible(false);
+            });
         });
 
         rowActionsPanel.add(viewDetailsBtn, BorderLayout.CENTER);

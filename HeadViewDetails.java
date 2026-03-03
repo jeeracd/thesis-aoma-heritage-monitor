@@ -59,13 +59,13 @@ public class HeadViewDetails extends JFrame {
             }
         });
         
+        //projects menu
         JPopupMenu projectsMenu = new JPopupMenu();
 
         JMenuItem newProject = new JMenuItem("New Project");
         JMenuItem openProject = new JMenuItem("Open Project");
         JMenuItem importCsv = new JMenuItem("Import Sensor Data (.csv)");
         JMenuItem exportPdf = new JMenuItem("Export Report (PDF)");
-        JMenuItem preferences = new JMenuItem("Preferences");
         JMenuItem exit = new JMenuItem("Exit");
 
         projectsMenu.add(newProject);
@@ -73,8 +73,6 @@ public class HeadViewDetails extends JFrame {
         projectsMenu.addSeparator();
         projectsMenu.add(importCsv);
         projectsMenu.add(exportPdf);
-        projectsMenu.addSeparator();
-        projectsMenu.add(preferences);
         projectsMenu.addSeparator();
         projectsMenu.add(exit);
 
@@ -116,23 +114,38 @@ public class HeadViewDetails extends JFrame {
             layeredPane.add(projectsDropdownBtn, JLayeredPane.PALETTE_LAYER);
         });
 
+        //VIEW MENU 
         JPopupMenu viewMenu = new JPopupMenu();
 
         JMenuItem dashboardView = new JMenuItem("Dashboard View");
+
         JMenuItem setupConnection = new JMenuItem("Setup Connection");
         JMenuItem configureSensor = new JMenuItem("Configure Sensor");
         JMenuItem esp32Status = new JMenuItem("ESP32 Status");
+
         JMenuItem vibrationData = new JMenuItem("Vibration Data");
         JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
 
+        JMenuItem reportHistory = new JMenuItem("View Report");
+
+        JMenuItem systemLogs = new JMenuItem("System Logs");
+
         viewMenu.add(dashboardView);
         viewMenu.addSeparator();
+
         viewMenu.add(setupConnection);
         viewMenu.add(configureSensor);
         viewMenu.add(esp32Status);
         viewMenu.addSeparator();
+
         viewMenu.add(vibrationData);
         viewMenu.add(omaAnalysisResult);
+        viewMenu.addSeparator();
+
+        viewMenu.add(reportHistory);
+        viewMenu.addSeparator();
+
+        viewMenu.add(systemLogs);
 
         JButton viewMenuDropdownBtn = new JButton("▼");
         viewMenuDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14));

@@ -84,6 +84,20 @@ public class HeadDashboardManageAccess extends JFrame {
         saveBtn.setFont(new Font("Arial", Font.BOLD, 13));
         saveBtn.setBounds(200, 560, 200, 35);
         saveBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        saveBtn.addActionListener(e -> {
+        JOptionPane.showMessageDialog(
+                HeadDashboardManageAccess.this,
+                "Changes saved successfully!",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+
+        new HeadStartingPage();
+        dispose();
+    });
+        
+
         add(saveBtn);
 
         setVisible(true);

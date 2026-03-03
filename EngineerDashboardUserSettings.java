@@ -161,19 +161,31 @@ public class EngineerDashboardUserSettings extends JFrame {
 
     return panel;
 }
-
     private JPanel createSaveButton() {
     JButton saveButton = new JButton("Save Changes & Exit");
     saveButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
     saveButton.setPreferredSize(new Dimension(220, 45));
     saveButton.setFocusPainted(false);
+    saveButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+    saveButton.addActionListener(e -> {
+        JOptionPane.showMessageDialog(
+                EngineerDashboardUserSettings.this,
+                "Changes saved successfully!",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+
+        new EngineerStartingPage();
+        dispose();
+    });
 
     JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-    wrapper.setOpaque(false); 
+    wrapper.setOpaque(false);
     wrapper.add(saveButton);
 
     return wrapper;
-    }
+}
     static class AvatarPanel extends JPanel {
 
         private Image avatarImage;

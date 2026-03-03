@@ -69,19 +69,60 @@ public class HeadAboutAOMA extends JFrame {
         JPopupMenu projectsMenu = new JPopupMenu();
 
         JMenuItem newProject = new JMenuItem("New Project");
+        newProject.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "New Project initialization process will start.",
+                    "New Project",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadEditStructuralDetails();
+            this.dispose();
+        });
+
         JMenuItem openProject = new JMenuItem("Open Project");
         JMenuItem importCsv = new JMenuItem("Import Sensor Data (.csv)");
-        JMenuItem exportPdf = new JMenuItem("Export Report (PDF)");
-        JMenuItem preferences = new JMenuItem("Preferences");
+        importCsv.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Import Sensor Data page.",
+                    "Import Sensor Data",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadImportSensorData();
+            this.dispose();
+        });
+
+        JMenuItem exportPDF = new JMenuItem("Export Report (PDF)");
+        exportPDF.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Export Report page.",
+                    "Export Report",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadExportSensorData();
+            this.dispose();
+        });
+
         JMenuItem exit = new JMenuItem("Exit");
+        exit.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to exit?",
+                    "Exit Confirmation",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                System.exit(0);
+            }
+        });
 
         projectsMenu.add(newProject);
         projectsMenu.add(openProject);
         projectsMenu.addSeparator();
         projectsMenu.add(importCsv);
-        projectsMenu.add(exportPdf);
-        projectsMenu.addSeparator();
-        projectsMenu.add(preferences);
+        projectsMenu.add(exportPDF);
         projectsMenu.addSeparator();
         projectsMenu.add(exit);
 
@@ -113,40 +154,114 @@ public class HeadAboutAOMA extends JFrame {
         JPopupMenu viewMenu = new JPopupMenu();
 
         JMenuItem dashboardView = new JMenuItem("Dashboard View");
+        dashboardView.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Dashboard View.",
+                    "Dashboard View",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadBldgStatusOverview();
+            this.dispose();
+        });
 
-        JMenuItem setupConnection = new JMenuItem("Setup Connection");
+        JMenuItem setupConnection = new JMenuItem("Setup & Connection");
+        setupConnection.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Setup & Connection page.",
+                    "Setup & Connection",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadSetupConnectionWindow();
+            this.dispose();
+        });
+
+
         JMenuItem configureSensor = new JMenuItem("Configure Sensor");
+        configureSensor.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Configure Sensor page.",
+                    "Configure Sensor",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadConfigureSensorWindow();
+            this.dispose();
+        });
+
         JMenuItem esp32Status = new JMenuItem("ESP32 Status");
+        esp32Status.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to ESP32 Status page.",
+                    "ESP32 Status",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadESP32StatusWindow();
+            this.dispose();
+        });
 
         JMenuItem vibrationData = new JMenuItem("Vibration Data");
+        vibrationData.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Vibration Data page.",
+                    "Vibration Data",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadVibrationDataWindow();
+            this.dispose();
+        }); 
+
         JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
+        omaAnalysisResult.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to OMA Analysis Result page.",
+                    "OMA Analysis Result",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadOMAAnalysisResultWindow();
+            this.dispose();
+        });
 
-        JMenuItem monitoringPeriod = new JMenuItem("Monitoring Period");
-        JMenuItem reportHistory = new JMenuItem("Report History");
-        JMenuItem pastReports = new JMenuItem("Past Reports");
+        JMenuItem reportHistory = new JMenuItem("View Report");
+        reportHistory.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to View Report page.",
+                    "View Report",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadViewReportWindow();
+            this.dispose();
+        });
 
-        JMenuItem recentEvents = new JMenuItem("Recent Events");
-        JMenuItem historicalTrends = new JMenuItem("Historical Trends");
+        JMenuItem systemLogs = new JMenuItem("System Logs");
+        systemLogs.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to System Logs page.",
+                    "System Logs",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadSystemLogsWindow();
+            this.dispose();
+        });
 
         viewMenu.add(dashboardView);
         viewMenu.addSeparator();
-
         viewMenu.add(setupConnection);
         viewMenu.add(configureSensor);
         viewMenu.add(esp32Status);
         viewMenu.addSeparator();
-
         viewMenu.add(vibrationData);
         viewMenu.add(omaAnalysisResult);
         viewMenu.addSeparator();
-
-        viewMenu.add(monitoringPeriod);
         viewMenu.add(reportHistory);
-        viewMenu.add(pastReports);
         viewMenu.addSeparator();
-
-        viewMenu.add(recentEvents);
-        viewMenu.add(historicalTrends);
+        viewMenu.add(systemLogs);
 
         JButton viewMenuDropdownBtn = new JButton("▼");
         viewMenuDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14)); // bigger arrow
@@ -184,10 +299,52 @@ public class HeadAboutAOMA extends JFrame {
         JPopupMenu helpMenu = new JPopupMenu();
 
         JMenuItem sensorSetupGuide = new JMenuItem("Sensor Setup Guide");
-        JMenuItem userDocumentation = new JMenuItem("User Documentation");
+        sensorSetupGuide.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Sensor Setup Guide.",
+                    "Sensor Setup Guide",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadSensorSetupGuide();
+            this.dispose();
+        });
 
-        JMenuItem aboutAOMA = new JMenuItem("About AOMA-Monitor");
+        JMenuItem userDocumentation = new JMenuItem("User Documentation");
+        userDocumentation.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to User Documentation.",
+                    "User Documentation",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadUserDocumentation();
+            this.dispose();
+        });
+
+        JMenuItem aboutAOMA = new JMenuItem("About AOMA-Heritage Monitor");
+        aboutAOMA.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to About AOMA-Heritage Monitor.",
+                    "About AOMA-Heritage Monitor",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadAboutAOMA();
+            this.dispose();
+        });
+
         JMenuItem contactSupport = new JMenuItem("Contact Support");
+        contactSupport.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Contact Support.",
+                    "Contact Support",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadContactSupport();
+            this.dispose();
+        });
 
         helpMenu.add(sensorSetupGuide);
         helpMenu.add(userDocumentation);
@@ -222,6 +379,31 @@ public class HeadAboutAOMA extends JFrame {
         layeredPane.add(helpMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
     }); 
 
+        tabsUI.addChangeListener(e -> {
+        int selectedIndex = tabsUI.getSelectedIndex();
+
+        Rectangle bounds = tabsUI.getBoundsAt(selectedIndex);
+
+        if (selectedIndex == 0) { // Projects clicked
+            projectsMenu.show(
+                    tabsUI,
+                    bounds.x,
+                    bounds.y + bounds.height
+            );
+        }
+
+        if (selectedIndex == 1) { // View clicked
+            viewMenu.show(
+                    tabsUI,
+                    bounds.x,
+                    bounds.y + bounds.height
+            );
+        }
+
+        // Always return to Help tab
+        SwingUtilities.invokeLater(() -> tabsUI.setSelectedIndex(2));
+    });
+
         JLabel LGUHeadLabel = new JLabel("LGU HEAD ACCOUNT");
         LGUHeadLabel.setFont(new Font("Arial", Font.BOLD, 14));
         LGUHeadLabel.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -244,6 +426,41 @@ public class HeadAboutAOMA extends JFrame {
         Image userImgScaled = userIcon.getImage().getScaledInstance(26, 26, Image.SCALE_SMOOTH);
         JLabel userIconLabel = new JLabel(new ImageIcon(userImgScaled));
         userIconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+
+        // Head POPUP MENU
+        JPopupMenu userMenu = new JPopupMenu();
+        JMenuItem userSettings = new JMenuItem("User Settings");
+        userSettings.addActionListener(e -> {
+            dispose(); 
+            new HeadDashboardUserSettings(); // opens settings window
+        });
+
+        JMenuItem logout = new JMenuItem("Logout");
+        logout.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to logout?",
+                    "Logout Confirmation",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                dispose(); 
+                new UsersLoginOptions(); // opens login page
+            }
+        });
+
+        userMenu.add(userSettings);
+        userMenu.addSeparator();
+        userMenu.add(logout);
+        userIconLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        // Show popup when clicked
+        userIconLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                userMenu.show(userIconLabel, 0, userIconLabel.getHeight());
+            }
+        });
 
         centerPanelDescription.add(centerTitleLabel, BorderLayout.CENTER);
         centerPanelDescription.add(userIconLabel, BorderLayout.EAST);

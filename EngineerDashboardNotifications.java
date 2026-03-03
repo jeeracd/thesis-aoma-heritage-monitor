@@ -78,6 +78,19 @@ public class EngineerDashboardNotifications {
         saveButton.setPreferredSize(new Dimension(220, 45));
         saveButton.setFocusPainted(false);
 
+        saveButton.addActionListener(e -> {
+        JOptionPane.showMessageDialog(
+                null,
+                "Changes saved successfully!",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+
+        new EngineerStartingPage().setVisible(true);
+
+        SwingUtilities.getWindowAncestor(saveButton).dispose();
+        });
+
         JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         wrapper.setOpaque(false); 
         wrapper.add(saveButton);

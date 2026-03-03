@@ -27,21 +27,11 @@ public class CreateAccountConfirmation extends JFrame {
         subtitleLabel.setForeground(new Color(90, 90, 90));
 
         JButton proceedButton = new JButton("Proceed");
+        proceedButton.setMaximumSize(new Dimension(100, 45));
+        proceedButton.setFont(new Font("Arial", Font.BOLD, 14));
         proceedButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        proceedButton.setFocusPainted(false);
-        proceedButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        proceedButton.setBackground(new Color(0, 153, 0));
-        proceedButton.setForeground(Color.BLACK);
-        proceedButton.setPreferredSize(new Dimension(120, 38));
-        proceedButton.setMaximumSize(new Dimension(140, 38));
         proceedButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        proceedButton.setBorder(
-                BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.BLACK, 1),
-                BorderFactory.createEmptyBorder(8, 20, 8, 20)
-                )
-        );
+        proceedButton.setFocusPainted(false);
 
         proceedButton.addActionListener(e -> {
             new LoginOptions().setVisible(true);

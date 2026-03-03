@@ -70,7 +70,6 @@ public class EngineerStartingPage extends JFrame {
         JMenuItem openProject = new JMenuItem("Open Project");
         JMenuItem importCsv = new JMenuItem("Import Sensor Data (.csv)");
         JMenuItem exportPdf = new JMenuItem("Export Report (PDF)");
-        JMenuItem preferences = new JMenuItem("Preferences");
         JMenuItem exit = new JMenuItem("Exit");
 
         projectsMenu.add(newProject);
@@ -78,8 +77,6 @@ public class EngineerStartingPage extends JFrame {
         projectsMenu.addSeparator();
         projectsMenu.add(importCsv);
         projectsMenu.add(exportPdf);
-        projectsMenu.addSeparator();
-        projectsMenu.add(preferences);
         projectsMenu.addSeparator();
         projectsMenu.add(exit);
 
@@ -243,9 +240,32 @@ public class EngineerStartingPage extends JFrame {
         JLabel userIconLabel = new JLabel(new ImageIcon(userImgScaled));
         userIconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
 
+        // engr POPUP MENU
+        JPopupMenu userMenu = new JPopupMenu();
+        JMenuItem userSettings = new JMenuItem("User Settings");
+
+        // Open Engineer Dashboard User Settings
+        userSettings.addActionListener(e -> {
+            dispose(); 
+            new EngineerDashboardUserSettings(); // opens settings window
+        });
+        JMenuItem logout = new JMenuItem("Logout");
+
+        userMenu.add(userSettings);
+        userMenu.addSeparator();
+        userMenu.add(logout);
+        userIconLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        // Show popup when clicked
+        userIconLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                userMenu.show(userIconLabel, 0, userIconLabel.getHeight());
+            }
+        });
+
         centerPanelDescription.add(centerTitleLabel, BorderLayout.CENTER);
         centerPanelDescription.add(userIconLabel, BorderLayout.EAST);
-
         engineerPanel.add(centerPanelDescription);
 
         JPanel centerPanel = new JPanel(new BorderLayout());
@@ -254,7 +274,7 @@ public class EngineerStartingPage extends JFrame {
         centerPanel.setBorder(secondBorder);
         engineerPanel.add(centerPanel);
 
-        JLabel greetingLabel = new JLabel("Welcome, Juan Dela Cruz!", JLabel.LEFT); //add database here [collect the fullname of the engineer]
+        JLabel greetingLabel = new JLabel("Welcome, Engr. Juan Dela Cruz!", JLabel.LEFT); //add database here [collect the fullname of the engineer]
         greetingLabel.setFont(new Font("Arial", Font.BOLD, 18));
         greetingLabel.setBorder( BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(120, 120, 120)), 
         BorderFactory.createEmptyBorder(10, 10, 10, 10)));

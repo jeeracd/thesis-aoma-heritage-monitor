@@ -44,10 +44,6 @@ public class EditStructuralDetails extends JFrame {
         setupTextField(dateField, fieldX, yStart + yGap, fieldWidth, height);
         add(dateField);
 
-        JButton calendarBtn = new JButton("📅");
-        calendarBtn.setBounds(fieldX + fieldWidth + 5, yStart + yGap, 30, 30);
-        add(calendarBtn);
-
         addLabel("Materials Used:", labelX, yStart + (yGap * 2), labelWidth, height);
         JTextField materialField = new JTextField("Wood, Brick");
         setupTextField(materialField, fieldX, yStart + (yGap * 2), fieldWidth, height);

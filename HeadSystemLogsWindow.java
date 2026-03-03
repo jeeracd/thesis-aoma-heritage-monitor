@@ -177,25 +177,90 @@ public class HeadSystemLogsWindow extends JFrame {
             this.dispose();
         });
 
-        JMenuItem setupConnection = new JMenuItem("Setup Connection");
+        JMenuItem setupConnection = new JMenuItem("Setup & Connection");
+        setupConnection.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Setup & Connection page.",
+                    "Setup & Connection",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadSetupConnectionWindow();
+            this.dispose();
+        });
 
 
         JMenuItem configureSensor = new JMenuItem("Configure Sensor");
-
+        configureSensor.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Configure Sensor page.",
+                    "Configure Sensor",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadConfigureSensorWindow();
+            this.dispose();
+        });
 
         JMenuItem esp32Status = new JMenuItem("ESP32 Status");
-
+        esp32Status.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to ESP32 Status page.",
+                    "ESP32 Status",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadESP32StatusWindow();
+            this.dispose();
+        });
 
         JMenuItem vibrationData = new JMenuItem("Vibration Data");
-
+        vibrationData.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Vibration Data page.",
+                    "Vibration Data",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadVibrationDataWindow();
+            this.dispose();
+        }); 
 
         JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
-
+        omaAnalysisResult.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to OMA Analysis Result page.",
+                    "OMA Analysis Result",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadOMAAnalysisResultWindow();
+            this.dispose();
+        });
 
         JMenuItem reportHistory = new JMenuItem("View Report");
-
+        reportHistory.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to View Report page.",
+                    "View Report",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadViewReportWindow();
+            this.dispose();
+        });
 
         JMenuItem systemLogs = new JMenuItem("System Logs");
+        systemLogs.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to System Logs page.",
+                    "System Logs",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadSystemLogsWindow();
+            this.dispose();
+        });
 
 
         viewMenu.add(dashboardView);
@@ -375,6 +440,41 @@ public class HeadSystemLogsWindow extends JFrame {
         Image userImgScaled = userIcon.getImage().getScaledInstance(26, 26, Image.SCALE_SMOOTH);
         JLabel userIconLabel = new JLabel(new ImageIcon(userImgScaled));
         userIconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+
+        // Head POPUP MENU
+        JPopupMenu userMenu = new JPopupMenu();
+        JMenuItem userSettings = new JMenuItem("User Settings");
+        userSettings.addActionListener(e -> {
+            dispose(); 
+            new HeadDashboardUserSettings(); // opens settings window
+        });
+
+        JMenuItem logout = new JMenuItem("Logout");
+        logout.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to logout?",
+                    "Logout Confirmation",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                dispose(); 
+                new UsersLoginOptions(); // opens login page
+            }
+        });
+
+        userMenu.add(userSettings);
+        userMenu.addSeparator();
+        userMenu.add(logout);
+        userIconLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        // Show popup when clicked
+        userIconLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                userMenu.show(userIconLabel, 0, userIconLabel.getHeight());
+            }
+        });
 
         centerPanelDescription.add(centerTitleLabel, BorderLayout.CENTER);
         centerPanelDescription.add(userIconLabel, BorderLayout.EAST);
