@@ -245,7 +245,25 @@ public class OfficerStartingPage extends JFrame {
         // officer POPUP MENU
         JPopupMenu userMenu = new JPopupMenu();
         JMenuItem userSettings = new JMenuItem("User Settings");
+        userSettings.addActionListener(e -> {
+            dispose();
+            new OfficerDashboardUserSettings();
+        });
+
         JMenuItem logout = new JMenuItem("Logout");
+        logout.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    OfficerStartingPage.this,
+                    "Are you sure you want to logout?",
+                    "Confirm Logout",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                dispose();
+                new UsersLoginOptions();
+            }
+        });
 
         userMenu.add(userSettings);
         userMenu.addSeparator();
