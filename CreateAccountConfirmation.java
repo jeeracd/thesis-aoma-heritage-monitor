@@ -34,7 +34,7 @@ public class CreateAccountConfirmation extends JFrame {
         proceedButton.setFocusPainted(false);
 
         proceedButton.addActionListener(e -> {
-            new LoginOptions().setVisible(true);
+            new UsersLoginOptions().setVisible(true);
             dispose();
         });
 

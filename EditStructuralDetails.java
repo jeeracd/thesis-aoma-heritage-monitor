@@ -24,7 +24,7 @@ public class EditStructuralDetails extends JFrame {
         projectName.setBounds(20, 20, 300, 30);
         add(projectName);
 
-        JTextField projectField = new JTextField("Monitoring of San Diego de Alcala Parish Church"); 
+        JTextField projectField = new JTextField("test1"); 
         int projectFieldY = 55; 
         setupTextField(projectField, 20, projectFieldY, 500, height);
         add(projectField);   
@@ -35,37 +35,37 @@ public class EditStructuralDetails extends JFrame {
         add(headerLabel);
 
         addLabel("Building Name:", labelX, yStart, labelWidth, height);
-        JTextField nameField = new JTextField("San Diego de Alcala Parish Church"); 
+        JTextField nameField = new JTextField("test1"); 
         setupTextField(nameField, fieldX, yStart, fieldWidth, height);
         add(nameField);
 
         addLabel("Date Constructed:", labelX, yStart + yGap, labelWidth, height);
-        JTextField dateField = new JTextField("1697");
+        JTextField dateField = new JTextField("test1");
         setupTextField(dateField, fieldX, yStart + yGap, fieldWidth, height);
         add(dateField);
 
         addLabel("Materials Used:", labelX, yStart + (yGap * 2), labelWidth, height);
-        JTextField materialField = new JTextField("Wood, Brick");
+        JTextField materialField = new JTextField("test1");
         setupTextField(materialField, fieldX, yStart + (yGap * 2), fieldWidth, height);
         add(materialField);
 
         addLabel("Conservation Status:", labelX, yStart + (yGap * 3), labelWidth, height);
-        JTextField statusField = new JTextField("National Heritage");
+        JTextField statusField = new JTextField("test1");
         setupTextField(statusField, fieldX, yStart + (yGap * 3), fieldWidth, height);
         add(statusField);
 
         addLabel("Address:", labelX, yStart + (yGap * 4), labelWidth, height);
-        JTextField addressField = new JTextField("1444 Marcelo H. Del Pilar St, Pulo, Poblacion");
+        JTextField addressField = new JTextField("test1");
         setupTextField(addressField, fieldX, yStart + (yGap * 4), fieldWidth, height);
         add(addressField);
 
         addLabel("Function:", labelX, yStart + (yGap * 5), labelWidth, height);
-        JTextField functionField = new JTextField("Church");
+        JTextField functionField = new JTextField("test1");
         setupTextField(functionField, fieldX, yStart + (yGap * 5), fieldWidth, height);
         add(functionField);
 
         addLabel("Description:", labelX, yStart + (yGap * 6), labelWidth, height);
-        JTextArea descArea = new JTextArea("San Diego de Alcala Parish Church, colloquially known as Polo Church, is a Roman Catholic church in Valenzuela...");
+        JTextArea descArea = new JTextArea("test1");
         descArea.setFont(new Font("Arial", Font.PLAIN, 12));
         descArea.setLineWrap(true);
         descArea.setWrapStyleWord(true);
@@ -120,6 +120,7 @@ public class EditStructuralDetails extends JFrame {
 
             if (saveConfirm.isConfirmActionTaken()) {
                 JOptionPane.showMessageDialog(this, "Changes Saved Successfully!");
+                new HeadViewDetails();
                 dispose();
             }
         });
