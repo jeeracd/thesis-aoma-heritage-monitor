@@ -722,7 +722,7 @@ public class HeadSetupConnectionWindow extends JFrame {
 
         viewDetailsBtn.addActionListener(e -> {
             SwingUtilities.invokeLater(() -> {
-                new ESP32Connect();
+                //new HeadESP32Connect();
                 instance.setVisible(false);
             });
         });
