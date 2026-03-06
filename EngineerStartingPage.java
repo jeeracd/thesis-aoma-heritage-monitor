@@ -108,40 +108,116 @@ public class EngineerStartingPage extends JFrame {
         JPopupMenu viewMenu = new JPopupMenu();
 
         JMenuItem dashboardView = new JMenuItem("Dashboard View");
+        dashboardView.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Dashboard View.",
+                    "Dashboard View",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadBldgStatusOverview();
+            this.dispose();
+        });
 
-        JMenuItem setupConnection = new JMenuItem("Setup Connection");
+        JMenuItem setupConnection = new JMenuItem("Setup & Connection");
+        setupConnection.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Setup & Connection page.",
+                    "Setup & Connection",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadSetupConnectionWindow();
+            this.dispose();
+        });
+
+
         JMenuItem configureSensor = new JMenuItem("Configure Sensor");
+        configureSensor.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Configure Sensor page.",
+                    "Configure Sensor",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadConfigureSensorWindow();
+            this.dispose();
+        });
+
         JMenuItem esp32Status = new JMenuItem("ESP32 Status");
+        esp32Status.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to ESP32 Status page.",
+                    "ESP32 Status",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadESP32StatusWindow();
+            this.dispose();
+        });
 
         JMenuItem vibrationData = new JMenuItem("Vibration Data");
+        vibrationData.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Vibration Data page.",
+                    "Vibration Data",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadVibrationDataWindow();
+            this.dispose();
+        }); 
+
         JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
+        omaAnalysisResult.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to OMA Analysis Result page.",
+                    "OMA Analysis Result",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadOMAAnalysisResultWindow();
+            this.dispose();
+        });
 
-        JMenuItem monitoringPeriod = new JMenuItem("Monitoring Period");
-        JMenuItem reportHistory = new JMenuItem("Report History");
-        JMenuItem pastReports = new JMenuItem("Past Reports");
+        JMenuItem reportHistory = new JMenuItem("View Report");
+        reportHistory.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to View Report page.",
+                    "View Report",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadViewReportWindow();
+            this.dispose();
+        });
 
-        JMenuItem recentEvents = new JMenuItem("Recent Events");
-        JMenuItem historicalTrends = new JMenuItem("Historical Trends");
+        JMenuItem systemLogs = new JMenuItem("System Logs");
+        systemLogs.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to System Logs page.",
+                    "System Logs",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadSystemLogsWindow();
+            this.dispose();
+        });
+
+        systemLogs.setEnabled(false);
 
         viewMenu.add(dashboardView);
         viewMenu.addSeparator();
-
         viewMenu.add(setupConnection);
         viewMenu.add(configureSensor);
         viewMenu.add(esp32Status);
         viewMenu.addSeparator();
-
         viewMenu.add(vibrationData);
         viewMenu.add(omaAnalysisResult);
         viewMenu.addSeparator();
-
-        viewMenu.add(monitoringPeriod);
         viewMenu.add(reportHistory);
-        viewMenu.add(pastReports);
         viewMenu.addSeparator();
-
-        viewMenu.add(recentEvents);
-        viewMenu.add(historicalTrends);
+        viewMenu.add(systemLogs);
 
         JButton viewMenuDropdownBtn = new JButton("▼");
         viewMenuDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14)); // bigger arrow

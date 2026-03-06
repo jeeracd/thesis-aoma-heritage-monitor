@@ -530,17 +530,16 @@ public class HeadConfigureSensors extends JFrame {
         buildingInfoPanel.setLayout(new GridBagLayout());
         buildingInfoPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        addInfoField(buildingInfoPanel, "Project Name:", "Monitoring of San Diego de Alcala");
-        addInfoField(buildingInfoPanel, "Building Name:", "San Diego De Alcala");
-        addInfoField(buildingInfoPanel, "Year Constructed:", "1999");
-        addInfoField(buildingInfoPanel, "Material Used Type:", "Wood, Brick");
-        addInfoField(buildingInfoPanel, "Conservation Status:", "National Heritage");
-        addInfoField(buildingInfoPanel, "Function:", "Church");
-        addInfoField(buildingInfoPanel, "Address:", "1444 Marcelo H. Del Pilar St, Pulilan");
+        addInfoField(buildingInfoPanel, "Project Name:", "test1");
+        addInfoField(buildingInfoPanel, "Building Name:", "test1");
+        addInfoField(buildingInfoPanel, "Year Constructed:", "test1");
+        addInfoField(buildingInfoPanel, "Material Used Type:", "test1");
+        addInfoField(buildingInfoPanel, "Conservation Status:", "test1");
+        addInfoField(buildingInfoPanel, "Function:", "test1");
+        addInfoField(buildingInfoPanel, "Address:", "test1");
 
         addInfoArea(buildingInfoPanel, "Description:",
-                "San Diego de Alcala Parish Church, located in Valenzuela, about 15.5 km north of Manila in the "
-                + "Philippines. It is under the jurisdiction of the Diocese of Malolos.");
+                "test1");
 
         addBottomSpacer(buildingInfoPanel);
         
