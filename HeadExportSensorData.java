@@ -4,7 +4,19 @@ import javax.swing.border.Border;
 
 public class HeadExportSensorData extends JFrame {
 
+    public static HeadExportSensorData instance;
+    public static JPanel projectsContainer;
+    public static JPanel tableHeaderPanel;
+    public static JPanel centerContentWrapper;
+    public static int projectCount = 1;
+
+    public static JLabel totalBuildingsValue;
+    public static JLabel criticalValue;
+    public static int totalBuildingsCount = 0;
+    public static int criticalBuildingsCount = 0;
+
     public HeadExportSensorData() {
+        instance = this;
         setTitle("AOMA-Heritage Monitor - Export Sensor Data");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
@@ -232,7 +244,7 @@ public class HeadExportSensorData extends JFrame {
                     "View Report",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadViewReport();
+            new HeadViewReportWindow();
             this.dispose();
         });
 
@@ -403,7 +415,7 @@ public class HeadExportSensorData extends JFrame {
                     bounds.y + bounds.height
             );
         }
-        });
+    });
 
         JLabel LGUHeadLabel = new JLabel("LGU HEAD ACCOUNT");
         LGUHeadLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -428,23 +440,226 @@ public class HeadExportSensorData extends JFrame {
         JLabel userIconLabel = new JLabel(new ImageIcon(userImgScaled));
         userIconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
 
+        // Head POPUP MENU
+        JPopupMenu userMenu = new JPopupMenu();
+        JMenuItem userSettings = new JMenuItem("User Settings");
+        userSettings.addActionListener(e -> {
+            dispose(); 
+            new HeadDashboardUserSettings(); // opens settings window
+        });
+
+        JMenuItem logout = new JMenuItem("Logout");
+        logout.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to logout?",
+                    "Logout Confirmation",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                dispose(); 
+                new UsersLoginOptions(); // opens login page
+            }
+        });
+
+        userMenu.add(userSettings);
+        userMenu.addSeparator();
+        userMenu.add(logout);
+        userIconLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        // Show popup when clicked
+        userIconLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                userMenu.show(userIconLabel, 0, userIconLabel.getHeight());
+            }
+        });
+
         centerPanelDescription.add(centerTitleLabel, BorderLayout.CENTER);
         centerPanelDescription.add(userIconLabel, BorderLayout.EAST);
-
         headPanel.add(centerPanelDescription);
 
+        // CENTER PANEL 
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setBounds(10, 70, 1380, 648);
         Border secondBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
         centerPanel.setBorder(secondBorder);
         headPanel.add(centerPanel);
 
-        JLabel greetingLabel = new JLabel("Import Sensor Data", JLabel.LEFT);
-        greetingLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        greetingLabel.setBorder( BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(120, 120, 120)), 
-        BorderFactory.createEmptyBorder(10, 10, 10, 10)));
-        centerPanel.add(greetingLabel, BorderLayout.NORTH);
+        // HEADER 
+        JLabel headerLabel = new JLabel("Export Sensor Data (PDF)");
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        headerLabel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        centerPanel.add(headerLabel, BorderLayout.NORTH);
 
+        centerContentWrapper = new JPanel();
+        centerContentWrapper.setLayout(new BoxLayout(centerContentWrapper, BoxLayout.Y_AXIS));
+        centerContentWrapper.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        centerPanel.add(centerContentWrapper, BorderLayout.CENTER);
+
+        Dimension overviewSize = new Dimension(1600, 100); 
+
+        JPanel centerPanelStatusOverview = new JPanel(new BorderLayout());
+        centerPanelStatusOverview.setPreferredSize(overviewSize);
+        centerPanelStatusOverview.setMinimumSize(overviewSize);
+        centerPanelStatusOverview.setMaximumSize(overviewSize);
+        centerPanelStatusOverview.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        centerPanelStatusOverview.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel statusOverviewHeaderLabel = new JLabel(
+                "Export Sensor Data (PDF)",
+                SwingConstants.CENTER
+        );
+        statusOverviewHeaderLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        statusOverviewHeaderLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        centerPanelStatusOverview.add(statusOverviewHeaderLabel, BorderLayout.NORTH);
+
+        JLabel statusOverviewSubheaderLabel = new JLabel(
+                "OMA Analysis Result. Click below to view the OMA Analysis Result of the heritage building.",
+                SwingConstants.CENTER
+        );
+        statusOverviewSubheaderLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        statusOverviewSubheaderLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+        centerPanelStatusOverview.add(statusOverviewSubheaderLabel, BorderLayout.CENTER);
+
+        centerContentWrapper.add(centerPanelStatusOverview);
+        centerContentWrapper.add(Box.createVerticalStrut(10)); 
+
+        // HORIZONTAL FIRST PANEL 
+        JPanel horizontalFirstPanel = new JPanel(new GridLayout(1, 4, 10, 0));
+        horizontalFirstPanel.setPreferredSize(new Dimension(1600, 50));
+        horizontalFirstPanel.setMaximumSize(new Dimension(1600, 50));
+        horizontalFirstPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        horizontalFirstPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+
+        // p1
+        JPanel totalBuildingsPanel = new JPanel(new BorderLayout());
+        totalBuildingsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        JLabel totalBuildingsLabel = new JLabel("Total Buildings", SwingConstants.CENTER);
+        totalBuildingsLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+        totalBuildingsValue = new JLabel(String.valueOf(totalBuildingsCount), SwingConstants.CENTER);
+        totalBuildingsValue.setFont(new Font("Arial", Font.BOLD, 20));
+
+        totalBuildingsPanel.add(totalBuildingsLabel, BorderLayout.NORTH);
+        totalBuildingsPanel.add(totalBuildingsValue, BorderLayout.CENTER);
+
+        // p2
+        JPanel criticalPanel = new JPanel(new BorderLayout());
+        criticalPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        JLabel criticalLabel = new JLabel("No Data", SwingConstants.CENTER);
+        criticalLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        criticalLabel.setForeground(Color.RED);
+
+        criticalValue = new JLabel(String.valueOf(criticalBuildingsCount), SwingConstants.CENTER);
+        criticalValue.setFont(new Font("Arial", Font.BOLD, 20));
+        criticalValue.setForeground(Color.RED);
+
+        criticalPanel.add(criticalLabel, BorderLayout.NORTH);
+        criticalPanel.add(criticalValue, BorderLayout.CENTER);
+
+        // p3
+        JPanel safePanel = new JPanel(new BorderLayout());
+        safePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        JLabel safeLabel = new JLabel("With Data", SwingConstants.CENTER);
+        safeLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        safeLabel.setForeground(new Color(0, 128, 0));
+
+        JLabel safeValue = new JLabel("0", SwingConstants.CENTER);
+        safeValue.setFont(new Font("Arial", Font.BOLD, 20));
+        safeValue.setForeground(new Color(0, 128, 0));
+
+        safePanel.add(safeLabel, BorderLayout.NORTH);
+        safePanel.add(safeValue, BorderLayout.CENTER);
+
+        // p4
+        JPanel searchPanel = new JPanel(new BorderLayout());
+        searchPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        JTextField searchField = new JTextField("🔍 Search");
+        searchField.setHorizontalAlignment(JTextField.CENTER);
+        searchField.setFont(new Font("Arial", Font.PLAIN, 14));
+
+        searchPanel.add(searchField, BorderLayout.CENTER);
+
+        horizontalFirstPanel.add(totalBuildingsPanel);
+        horizontalFirstPanel.add(criticalPanel);
+        horizontalFirstPanel.add(safePanel);
+        horizontalFirstPanel.add(searchPanel);
+
+        centerContentWrapper.add(horizontalFirstPanel);
+        centerContentWrapper.add(Box.createVerticalStrut(10)); 
+
+        // HORIZONTAL SECOND PANEL 
+        JPanel horizontalSecondPanel = new JPanel(new GridLayout(1, 5, 10, 0));
+        horizontalSecondPanel.setPreferredSize(new Dimension(1600, 50));
+        horizontalSecondPanel.setMaximumSize(new Dimension(1600, 50));
+        horizontalSecondPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        horizontalSecondPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+
+        Font headerFont = new Font("Arial", Font.BOLD, 14);
+
+        // p1
+        JPanel bldgPanel = new JPanel(new BorderLayout());
+        bldgPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        JLabel bldgLabel = new JLabel("Heritage Building Name", SwingConstants.CENTER);
+        bldgLabel.setFont(headerFont);
+        bldgPanel.add(bldgLabel, BorderLayout.CENTER);
+
+        // p2
+        JPanel locationPanel = new JPanel(new BorderLayout());
+        locationPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        JLabel locationLabel = new JLabel("Location", SwingConstants.CENTER);
+        locationLabel.setFont(headerFont);
+        locationPanel.add(locationLabel, BorderLayout.CENTER);
+
+        // p3
+        JPanel functionPanel = new JPanel(new BorderLayout());
+        functionPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        JLabel functionLabel = new JLabel("Function", SwingConstants.CENTER);
+        functionLabel.setFont(headerFont);
+        functionPanel.add(functionLabel, BorderLayout.CENTER);
+
+        // p4 - note to me: connected or disconnected status
+        JPanel StatusPanel = new JPanel(new BorderLayout());
+        StatusPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        JLabel StatusLabel = new JLabel("Status", SwingConstants.CENTER);
+        StatusLabel.setFont(headerFont);
+        StatusPanel.add(StatusLabel, BorderLayout.CENTER);
+
+        // p5
+        JPanel actionsPanel = new JPanel(new BorderLayout());
+        actionsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        JLabel actionsLabel = new JLabel("Actions", SwingConstants.CENTER);
+        actionsLabel.setFont(headerFont);
+        actionsPanel.add(actionsLabel, BorderLayout.CENTER);
+
+        horizontalSecondPanel.add(bldgPanel);
+        horizontalSecondPanel.add(locationPanel);
+        horizontalSecondPanel.add(functionPanel);
+        horizontalSecondPanel.add(StatusPanel);
+        horizontalSecondPanel.add(actionsPanel);
+
+        tableHeaderPanel = horizontalSecondPanel;
+        centerContentWrapper.add(tableHeaderPanel);
+        centerContentWrapper.add(Box.createVerticalStrut(3));
+
+        projectsContainer = new JPanel();
+        projectsContainer.setLayout(new BoxLayout(projectsContainer, BoxLayout.Y_AXIS));
+        projectsContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        centerContentWrapper.add(projectsContainer);
 
         JPanel footerPanel = new JPanel(new BorderLayout());
         footerPanel.setPreferredSize(new java.awt.Dimension(1400, 45));
@@ -465,7 +680,82 @@ public class HeadExportSensorData extends JFrame {
         setVisible(true);
     }
 
+        public static void addNewProjectRow(
+            String buildingName,
+            String location,
+            String function,
+            //i should change this: hindi health status to, dpat connection status
+            String healthStatus) {
+
+        if (projectsContainer == null) {
+            System.err.println("Projects container not initialized!");
+            return;
+        }
+
+        totalBuildingsCount++;
+        totalBuildingsValue.setText(String.valueOf(totalBuildingsCount));
+
+        if (healthStatus.equalsIgnoreCase("CRITICAL")) {
+            criticalBuildingsCount++;
+            criticalValue.setText(String.valueOf(criticalBuildingsCount));
+        }
+
+        JPanel rowPanel = new JPanel(new GridLayout(1, 5, 10, 0));
+        rowPanel.setPreferredSize(new Dimension(1600, 50));
+        rowPanel.setMaximumSize(new Dimension(1600, 50));
+        rowPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JPanel rowBldgPanel = new JPanel(new BorderLayout());
+        rowBldgPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        rowBldgPanel.add(new JLabel(buildingName, SwingConstants.CENTER), BorderLayout.CENTER);
+
+        JPanel rowLocationPanel = new JPanel(new BorderLayout());
+        rowLocationPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        rowLocationPanel.add(new JLabel(location, SwingConstants.CENTER), BorderLayout.CENTER);
+
+        JPanel rowFunctionPanel = new JPanel(new BorderLayout());
+        rowFunctionPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        rowFunctionPanel.add(new JLabel(function, SwingConstants.CENTER), BorderLayout.CENTER);
+
+        JPanel rowHealthPanel = new JPanel(new BorderLayout());
+        rowHealthPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        JLabel healthLbl = new JLabel(healthStatus, SwingConstants.CENTER);
+        healthLbl.setForeground(Color.GRAY);
+        rowHealthPanel.add(healthLbl, BorderLayout.CENTER);
+
+        JPanel rowActionsPanel = new JPanel(new BorderLayout());
+        rowActionsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        JButton viewReportBtn = new JButton("Export Report (PDF)");
+        viewReportBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        viewReportBtn.setFocusPainted(false);
+
+        viewReportBtn.addActionListener(e -> {
+            SwingUtilities.invokeLater(() -> {
+                new HeadConfigureReportExport();
+                instance.setVisible(false);
+            });
+        });
+
+        rowActionsPanel.add(viewReportBtn, BorderLayout.CENTER);
+
+        rowPanel.add(rowBldgPanel);
+        rowPanel.add(rowLocationPanel);
+        rowPanel.add(rowFunctionPanel);
+        rowPanel.add(rowHealthPanel);
+        rowPanel.add(rowActionsPanel);
+
+        projectsContainer.add(Box.createVerticalStrut(3));
+        projectsContainer.add(rowPanel);
+
+        projectsContainer.revalidate();
+        projectsContainer.repaint();
+    }
+    
+
     public static void main(String[] args) {
-        new HeadExportSensorData();
+        SwingUtilities.invokeLater(HeadExportSensorData::new);
     }
 }
+
+
