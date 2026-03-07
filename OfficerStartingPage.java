@@ -177,7 +177,7 @@ public class OfficerStartingPage extends JFrame {
         layeredPane.add(viewMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
     });
 
-        //help menu
+        //help menu 
         JPopupMenu helpMenu = new JPopupMenu();
 
         JMenuItem sensorSetupGuide = new JMenuItem("Sensor Setup Guide");
