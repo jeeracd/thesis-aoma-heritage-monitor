@@ -485,7 +485,6 @@ public class HeadVibrationData extends JFrame {
         contentWrapper.add(splitPane, BorderLayout.CENTER);
 
         //LEFT PANEL 
-
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BorderLayout());
         leftPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
@@ -552,13 +551,15 @@ public class HeadVibrationData extends JFrame {
 
         JLabel headerTitle = new JLabel("Vibration Data");
         headerTitle.setFont(new Font("Arial", Font.BOLD, 14));
-        headerTitle.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        headerTitle.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(180,180,180)),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
         headerTitle.setOpaque(true);
         headerTitle.setBackground(new Color(230,230,230));
         rightPanel.add(headerTitle, BorderLayout.NORTH);
         splitPane.setRightComponent(rightPanel);
 
-        // MAIN CONTENT PANEL FOR VIBRATION DATA
         JPanel vibrationPanel = new JPanel();
         vibrationPanel.setLayout(new BoxLayout(vibrationPanel, BoxLayout.Y_AXIS));
         vibrationPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
@@ -566,24 +567,21 @@ public class HeadVibrationData extends JFrame {
 
         rightPanel.add(vibrationPanel, BorderLayout.CENTER);
 
-        // TITLE ROW
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
         titlePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         titlePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
 
-        // TITLE
         JLabel vibrationTitle = new JLabel("Vibration Data", SwingConstants.CENTER);
         vibrationTitle.setFont(new Font("Arial", Font.BOLD, 22));
         vibrationTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-        // DATASET ID
+        //datbase to ah
         JLabel datasetID = new JLabel("DATASET ID: #20260224-OMA-005");
         datasetID.setFont(new Font("Arial", Font.PLAIN, 12));
         datasetID.setForeground(Color.DARK_GRAY);
         datasetID.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-        // spacer so the title stays perfectly centered
         JLabel leftSpacer = new JLabel();
         leftSpacer.setPreferredSize(new Dimension(200, 1));
 
@@ -595,8 +593,6 @@ public class HeadVibrationData extends JFrame {
 
         vibrationPanel.add(Box.createVerticalStrut(5));
 
-
-        // SPECTROGRAM LEGEND
         JPanel legendPanel = new JPanel();
         legendPanel.setLayout(new BoxLayout(legendPanel, BoxLayout.Y_AXIS));
         legendPanel.setOpaque(false);
@@ -679,7 +675,7 @@ public class HeadVibrationData extends JFrame {
         private void addInfoArea(JPanel panel, String label, String value) {
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 4, 8, 4); // slightly more for description
+        gbc.insets = new Insets(8, 4, 8, 4); 
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridy = rowIndex;
 
