@@ -487,17 +487,17 @@ public class HeadConfigureSensors extends JFrame {
 
         //LEFT PANEL 
 
-        JPanel buildingPanel = new JPanel();
-        buildingPanel.setLayout(new BorderLayout());
-        buildingPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BorderLayout());
+        leftPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
-        JLabel buildingTitle = new JLabel("Building Profile Information");
-        buildingTitle.setFont(new Font("Arial", Font.BOLD, 14));
-        buildingTitle.setBorder(BorderFactory.createCompoundBorder(
+        JLabel headerTitle = new JLabel("Building Profile Information");
+        headerTitle.setFont(new Font("Arial", Font.BOLD, 14));
+        headerTitle.setBorder(BorderFactory.createCompoundBorder(
         BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY),
         BorderFactory.createEmptyBorder(8, 10, 8, 10)));
-        buildingTitle.setOpaque(true);
-        buildingTitle.setBackground(new Color(230,230,230));
+        headerTitle.setOpaque(true);
+        headerTitle.setBackground(new Color(230,230,230));
 
         // smol button for editing structural details
         JButton editStructureBtn = new JButton("...");
@@ -519,11 +519,11 @@ public class HeadConfigureSensors extends JFrame {
         JPanel buildingHeaderPanel = new JPanel(new BorderLayout());
         buildingHeaderPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0,Color.GRAY));
         buildingHeaderPanel.setBackground(new Color(230,230,230));
-        buildingPanel.add(buildingHeaderPanel, BorderLayout.NORTH);
+        leftPanel.add(buildingHeaderPanel, BorderLayout.NORTH);
 
-        buildingTitle.setBorder(BorderFactory.createEmptyBorder(8,10,8,10));
+        headerTitle.setBorder(BorderFactory.createEmptyBorder(8,10,8,10));
 
-        buildingHeaderPanel.add(buildingTitle, BorderLayout.WEST);
+        buildingHeaderPanel.add(headerTitle, BorderLayout.WEST);
         buildingHeaderPanel.add(editStructureBtn, BorderLayout.EAST);
 
         JPanel buildingInfoPanel = new JPanel();
@@ -545,20 +545,20 @@ public class HeadConfigureSensors extends JFrame {
         
         JScrollPane leftScroll = new JScrollPane(buildingInfoPanel);
         leftScroll.setBorder(null);
-        buildingPanel.add(leftScroll, BorderLayout.CENTER);
+        leftPanel.add(leftScroll, BorderLayout.CENTER);
 
-        splitPane.setLeftComponent(buildingPanel);
+        splitPane.setLeftComponent(leftPanel);
 
         //RIGHT PANEL 
-        JPanel sensorPanel = new JPanel(new BorderLayout());
-        sensorPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        JPanel rightPanel = new JPanel(new BorderLayout());
+        rightPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
-        JLabel sensorTitle = new JLabel("Configure Sensor");
-        sensorTitle.setFont(new Font("Arial", Font.BOLD, 14));
-        sensorTitle.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
-        sensorTitle.setOpaque(true);
-        sensorTitle.setBackground(new Color(230,230,230));
-        sensorPanel.add(sensorTitle, BorderLayout.NORTH);
+        JLabel rightTitle = new JLabel("Configure Sensor");
+        rightTitle.setFont(new Font("Arial", Font.BOLD, 14));
+        rightTitle.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        rightTitle.setOpaque(true);
+        rightTitle.setBackground(new Color(230,230,230));
+        rightPanel.add(rightTitle, BorderLayout.NORTH);
 
         //TABLE DATA - data base to ah
         String[] columns = {
@@ -680,7 +680,7 @@ public class HeadConfigureSensors extends JFrame {
         });
 
         JScrollPane tableScroll = new JScrollPane(table);
-        sensorPanel.add(tableScroll, BorderLayout.CENTER);
+        rightPanel.add(tableScroll, BorderLayout.CENTER);
 
         JPanel syncPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         syncPanel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
@@ -690,9 +690,9 @@ public class HeadConfigureSensors extends JFrame {
         syncButton.setFocusPainted(false);
 
         syncPanel.add(syncButton);
-        sensorPanel.add(syncPanel, BorderLayout.SOUTH);
+        rightPanel.add(syncPanel, BorderLayout.SOUTH);
 
-        splitPane.setRightComponent(sensorPanel);
+        splitPane.setRightComponent(rightPanel);
 
         JPanel footerPanel = new JPanel(new BorderLayout());
         footerPanel.setPreferredSize(new java.awt.Dimension(1400, 45));
