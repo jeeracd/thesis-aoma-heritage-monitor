@@ -1020,6 +1020,7 @@ public class HeadViewDetails extends JFrame {
 
         JLabel spectralDataText = new JLabel("put data spectrogram image here ahh");
         spectralDataText.setFont(normalFont);
+        //adjust the height to show the report without scrolling
         spectralDataText.setBounds(40, 760, 600, 25);
         technicalAuditPanel.add(spectralDataText);
 
