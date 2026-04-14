@@ -1,6 +1,8 @@
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 
 public class HeadViewReport extends JFrame {
 
@@ -405,11 +407,6 @@ public class HeadViewReport extends JFrame {
         // Always go back to View tab
         SwingUtilities.invokeLater(() -> tabsUI.setSelectedIndex(1));
     });
-
-
-
-
-
         JLabel LGUHeadLabel = new JLabel("LGU HEAD ACCOUNT");
         LGUHeadLabel.setFont(new Font("Arial", Font.BOLD, 14));
         LGUHeadLabel.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -444,12 +441,307 @@ public class HeadViewReport extends JFrame {
         centerPanel.setBorder(secondBorder);
         headPanel.add(centerPanel);
 
-        JLabel greetingLabel = new JLabel("View Report", JLabel.LEFT); 
-        greetingLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        greetingLabel.setBorder( BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(120, 120, 120)), 
+        JLabel headerLabel = new JLabel("View Report", JLabel.LEFT); 
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        headerLabel.setBorder( BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(120, 120, 120)), 
         BorderFactory.createEmptyBorder(10, 10, 10, 10)));
-        centerPanel.add(greetingLabel, BorderLayout.NORTH);
+        centerPanel.add(headerLabel, BorderLayout.NORTH);
 
+        JPanel contentPanel = new JPanel(new GridLayout(1, 2, 10, 0));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        centerPanel.add(contentPanel, BorderLayout.CENTER);
+
+        JPanel monitoringPanel = new JPanel(null);
+        monitoringPanel.setBorder(
+        BorderFactory.createTitledBorder(
+        BorderFactory.createLineBorder(Color.BLACK, 2), // thickness here
+        "Monitoring Period"
+        )
+    );
+
+        JPanel monitoringWrapper = new JPanel(new BorderLayout());
+        monitoringWrapper.add(monitoringPanel, BorderLayout.NORTH);
+        contentPanel.add(monitoringWrapper);
+        monitoringPanel.setPreferredSize(new Dimension(0, 100)); // adjustS height
+
+        // FROM LABEL
+        JLabel fromLabel = new JLabel("From:");
+        fromLabel.setBounds(40, 40, 50, 25);
+        monitoringPanel.add(fromLabel);
+
+        // FROM FIELD
+        JTextField fromField = new JTextField("01/24/2026");
+        fromField.setBounds(90, 40, 120, 25);
+        monitoringPanel.add(fromField);
+
+        // ARROW
+        JLabel arrowLabel = new JLabel("→");
+        arrowLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        arrowLabel.setBounds(220, 40, 30, 25);
+        monitoringPanel.add(arrowLabel);
+
+        // TO LABEL
+        JLabel toLabel = new JLabel("To:");
+        toLabel.setBounds(250, 40, 30, 25);
+        monitoringPanel.add(toLabel);
+
+        // TO FIELD
+        JTextField toField = new JTextField("02/14/2026");
+        toField.setBounds(280, 40, 120, 25);
+        monitoringPanel.add(toField);
+
+        // BUTTON
+        JButton viewReportBtn = new JButton("View Report");
+        viewReportBtn.setBounds(420, 40, 120, 25);
+        monitoringPanel.add(viewReportBtn);
+
+        //second left panel
+        JPanel vibrationInfoPanel = new JPanel(null);
+        vibrationInfoPanel.setBorder(
+            BorderFactory.createLineBorder(Color.BLACK, 2)
+        );
+
+        vibrationInfoPanel.setPreferredSize(new Dimension(0, 800));
+
+        // TITLE
+        JLabel vibrationTitle = new JLabel("Vibration Data", SwingConstants.CENTER);
+        vibrationTitle.setFont(new Font("Arial", Font.BOLD, 22));
+        vibrationTitle.setBounds(5, 5, 600, 20);
+        vibrationInfoPanel.add(vibrationTitle);
+
+        //pre database to ah nakaharcode pa eh
+        // DATASET ID
+        JLabel datasetID = new JLabel("DATASET ID: #20260124-OMA-005");
+        datasetID.setFont(new Font("Arial", Font.PLAIN, 10));
+        datasetID.setHorizontalAlignment(SwingConstants.RIGHT);
+        datasetID.setBounds(370, 5, 280, 12);
+        vibrationInfoPanel.add(datasetID);
+
+        JLabel datasetLabel2 = new JLabel("#20260214-OMA-005");
+        datasetLabel2.setFont(new Font("Arial", Font.PLAIN, 10));
+        datasetLabel2.setHorizontalAlignment(SwingConstants.RIGHT);
+        datasetLabel2.setBounds(370, 17, 280, 12);
+        vibrationInfoPanel.add(datasetLabel2);
+
+        JPanel legendPanel = new JPanel();
+        legendPanel.setLayout(new BoxLayout(legendPanel, BoxLayout.Y_AXIS));
+        legendPanel.setOpaque(false);
+        legendPanel.setBounds(5, 30, 600, 45); 
+
+        JLabel legendTitle = new JLabel("SPECTROGRAM LEGEND");
+        legendTitle.setFont(new Font("Arial", Font.BOLD, 10));
+        legendTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        legendPanel.add(legendTitle);
+        legendPanel.add(Box.createVerticalStrut(2));
+
+        JPanel legendColors = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        legendColors.setOpaque(false);
+        legendColors.add(createLegendLabel("(hz) Normal", new Color(0,170,0)));
+        legendColors.add(createLegendLabel("(hz) Warning", new Color(255,165,0)));
+        legendColors.add(createLegendLabel("(hz) Critical", new Color(200,0,0)));
+        legendPanel.add(legendColors);
+
+        vibrationInfoPanel.add(legendPanel);
+
+        // graph - python integration here
+        JPanel graphPanel = new JPanel();
+        graphPanel.setLayout(new BoxLayout(graphPanel, BoxLayout.Y_AXIS));
+        graphPanel.setOpaque(false);
+        graphPanel.setBounds(5, 80, 600, 700);
+        vibrationInfoPanel.add(graphPanel);
+
+        //Natural Frequencies
+        JLabel naturalFreqLabel = new JLabel("Natural Frequencies (Hz)");
+        naturalFreqLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        naturalFreqLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        graphPanel.add(naturalFreqLabel);
+
+        graphPanel.add(Box.createVerticalStrut(5));
+
+        JPanel naturalFrequencyPanel = new JPanel();
+        naturalFrequencyPanel.setBackground(Color.WHITE);
+        naturalFrequencyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        naturalFrequencyPanel.setPreferredSize(new Dimension(560, 150));
+        naturalFrequencyPanel.setMaximumSize(new Dimension(560, 150));
+        naturalFrequencyPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        graphPanel.add(naturalFrequencyPanel);
+
+        graphPanel.add(Box.createVerticalStrut(10));
+
+        //Damping Ratio
+        JLabel dampingRatioLabel = new JLabel("Damping Ratio (%)");
+        dampingRatioLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        dampingRatioLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        graphPanel.add(dampingRatioLabel);
+
+        graphPanel.add(Box.createVerticalStrut(5));
+
+        JPanel dampingRatioPanel = new JPanel();
+        dampingRatioPanel.setBackground(Color.WHITE);
+        dampingRatioPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        dampingRatioPanel.setPreferredSize(new Dimension(560, 150));
+        dampingRatioPanel.setMaximumSize(new Dimension(560, 150));
+        dampingRatioPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        graphPanel.add(dampingRatioPanel);
+
+        graphPanel.add(Box.createVerticalStrut(10));
+
+        //Mode Shape
+        JLabel modeShapeLabel = new JLabel("Mode Shape");
+        modeShapeLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        modeShapeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        graphPanel.add(modeShapeLabel);
+
+        graphPanel.add(Box.createVerticalStrut(5));
+
+        JPanel modeShapePanel = new JPanel();
+        modeShapePanel.setBackground(Color.WHITE);
+        modeShapePanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        modeShapePanel.setPreferredSize(new Dimension(560, 150));
+        modeShapePanel.setMaximumSize(new Dimension(560, 150));
+        modeShapePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        graphPanel.add(modeShapePanel);
+
+        graphPanel.add(Box.createVerticalStrut(30));
+
+        //STATUS SECTION 
+        JPanel statusContainer = new JPanel();
+        statusContainer.setLayout(new BoxLayout(statusContainer, BoxLayout.Y_AXIS));
+        statusContainer.setOpaque(false);
+        statusContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        //Risk Level Row
+        JPanel riskPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        riskPanel.setOpaque(false);
+        riskPanel.setMaximumSize(new Dimension(560, 30));
+
+        JLabel riskDot = new JLabel("●");
+        riskDot.setForeground(new Color(0,170,0));
+        riskDot.setFont(new Font("Arial", Font.BOLD, 16));
+
+        JLabel riskText = new JLabel("Risk Level:");
+        riskText.setFont(new Font("Arial", Font.BOLD, 14));
+
+        JLabel riskStatus = new JLabel(" Normal ");
+        riskStatus.setOpaque(true);
+        riskStatus.setBackground(new Color(0,170,0));
+        riskStatus.setForeground(Color.WHITE);
+        riskStatus.setFont(new Font("Arial", Font.BOLD, 12));
+
+        riskPanel.add(riskDot);
+        riskPanel.add(riskText);
+        riskPanel.add(riskStatus);
+
+        statusContainer.add(riskPanel);
+        statusContainer.add(Box.createVerticalStrut(10));
+
+        // STATUS
+        JLabel statusLabel = new JLabel("STATUS: SAFE / SERVICEABLE");
+        statusLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        statusContainer.add(statusLabel);
+
+        statusContainer.add(Box.createVerticalStrut(5));
+
+        // ACTION
+        JLabel actionLabel = new JLabel("ACTION: NO IMMEDIATE INTERVENTION REQUIRED");
+        actionLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        actionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        statusContainer.add(actionLabel);
+
+        statusContainer.add(Box.createVerticalStrut(10));
+
+        // DESCRIPTION
+        JTextArea descriptionArea = new JTextArea(
+            "(The Automated OMA System has completed a routine structural health scan. " +
+            "The building's vibrational response is stable.)"
+        );
+        descriptionArea.setFont(new Font("Arial", Font.ITALIC, 12));
+        descriptionArea.setLineWrap(true);
+        descriptionArea.setWrapStyleWord(true);
+        descriptionArea.setEditable(false);
+        descriptionArea.setOpaque(false);
+        descriptionArea.setBorder(null);
+        descriptionArea.setMaximumSize(new Dimension(520, 100));
+        descriptionArea.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        statusContainer.add(descriptionArea);
+
+        graphPanel.add(statusContainer);
+        
+        JScrollPane vibrationScroll = new JScrollPane(vibrationInfoPanel);
+        // ALWAYS show vertical scrollbar
+        vibrationScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        vibrationScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        vibrationScroll.getVerticalScrollBar().setUnitIncrement(10);
+        vibrationScroll.setBorder(null);
+
+        monitoringWrapper.add(vibrationScroll, BorderLayout.CENTER);
+
+        JPanel historyPanel = new JPanel(new BorderLayout());
+        historyPanel.setBorder(
+        BorderFactory.createTitledBorder(
+        BorderFactory.createLineBorder(Color.BLACK, 2),
+        "Report History & Past Reports"
+        )
+    );
+        contentPanel.add(historyPanel);
+
+        // SEARCH BAR
+        JTextField searchField = new JTextField();
+        searchField.setPreferredSize(new Dimension(150, 35));
+        searchField.setBorder(BorderFactory.createTitledBorder("Search"));
+
+        historyPanel.add(searchField, BorderLayout.NORTH);
+
+        // TABLE DATA
+        String[] columns = {"Date", "Dataset ID", "Result"};
+
+        Object[][] data = {
+        {"01/24/2026", "#20260124-OMA-005", "SAFE / SERVICEABLE"},
+        {"01/31/2026", "#20260121-OMA-005", "NEEDS OBSERVATION"},
+        {"02/07/2026", "#20260207-OMA-005", "SAFE / SERVICEABLE"},
+        {"02/14/2026", "#20260214-OMA-005", "CRITICAL"}
+        };
+
+        JTable table = new JTable(data, columns);
+        table.setRowHeight(30);
+        table.setShowGrid(true);
+        table.setGridColor(Color.BLACK);
+        table.setIntercellSpacing(new Dimension(1, 1));
+        table.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        table.setRowHeight(35);
+
+        // Center ALL cell content
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
+
+        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 13));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 35));
+        table.getTableHeader().setReorderingAllowed(false);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        // Center header text
+        DefaultTableCellRenderer headerRenderer = (DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer();
+        headerRenderer.setHorizontalAlignment(JLabel.CENTER);
+
+        JPanel tableWrapper = new JPanel(new BorderLayout());
+        table.setPreferredScrollableViewportSize(new Dimension(600, 150));
+        tableWrapper.add(table.getTableHeader(), BorderLayout.NORTH);
+        tableWrapper.add(table, BorderLayout.CENTER);
+
+        JTableHeader header = table.getTableHeader();
+        header.setBackground(new Color(240, 240, 240));
+        header.setForeground(Color.BLACK);
+        header.setFont(new Font("Arial", Font.BOLD, 13));
+        header.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        historyPanel.add(tableWrapper, BorderLayout.CENTER);
+        
         JPanel footerPanel = new JPanel(new BorderLayout());
         footerPanel.setPreferredSize(new java.awt.Dimension(1400, 45));
         footerPanel.setBorder(BorderFactory.createMatteBorder(3, 0, 0, 0, new Color(120, 120, 120)) );
@@ -467,6 +759,18 @@ public class HeadViewReport extends JFrame {
         add(footerPanel, BorderLayout.SOUTH);
         
         setVisible(true);
+    }
+
+    private JLabel createLegendLabel(String text, Color color) {
+
+        JLabel label = new JLabel(text);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Arial", Font.BOLD, 12));
+        label.setOpaque(true);
+        label.setBackground(color);
+        label.setBorder(BorderFactory.createEmptyBorder(5,15,5,15));
+
+        return label;
     }
 
     public static void main(String[] args) {
