@@ -276,6 +276,33 @@ public class OfficerStartingPage extends JFrame {
         layeredPane.add(helpMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
     }); 
 
+        //para hindi ma-select yung view/help kapag clinick yung dropdown or text 
+        tabsUI.addChangeListener(e -> {
+        int selectedIndex = tabsUI.getSelectedIndex();
+
+        if (selectedIndex == 1) { // View tab clicked
+            tabsUI.setSelectedIndex(0); // go back to Projects
+
+            Rectangle bounds = tabsUI.getBoundsAt(1);
+            viewMenu.show(
+                    tabsUI,
+                    bounds.x,
+                    bounds.y + bounds.height
+            );
+        }
+
+        if (selectedIndex == 2) { // Help tab clicked
+            tabsUI.setSelectedIndex(0); // go back to Projects
+
+            Rectangle bounds = tabsUI.getBoundsAt(2);
+            helpMenu.show(
+                    tabsUI,
+                    bounds.x,
+                    bounds.y + bounds.height
+            );
+        }
+    });
+
         JLabel LGUHeadLabel = new JLabel("LGU OFFICER ACCOUNT");
         LGUHeadLabel.setFont(new Font("Arial", Font.BOLD, 14));
         LGUHeadLabel.setHorizontalAlignment(SwingConstants.RIGHT);
