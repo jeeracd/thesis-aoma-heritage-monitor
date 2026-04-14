@@ -1,6 +1,7 @@
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class HeadSystemLogs extends JFrame {
 
@@ -8,12 +9,6 @@ public class HeadSystemLogs extends JFrame {
     public static JPanel projectsContainer;
     public static JPanel tableHeaderPanel;
     public static JPanel centerContentWrapper;
-    public static int projectCount = 1;
-
-    public static JLabel totalBuildingsValue;
-    public static JLabel criticalValue;
-    public static int totalBuildingsCount = 0;
-    public static int criticalBuildingsCount = 0;
 
     public HeadSystemLogs() {
         instance = this;
@@ -468,36 +463,159 @@ public class HeadSystemLogs extends JFrame {
 
         Dimension overviewSize = new Dimension(1600, 100); 
 
-        JPanel centerPanelStatusOverview = new JPanel(new BorderLayout());
-        centerPanelStatusOverview.setPreferredSize(overviewSize);
-        centerPanelStatusOverview.setMinimumSize(overviewSize);
-        centerPanelStatusOverview.setMaximumSize(overviewSize);
-        centerPanelStatusOverview.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        centerPanelStatusOverview.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JPanel centerPanelHeadSystemLogs = new JPanel(new BorderLayout());
+        centerPanelHeadSystemLogs.setPreferredSize(overviewSize);
+        centerPanelHeadSystemLogs.setMinimumSize(overviewSize);
+        centerPanelHeadSystemLogs.setMaximumSize(overviewSize);
+        centerPanelHeadSystemLogs.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        centerPanelHeadSystemLogs.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel statusOverviewHeaderLabel = new JLabel(
+        JLabel HeadSystemLogsLabel = new JLabel(
                 "System Logs",
                 SwingConstants.CENTER
         );
-        statusOverviewHeaderLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        statusOverviewHeaderLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        centerPanelStatusOverview.add(statusOverviewHeaderLabel, BorderLayout.NORTH);
+        HeadSystemLogsLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        HeadSystemLogsLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        centerPanelHeadSystemLogs.add(HeadSystemLogsLabel, BorderLayout.NORTH);
 
-        JLabel statusOverviewSubheaderLabel = new JLabel(
-                "no description yet..",
+        JLabel HeadSystemLogsSubheaderLabel = new JLabel(
+                "A complete history of user activities and system status updates to track the operational performance and security of the heritage monitoring process.",
                 SwingConstants.CENTER
         );
-        statusOverviewSubheaderLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        statusOverviewSubheaderLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-        centerPanelStatusOverview.add(statusOverviewSubheaderLabel, BorderLayout.CENTER);
+        HeadSystemLogsSubheaderLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        HeadSystemLogsSubheaderLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+        centerPanelHeadSystemLogs.add(HeadSystemLogsSubheaderLabel, BorderLayout.CENTER);
 
-        centerContentWrapper.add(centerPanelStatusOverview);
+        centerContentWrapper.add(centerPanelHeadSystemLogs);
         centerContentWrapper.add(Box.createVerticalStrut(10)); 
         projectsContainer = new JPanel();
         projectsContainer.setLayout(new BoxLayout(projectsContainer, BoxLayout.Y_AXIS));
         projectsContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         centerContentWrapper.add(projectsContainer);
+
+        // ===== SYSTEM LOGS TABLE PANEL =====
+        JPanel tableWrapper = new JPanel(new BorderLayout());
+        tableWrapper.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        tableWrapper.setMaximumSize(new Dimension(1370, 450));
+        tableWrapper.setPreferredSize(new Dimension(1370, 450));
+
+        // TOP PANEL (Search bar)
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        JTextField searchField = new JTextField(" Search...");
+        searchField.setPreferredSize(new Dimension(200, 30));
+        searchField.setFont(new Font("Arial", Font.PLAIN, 13));
+        searchField.setForeground(Color.GRAY);
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.GRAY),
+                BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+
+        // Placeholder behavior
+        searchField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                if (searchField.getText().equals(" Search...")) {
+                    searchField.setText("");
+                    searchField.setForeground(Color.BLACK);
+                }
+            }
+
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                if (searchField.getText().isEmpty()) {
+                    searchField.setText(" Search...");
+                    searchField.setForeground(Color.GRAY);
+                }
+            }
+        });
+
+        topPanel.add(searchField, BorderLayout.EAST);
+        tableWrapper.add(topPanel, BorderLayout.NORTH);
+
+        // TABLE DATA
+        String[] columns = {"Date", "Time", "Activity", "Performed By"};
+        //database to pre
+        Object[][] data = {
+            {"01/24/2026", "13:00:00", "Created a New Project", "LGU HEAD ACCOUNT (Full Name)"},
+            {"01/24/2026", "13:10:00", "Added a new person in access", "LGU HEAD ACCOUNT (Full Name)"},
+            {"01/24/2026", "13:10:00", "Connects to ESP32 HUB", "STRUCTURAL ENGINEER (Full Name)"},
+            {"01/24/2026", "13:10:00", "Start Data Acquisition", "STRUCTURAL ENGINEER (Full Name)"},
+            {"01/24/2026", "13:10:00", "Generate Report", "STRUCTURAL ENGINEER (Full Name)"}
+        };
+
+        // TABLE
+        JTable table = new JTable(data, columns) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false; //disables editing completely
+        }
+        };
+        table.setRowHeight(32);
+        table.setFont(new Font("Arial", Font.PLAIN, 13));
+
+        table.setFillsViewportHeight(true);
+
+        // HEADER STYLE
+        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 13));
+        table.getTableHeader().setBackground(new Color(230, 230, 230));
+        table.getTableHeader().setForeground(Color.BLACK);
+        table.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.BLACK));
+
+        ((DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer())
+                .setHorizontalAlignment(SwingConstants.CENTER);
+
+        table.setGridColor(new Color(200, 200, 200));
+        table.setShowVerticalLines(true);
+        table.setShowHorizontalLines(true);
+
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(
+                    JTable tbl, Object value, boolean isSelected,
+                    boolean hasFocus, int row, int col) {
+
+                Component c = super.getTableCellRendererComponent(
+                        tbl, value, isSelected, hasFocus, row, col);
+
+                if (!isSelected) {
+                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(245, 245, 245));
+                }
+
+                setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
+
+                if (col == 2) {
+                    setHorizontalAlignment(SwingConstants.CENTER); // Activity
+                } else {
+                    setHorizontalAlignment(SwingConstants.CENTER);
+                }
+
+                return c;
+            }
+        });
+
+        // COLUMN WIDTHS
+        table.getColumnModel().getColumn(0).setPreferredWidth(120);
+        table.getColumnModel().getColumn(1).setPreferredWidth(100);
+        table.getColumnModel().getColumn(2).setPreferredWidth(500);
+        table.getColumnModel().getColumn(3).setPreferredWidth(300);
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+
+        scrollPane.setPreferredSize(new Dimension(1350, 300));
+        table.setFillsViewportHeight(true);
+
+        tableWrapper.add(scrollPane, BorderLayout.CENTER);
+
+        // ADD TO EXISTING CONTAINER
+        projectsContainer.add(tableWrapper);
+        projectsContainer.add(Box.createVerticalStrut(10));
+
+
+
+
 
         JPanel footerPanel = new JPanel(new BorderLayout());
         footerPanel.setPreferredSize(new java.awt.Dimension(1400, 45));
@@ -518,77 +636,7 @@ public class HeadSystemLogs extends JFrame {
         setVisible(true);
     }
 
-        public static void addNewProjectRow(
-            String buildingName,
-            String location,
-            String function,
-            //i should change this: hindi health status to, dpat connection status
-            String healthStatus) {
-
-        if (projectsContainer == null) {
-            System.err.println("Projects container not initialized!");
-            return;
-        }
-
-        totalBuildingsCount++;
-        totalBuildingsValue.setText(String.valueOf(totalBuildingsCount));
-
-        if (healthStatus.equalsIgnoreCase("CRITICAL")) {
-            criticalBuildingsCount++;
-            criticalValue.setText(String.valueOf(criticalBuildingsCount));
-        }
-
-        JPanel rowPanel = new JPanel(new GridLayout(1, 5, 10, 0));
-        rowPanel.setPreferredSize(new Dimension(1600, 50));
-        rowPanel.setMaximumSize(new Dimension(1600, 50));
-        rowPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JPanel rowBldgPanel = new JPanel(new BorderLayout());
-        rowBldgPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        rowBldgPanel.add(new JLabel(buildingName, SwingConstants.CENTER), BorderLayout.CENTER);
-
-        JPanel rowLocationPanel = new JPanel(new BorderLayout());
-        rowLocationPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        rowLocationPanel.add(new JLabel(location, SwingConstants.CENTER), BorderLayout.CENTER);
-
-        JPanel rowFunctionPanel = new JPanel(new BorderLayout());
-        rowFunctionPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        rowFunctionPanel.add(new JLabel(function, SwingConstants.CENTER), BorderLayout.CENTER);
-
-        JPanel rowHealthPanel = new JPanel(new BorderLayout());
-        rowHealthPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        JLabel healthLbl = new JLabel(healthStatus, SwingConstants.CENTER);
-        healthLbl.setForeground(Color.GRAY);
-        rowHealthPanel.add(healthLbl, BorderLayout.CENTER);
-
-        JPanel rowActionsPanel = new JPanel(new BorderLayout());
-        rowActionsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-
-        JButton viewSystemLogsBtn = new JButton("View System Logs");
-        viewSystemLogsBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        viewSystemLogsBtn.setFocusPainted(false);
-
-        viewSystemLogsBtn.addActionListener(e -> {
-            SwingUtilities.invokeLater(() -> {
-                new HeadSystemLogs();
-                instance.setVisible(false);
-            });
-        });
-
-        rowActionsPanel.add(viewSystemLogsBtn, BorderLayout.CENTER);
-
-        rowPanel.add(rowBldgPanel);
-        rowPanel.add(rowLocationPanel);
-        rowPanel.add(rowFunctionPanel);
-        rowPanel.add(rowHealthPanel);
-        rowPanel.add(rowActionsPanel);
-
-        projectsContainer.add(Box.createVerticalStrut(3));
-        projectsContainer.add(rowPanel);
-
-        projectsContainer.revalidate();
-        projectsContainer.repaint();
-    }
+        
     
 
     public static void main(String[] args) {
