@@ -2,10 +2,11 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.Border;
 
-public class OfficerStartingPage extends JFrame {
 
-    public OfficerStartingPage() {
-        setTitle("AOMA-Heritage Monitor - LGU Officer Account");
+public class OfficerAboutAOMA extends JFrame {
+
+    public OfficerAboutAOMA() {
+        setTitle("AOMA-Heritage Monitor - About AOMA");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
         setLocationRelativeTo(null);
@@ -15,11 +16,13 @@ public class OfficerStartingPage extends JFrame {
         tabsUI.setBackground(Color.LIGHT_GRAY);
         tabsUI.setForeground(Color.BLACK);
 
-        JPanel officerPanel = new JPanel(null);
+        JPanel aboutAOMAPanel = new JPanel(null);
 
-        tabsUI.addTab("Projects", officerPanel);
+        tabsUI.addTab("Projects", new JPanel());
         tabsUI.addTab("View", new JPanel());
-        tabsUI.addTab("Help", new JPanel());
+        tabsUI.addTab("Help", aboutAOMAPanel);
+
+        tabsUI.setSelectedIndex(2); //set default tab
 
         tabsUI.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
     @Override
@@ -69,7 +72,8 @@ public class OfficerStartingPage extends JFrame {
         JMenuItem newProject = new JMenuItem("New Project");
         JMenuItem openProject = new JMenuItem("Open Project");
         JMenuItem importCsv = new JMenuItem("Import Sensor Data (.csv)");
-        JMenuItem exportPdf = new JMenuItem("Export Report (PDF)");
+        JMenuItem exportPDF = new JMenuItem("Export Report (PDF)");
+
         JMenuItem exit = new JMenuItem("Exit");
         exit.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(
@@ -82,19 +86,19 @@ public class OfficerStartingPage extends JFrame {
                 System.exit(0);
             }
         });
-
+        
         //for reference greyout siya
         newProject.setEnabled(false);
         openProject.setEnabled(true);
         importCsv.setEnabled(false);
-        exportPdf.setEnabled(false);
+        exportPDF.setEnabled(false);
         exit.setEnabled(true);
 
         projectsMenu.add(newProject);
         projectsMenu.add(openProject);
         projectsMenu.addSeparator();
         projectsMenu.add(importCsv);
-        projectsMenu.add(exportPdf);
+        projectsMenu.add(exportPDF);
         projectsMenu.addSeparator();
         projectsMenu.add(exit);
 
@@ -126,13 +130,101 @@ public class OfficerStartingPage extends JFrame {
         JPopupMenu viewMenu = new JPopupMenu();
 
         JMenuItem dashboardView = new JMenuItem("Dashboard View");
-        JMenuItem setupConnection = new JMenuItem("Setup Connection");
+        dashboardView.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Dashboard View.",
+                    "Dashboard View",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadBldgStatusOverview();
+            this.dispose();
+        });
+
+        JMenuItem setupConnection = new JMenuItem("Setup & Connection");
+        setupConnection.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Setup & Connection page.",
+                    "Setup & Connection",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadSetupConnectionWindow();
+            this.dispose();
+        });
+
+
         JMenuItem configureSensor = new JMenuItem("Configure Sensor");
+        configureSensor.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Configure Sensor page.",
+                    "Configure Sensor",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadConfigureSensorWindow();
+            this.dispose();
+        });
+
         JMenuItem esp32Status = new JMenuItem("ESP32 Status");
+        esp32Status.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to ESP32 Status page.",
+                    "ESP32 Status",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadESP32StatusWindow();
+            this.dispose();
+        });
+
         JMenuItem vibrationData = new JMenuItem("Vibration Data");
+        vibrationData.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Vibration Data page.",
+                    "Vibration Data",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadVibrationDataWindow();
+            this.dispose();
+        }); 
+
         JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
+        omaAnalysisResult.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to OMA Analysis Result page.",
+                    "OMA Analysis Result",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadOMAAnalysisResultWindow();
+            this.dispose();
+        });
+
         JMenuItem reportHistory = new JMenuItem("View Report");
+        reportHistory.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to View Report page.",
+                    "View Report",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadViewReportWindow();
+            this.dispose();
+        });
+
         JMenuItem systemLogs = new JMenuItem("System Logs");
+        systemLogs.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to System Logs page.",
+                    "System Logs",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadSystemLogsWindow();
+            this.dispose();
+        });
 
         dashboardView.setEnabled(true);
         setupConnection.setEnabled(true);
@@ -142,7 +234,7 @@ public class OfficerStartingPage extends JFrame {
         omaAnalysisResult.setEnabled(false);
         reportHistory.setEnabled(false);
         systemLogs.setEnabled(false);
-        
+
         viewMenu.add(dashboardView);
         viewMenu.addSeparator();
         viewMenu.add(setupConnection);
@@ -188,7 +280,7 @@ public class OfficerStartingPage extends JFrame {
         layeredPane.add(viewMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
     });
 
-        //help menu 
+        //help menu
         JPopupMenu helpMenu = new JPopupMenu();
 
         JMenuItem sensorSetupGuide = new JMenuItem("Sensor Setup Guide");
@@ -202,7 +294,6 @@ public class OfficerStartingPage extends JFrame {
             new OfficerSensorSetupGuide();
             this.dispose();
         });
-        
 
         JMenuItem userDocumentation = new JMenuItem("User Documentation");
         userDocumentation.addActionListener(e -> {
@@ -216,7 +307,6 @@ public class OfficerStartingPage extends JFrame {
             this.dispose();
         });
 
-
         JMenuItem aboutAOMA = new JMenuItem("About AOMA-Heritage Monitor");
         aboutAOMA.addActionListener(e -> {
             JOptionPane.showMessageDialog(
@@ -228,7 +318,7 @@ public class OfficerStartingPage extends JFrame {
             new OfficerAboutAOMA();
             this.dispose();
         });
-        
+
         JMenuItem contactSupport = new JMenuItem("Contact Support");
         contactSupport.addActionListener(e -> {
             JOptionPane.showMessageDialog(
@@ -240,8 +330,6 @@ public class OfficerStartingPage extends JFrame {
             new OfficerContactSupport();
             this.dispose();
         });
-        
-
 
         helpMenu.add(sensorSetupGuide);
         helpMenu.add(userDocumentation);
@@ -275,6 +363,31 @@ public class OfficerStartingPage extends JFrame {
         );
         layeredPane.add(helpMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
     }); 
+
+        tabsUI.addChangeListener(e -> {
+        int selectedIndex = tabsUI.getSelectedIndex();
+
+        Rectangle bounds = tabsUI.getBoundsAt(selectedIndex);
+
+        if (selectedIndex == 0) { // Projects clicked
+            projectsMenu.show(
+                    tabsUI,
+                    bounds.x,
+                    bounds.y + bounds.height
+            );
+        }
+
+        if (selectedIndex == 1) { // View clicked
+            viewMenu.show(
+                    tabsUI,
+                    bounds.x,
+                    bounds.y + bounds.height
+            );
+        }
+
+        // Always return to Help tab
+        SwingUtilities.invokeLater(() -> tabsUI.setSelectedIndex(2));
+    });
 
         JLabel LGUHeadLabel = new JLabel("LGU OFFICER ACCOUNT");
         LGUHeadLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -310,7 +423,7 @@ public class OfficerStartingPage extends JFrame {
         JMenuItem logout = new JMenuItem("Logout");
         logout.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(
-                    OfficerStartingPage.this,
+                    OfficerAboutAOMA.this,
                     "Are you sure you want to logout?",
                     "Confirm Logout",
                     JOptionPane.YES_NO_OPTION
@@ -337,48 +450,20 @@ public class OfficerStartingPage extends JFrame {
 
         centerPanelDescription.add(centerTitleLabel, BorderLayout.CENTER);
         centerPanelDescription.add(userIconLabel, BorderLayout.EAST);
-        officerPanel.add(centerPanelDescription);
+
+        aboutAOMAPanel.add(centerPanelDescription);
 
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setBounds(10, 70, 1380, 648);
         Border secondBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
         centerPanel.setBorder(secondBorder);
-        officerPanel.add(centerPanel);
+        aboutAOMAPanel.add(centerPanel);
 
-        JLabel greetingLabel = new JLabel("Welcome, Juan Dela Cruz!", JLabel.LEFT); //add database here [get the fullname of the officer]
+        JLabel greetingLabel = new JLabel("About AOMA", JLabel.LEFT); 
         greetingLabel.setFont(new Font("Arial", Font.BOLD, 18));
         greetingLabel.setBorder( BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(120, 120, 120)), 
         BorderFactory.createEmptyBorder(10, 10, 10, 10)));
         centerPanel.add(greetingLabel, BorderLayout.NORTH);
-
-        JPanel textContainer = new JPanel();
-        textContainer.setLayout(new BoxLayout(textContainer, BoxLayout.Y_AXIS));
-        textContainer.setOpaque(false);
-
-        ImageIcon imageIcon = new ImageIcon("emptybox.png");
-        Image scaledImage = imageIcon.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH);
-        JLabel imageLabel = new JLabel(new ImageIcon(scaledImage));
-        imageLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-
-        JLabel textHeaderLabel = new JLabel(
-                "Welcome to the AOMA-Heritage Monitor, LGU OFFICER ACCOUNT!",JLabel.CENTER);
-        textHeaderLabel.setFont(new Font("Arial", Font.BOLD, 22));
-        textHeaderLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-
-        JLabel textSubheaderLabel = new JLabel("You currently do not have access to any active monitoring projects." + 
-                                                " Please contact your Local Government Unit Head to be assigned to a project",JLabel.CENTER);
-        textSubheaderLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        textSubheaderLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-
-        textContainer.add(Box.createVerticalGlue());
-        textContainer.add(imageLabel);
-        textContainer.add(Box.createVerticalStrut(12)); 
-        textContainer.add(textHeaderLabel);
-        textContainer.add(Box.createVerticalStrut(12)); 
-        textContainer.add(textSubheaderLabel);
-        textContainer.add(Box.createVerticalGlue());
-
-        centerPanel.add(textContainer, BorderLayout.CENTER);
 
         JPanel footerPanel = new JPanel(new BorderLayout());
         footerPanel.setPreferredSize(new java.awt.Dimension(1400, 45));
@@ -400,6 +485,8 @@ public class OfficerStartingPage extends JFrame {
     }
 
     public static void main(String[] args) {
-        new OfficerStartingPage();
+        new OfficerAboutAOMA();
     }
 }
+
+
