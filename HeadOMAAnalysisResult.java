@@ -523,6 +523,7 @@ public class HeadOMAAnalysisResult extends JFrame {
         buildingHeaderPanel.add(buildingTitle, BorderLayout.WEST);
         buildingHeaderPanel.add(editStructureBtn, BorderLayout.EAST);
 
+        //DATABASE to ah
         JPanel buildingInfoPanel = new JPanel();
         buildingInfoPanel.setLayout(new GridBagLayout());
         buildingInfoPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
