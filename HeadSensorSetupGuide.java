@@ -427,6 +427,41 @@ public class HeadSensorSetupGuide extends JFrame {
         JLabel userIconLabel = new JLabel(new ImageIcon(userImgScaled));
         userIconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
 
+        // Head POPUP MENU
+        JPopupMenu userMenu = new JPopupMenu();
+        JMenuItem userSettings = new JMenuItem("User Settings");
+        userSettings.addActionListener(e -> {
+            dispose(); 
+            new HeadDashboardUserSettings(); // opens settings window
+        });
+
+        JMenuItem logout = new JMenuItem("Logout");
+        logout.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to logout?",
+                    "Logout Confirmation",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                dispose(); 
+                new UsersLoginOptions(); // opens login page
+            }
+        });
+
+        userMenu.add(userSettings);
+        userMenu.addSeparator();
+        userMenu.add(logout);
+        userIconLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        // Show popup when clicked
+        userIconLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                userMenu.show(userIconLabel, 0, userIconLabel.getHeight());
+            }
+        });
+
         centerPanelDescription.add(centerTitleLabel, BorderLayout.CENTER);
         centerPanelDescription.add(userIconLabel, BorderLayout.EAST);
 
