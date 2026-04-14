@@ -705,7 +705,12 @@ public class HeadViewReport extends JFrame {
         {"02/14/2026", "#20260214-OMA-005", "CRITICAL"}
         };
 
-        JTable table = new JTable(data, columns);
+        JTable table = new JTable(data, columns) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false; 
+        }
+    };
         table.setRowHeight(30);
         table.setShowGrid(true);
         table.setGridColor(Color.BLACK);
@@ -713,18 +718,78 @@ public class HeadViewReport extends JFrame {
         table.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         table.setRowHeight(35);
 
+        table.getColumn("Dataset ID").setCellRenderer(new DatasetCellRenderer());
+
         // Center ALL cell content
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
 
         for (int i = 0; i < table.getColumnCount(); i++) {
+        String columnName = table.getColumnName(i);
+
+        if (columnName.equals("Result")) {
+            table.getColumnModel().getColumn(i).setCellRenderer(new ResultCellRenderer());
+        } 
+        else if (!columnName.equals("Dataset ID")) {
             table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
+    }
 
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 13));
         table.getTableHeader().setPreferredSize(new Dimension(0, 35));
         table.getTableHeader().setReorderingAllowed(false);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+
+        JPopupMenu menu = new JPopupMenu();
+        JMenuItem viewDetails = new JMenuItem("View Details");
+        JMenuItem exportReport = new JMenuItem("Export Report");
+
+        menu.add(viewDetails);
+        menu.add(exportReport);
+
+        // Actions
+        viewDetails.addActionListener(e -> {
+        JOptionPane.showMessageDialog(
+            table,
+            "Opening View Details...",
+            "View Details",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+
+        new HeadViewDetails(); 
+        HeadViewReport.this.dispose();
+    });
+
+        exportReport.addActionListener(e -> {
+        JOptionPane.showMessageDialog(
+            table,
+            "Opening Export Report...",
+            "Export Report",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+
+        new HeadExportSensorData(); 
+        HeadViewReport.this.dispose();
+    });
+
+        // Detect click inside Dataset column
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int row = table.rowAtPoint(e.getPoint());
+                int col = table.columnAtPoint(e.getPoint());
+
+                if (col == table.getColumnModel().getColumnIndex("Dataset ID")) {
+                    Rectangle rect = table.getCellRect(row, col, true);
+
+                    // detect if click is on RIGHT SIDE (button area)
+                    int buttonWidth = 25;
+                    if (e.getX() > rect.x + rect.width - buttonWidth) {
+                        menu.show(table, e.getX(), e.getY());
+                    }
+                }
+            }
+        });
+
         // Center header text
         DefaultTableCellRenderer headerRenderer = (DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer();
         headerRenderer.setHorizontalAlignment(JLabel.CENTER);
@@ -759,6 +824,136 @@ public class HeadViewReport extends JFrame {
         add(footerPanel, BorderLayout.SOUTH);
         
         setVisible(true);
+    }
+        class DatasetCellRenderer extends JPanel implements javax.swing.table.TableCellRenderer {
+            private JLabel label;
+            private JButton button;
+
+        public DatasetCellRenderer() {
+        setLayout(new BorderLayout());
+        setOpaque(true);
+
+        label = new JLabel();
+        label.setHorizontalAlignment(SwingConstants.CENTER); 
+
+        button = new JButton("▼");
+        button.setPreferredSize(new Dimension(30, 20)); 
+        button.setFocusPainted(false);
+
+        add(label, BorderLayout.CENTER);
+        add(button, BorderLayout.EAST);
+
+        button.setBorder(null);
+        button.setContentAreaFilled(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    }
+
+        @Override
+        public Component getTableCellRendererComponent(
+                JTable table, Object value, boolean isSelected,
+                boolean hasFocus, int row, int column) {
+
+            label.setText(value.toString());
+
+            if (isSelected) {
+                setBackground(table.getSelectionBackground());
+            } else {
+                setBackground(Color.WHITE);
+            }
+
+            return this;
+        }
+    }
+
+    class ResultCellRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(
+                JTable table, Object value, boolean isSelected,
+                boolean hasFocus, int row, int column) {
+
+            JLabel cell = (JLabel) super.getTableCellRendererComponent(
+                    table, value, isSelected, hasFocus, row, column);
+
+            String result = value.toString();
+
+            // center text
+            cell.setHorizontalAlignment(SwingConstants.CENTER);
+
+            // reset background (important!)
+            if (isSelected) {
+                cell.setBackground(table.getSelectionBackground());
+            } else {
+                cell.setBackground(Color.WHITE);
+            }
+
+            if (result.equals("SAFE / SERVICEABLE")) {
+                cell.setForeground(new Color(0, 170, 0));
+            } else if (result.equals("NEEDS OBSERVATION")) {
+                cell.setForeground(new Color(255, 165, 0));
+            } else if (result.equals("CRITICAL")) {
+                cell.setForeground(new Color(200, 0, 0));
+            } else {
+                cell.setForeground(Color.BLACK);
+            }
+
+            return cell;
+        }
+    }
+
+    class DatasetCellEditor extends DefaultCellEditor {
+        private JPanel panel;
+        private JLabel label;
+        private JButton button;
+        private JPopupMenu menu;
+
+        public DatasetCellEditor(JCheckBox checkBox) {
+            super(checkBox);
+
+            panel = new JPanel(new BorderLayout());
+            label = new JLabel();
+            button = new JButton("▼");
+
+            button.setMargin(new Insets(0, 5, 0, 5));
+            button.setFocusPainted(false);
+
+            panel.add(label, BorderLayout.CENTER);
+            panel.add(button, BorderLayout.EAST);
+
+            // Dropdown menu
+            menu = new JPopupMenu();
+
+            JMenuItem viewDetails = new JMenuItem("View Details");
+            JMenuItem exportReport = new JMenuItem("Export Report");
+
+            menu.add(viewDetails);
+            menu.add(exportReport);
+
+            // Actions
+            viewDetails.addActionListener(e -> {
+                JOptionPane.showMessageDialog(panel, "Viewing dataset details...");
+            });
+
+            exportReport.addActionListener(e -> {
+                JOptionPane.showMessageDialog(panel, "Exporting report...");
+            });
+
+            button.addActionListener(e -> {
+                menu.show(button, 0, button.getHeight());
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(
+                JTable table, Object value, boolean isSelected, int row, int column) {
+
+            label.setText(value.toString());
+            return panel;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return label.getText();
+        }
     }
 
     private JLabel createLegendLabel(String text, Color color) {
