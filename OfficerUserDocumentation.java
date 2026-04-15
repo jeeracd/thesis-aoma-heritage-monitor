@@ -137,7 +137,7 @@ public class OfficerUserDocumentation extends JFrame {
                     "Dashboard View",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            // new OfficerBldgStatusOverview();
+            new OfficerBldgStatusOverview();
             this.dispose();
         });
 
@@ -346,12 +346,12 @@ public class OfficerUserDocumentation extends JFrame {
         SwingUtilities.invokeLater(() -> tabsUI.setSelectedIndex(2));
     });
 
-        JLabel LGUHeadLabel = new JLabel("LGU OFFICER ACCOUNT");
-        LGUHeadLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        LGUHeadLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        LGUHeadLabel.setBounds(1080, 5, 280, 38);
+        JLabel LGULabel = new JLabel("LGU OFFICER ACCOUNT");
+        LGULabel.setFont(new Font("Arial", Font.BOLD, 14));
+        LGULabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        LGULabel.setBounds(1080, 5, 280, 38);
 
-        layeredPane.add(LGUHeadLabel, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(LGULabel, JLayeredPane.PALETTE_LAYER);
 
         JPanel centerPanelDescription = new JPanel(new BorderLayout());
         centerPanelDescription.setBounds(10, 20, 1380, 40);

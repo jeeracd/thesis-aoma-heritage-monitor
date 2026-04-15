@@ -137,7 +137,7 @@ public class OfficerAboutAOMA extends JFrame {
                     "Dashboard View",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadBldgStatusOverview();
+            new OfficerBldgStatusOverview();
             this.dispose();
         });
 
@@ -149,7 +149,7 @@ public class OfficerAboutAOMA extends JFrame {
                     "Setup & Connection",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadSetupConnectionWindow();
+            // new OfficerSetupConnectionWindow();
             this.dispose();
         });
 
@@ -162,7 +162,7 @@ public class OfficerAboutAOMA extends JFrame {
                     "Configure Sensor",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadConfigureSensorWindow();
+            // new OfficerConfigureSensorWindow();
             this.dispose();
         });
 
@@ -174,57 +174,14 @@ public class OfficerAboutAOMA extends JFrame {
                     "ESP32 Status",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadESP32StatusWindow();
+            // new OfficerESP32StatusWindow();
             this.dispose();
         });
 
         JMenuItem vibrationData = new JMenuItem("Vibration Data");
-        vibrationData.addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Directing to Vibration Data page.",
-                    "Vibration Data",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-            new HeadVibrationDataWindow();
-            this.dispose();
-        }); 
-
         JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
-        omaAnalysisResult.addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Directing to OMA Analysis Result page.",
-                    "OMA Analysis Result",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-            new HeadOMAAnalysisResultWindow();
-            this.dispose();
-        });
-
         JMenuItem reportHistory = new JMenuItem("View Report");
-        reportHistory.addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Directing to View Report page.",
-                    "View Report",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-            new HeadViewReportWindow();
-            this.dispose();
-        });
-
         JMenuItem systemLogs = new JMenuItem("System Logs");
-        systemLogs.addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Directing to System Logs page.",
-                    "System Logs",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-            new HeadSystemLogsWindow();
-            this.dispose();
-        });
 
         dashboardView.setEnabled(true);
         setupConnection.setEnabled(true);
@@ -389,12 +346,12 @@ public class OfficerAboutAOMA extends JFrame {
         SwingUtilities.invokeLater(() -> tabsUI.setSelectedIndex(2));
     });
 
-        JLabel LGUHeadLabel = new JLabel("LGU OFFICER ACCOUNT");
-        LGUHeadLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        LGUHeadLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        LGUHeadLabel.setBounds(1080, 5, 280, 38);
+        JLabel LGULabel = new JLabel("LGU OFFICER ACCOUNT");
+        LGULabel.setFont(new Font("Arial", Font.BOLD, 14));
+        LGULabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        LGULabel.setBounds(1080, 5, 280, 38);
 
-        layeredPane.add(LGUHeadLabel, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(LGULabel, JLayeredPane.PALETTE_LAYER);
 
         JPanel centerPanelDescription = new JPanel(new BorderLayout());
         centerPanelDescription.setBounds(10, 20, 1380, 40);

@@ -126,9 +126,53 @@ public class OfficerStartingPage extends JFrame {
         JPopupMenu viewMenu = new JPopupMenu();
 
         JMenuItem dashboardView = new JMenuItem("Dashboard View");
-        JMenuItem setupConnection = new JMenuItem("Setup Connection");
+        dashboardView.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Dashboard View.",
+                    "Dashboard View",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new OfficerBldgStatusOverview();
+            this.dispose();
+        });
+
+        JMenuItem setupConnection = new JMenuItem("Setup & Connection");
+        setupConnection.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Setup & Connection page.",
+                    "Setup & Connection",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            // new OfficerSetupConnectionWindow();
+            this.dispose();
+        });
+
         JMenuItem configureSensor = new JMenuItem("Configure Sensor");
+        configureSensor.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Configure Sensor page.",
+                    "Configure Sensor",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            // new OfficerConfigureSensorWindow();
+            this.dispose();
+        });
+
         JMenuItem esp32Status = new JMenuItem("ESP32 Status");
+        esp32Status.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to ESP32 Status page.",
+                    "ESP32 Status",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            // new OfficerESP32StatusWindow();
+            this.dispose();
+        });
+
         JMenuItem vibrationData = new JMenuItem("Vibration Data");
         JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
         JMenuItem reportHistory = new JMenuItem("View Report");
@@ -303,12 +347,12 @@ public class OfficerStartingPage extends JFrame {
         }
     });
 
-        JLabel LGUHeadLabel = new JLabel("LGU OFFICER ACCOUNT");
-        LGUHeadLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        LGUHeadLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        LGUHeadLabel.setBounds(1080, 5, 280, 38);
+        JLabel LGULabel = new JLabel("LGU OFFICER ACCOUNT");
+        LGULabel.setFont(new Font("Arial", Font.BOLD, 14));
+        LGULabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        LGULabel.setBounds(1080, 5, 280, 38);
 
-        layeredPane.add(LGUHeadLabel, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(LGULabel, JLayeredPane.PALETTE_LAYER);
 
         JPanel centerPanelDescription = new JPanel(new BorderLayout());
         centerPanelDescription.setBounds(10, 20, 1380, 40);

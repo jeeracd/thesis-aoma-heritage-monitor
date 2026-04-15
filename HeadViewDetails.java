@@ -22,9 +22,12 @@ public class HeadViewDetails extends JFrame {
 
         JPanel headPanel = new JPanel(null);
 
-        tabsUI.addTab("Projects", headPanel);
-        tabsUI.addTab("View", new JPanel());
+        tabsUI.addTab("Projects", new JPanel());
+        tabsUI.addTab("View", headPanel);
         tabsUI.addTab("Help", new JPanel());
+
+        tabsUI.setSelectedIndex(1); //set default tab
+
 
         tabsUI.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
             @Override
@@ -384,27 +387,26 @@ public class HeadViewDetails extends JFrame {
         tabsUI.addChangeListener(e -> {
         int selectedIndex = tabsUI.getSelectedIndex();
 
-        if (selectedIndex == 1) { // View tab clicked
-            tabsUI.setSelectedIndex(0); // go back to Projects
+        Rectangle bounds = tabsUI.getBoundsAt(selectedIndex);
 
-            Rectangle bounds = tabsUI.getBoundsAt(1);
-            viewMenu.show(
+        if (selectedIndex == 0) { // Projects clicked
+            projectsMenu.show(
                     tabsUI,
                     bounds.x,
                     bounds.y + bounds.height
             );
         }
 
-        if (selectedIndex == 2) { // Help tab clicked
-            tabsUI.setSelectedIndex(0); // go back to Projects
-
-            Rectangle bounds = tabsUI.getBoundsAt(2);
+        if (selectedIndex == 2) { // Help clicked
             helpMenu.show(
                     tabsUI,
                     bounds.x,
                     bounds.y + bounds.height
             );
         }
+
+        // Always go back to View tab
+        SwingUtilities.invokeLater(() -> tabsUI.setSelectedIndex(1));
     });
 
         JLabel LGUHeadLabel = new JLabel("LGU HEAD ACCOUNT");
