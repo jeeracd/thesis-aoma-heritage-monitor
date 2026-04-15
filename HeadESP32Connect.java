@@ -19,6 +19,10 @@ java  -cp .;jserialcomm-2.11.4.jar HeadESP32Connect
 
 */
 
+
+
+//NOT WORKING. PLEASE PAAYOS HAHAHA
+
 public class HeadESP32Connect extends JFrame implements ActionListener {
 
     JButton ESP32ConnectButton;
