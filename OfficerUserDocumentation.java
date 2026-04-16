@@ -149,7 +149,7 @@ public class OfficerUserDocumentation extends JFrame {
                     "Setup & Connection",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            // new OfficerSetupConnectionWindow();
+            new OfficerSetupConnectionWindow();
             this.dispose();
         });
 
@@ -162,7 +162,7 @@ public class OfficerUserDocumentation extends JFrame {
                     "Configure Sensor",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            // new OfficerConfigureSensorWindow();
+            new OfficerConfigureSensorWindow();
             this.dispose();
         });
 
@@ -174,7 +174,7 @@ public class OfficerUserDocumentation extends JFrame {
                     "ESP32 Status",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            // new OfficerESP32StatusWindow();
+            new OfficerESP32StatusWindow();
             this.dispose();
         });
 

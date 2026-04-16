@@ -69,7 +69,7 @@ public class OfficerStartingPage extends JFrame {
         JMenuItem newProject = new JMenuItem("New Project");
         JMenuItem openProject = new JMenuItem("Open Project");
         JMenuItem importCsv = new JMenuItem("Import Sensor Data (.csv)");
-        JMenuItem exportPdf = new JMenuItem("Export Report (PDF)");
+        JMenuItem exportPDF = new JMenuItem("Export Report (PDF)");
         JMenuItem exit = new JMenuItem("Exit");
         exit.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(
@@ -87,14 +87,14 @@ public class OfficerStartingPage extends JFrame {
         newProject.setEnabled(false);
         openProject.setEnabled(true);
         importCsv.setEnabled(false);
-        exportPdf.setEnabled(false);
+        exportPDF.setEnabled(false);
         exit.setEnabled(true);
 
         projectsMenu.add(newProject);
         projectsMenu.add(openProject);
         projectsMenu.addSeparator();
         projectsMenu.add(importCsv);
-        projectsMenu.add(exportPdf);
+        projectsMenu.add(exportPDF);
         projectsMenu.addSeparator();
         projectsMenu.add(exit);
 
@@ -145,7 +145,7 @@ public class OfficerStartingPage extends JFrame {
                     "Setup & Connection",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            // new OfficerSetupConnectionWindow();
+            new OfficerSetupConnectionWindow();
             this.dispose();
         });
 
@@ -157,7 +157,7 @@ public class OfficerStartingPage extends JFrame {
                     "Configure Sensor",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            // new OfficerConfigureSensorWindow();
+            new OfficerConfigureSensorWindow();
             this.dispose();
         });
 
@@ -169,7 +169,7 @@ public class OfficerStartingPage extends JFrame {
                     "ESP32 Status",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            // new OfficerESP32StatusWindow();
+            new OfficerESP32StatusWindow();
             this.dispose();
         });
 

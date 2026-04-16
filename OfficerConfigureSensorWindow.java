@@ -381,7 +381,7 @@ public class OfficerConfigureSensorWindow extends JFrame {
         JLabel userIconLabel = new JLabel(new ImageIcon(userImgScaled));
         userIconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
 
-        // Head POPUP MENU
+        // officer POPUP MENU
         JPopupMenu userMenu = new JPopupMenu();
         JMenuItem userSettings = new JMenuItem("User Settings");
         userSettings.addActionListener(e -> {

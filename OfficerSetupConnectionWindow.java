@@ -171,7 +171,7 @@ public class OfficerSetupConnectionWindow extends JFrame {
                     "Configure Sensor",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            // new OfficerConfigureSensorWindow();
+            new OfficerConfigureSensorWindow();
             this.dispose();
         });
 
@@ -183,7 +183,7 @@ public class OfficerSetupConnectionWindow extends JFrame {
                     "ESP32 Status",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            // new OfficerESP32StatusWindow();
+            new OfficerESP32StatusWindow();
             this.dispose();
         });
 
@@ -457,7 +457,7 @@ public class OfficerSetupConnectionWindow extends JFrame {
         centerPanelStatusOverview.add(statusOverviewHeaderLabel, BorderLayout.NORTH);
 
         JLabel statusOverviewSubheaderLabel = new JLabel(
-                "Welcome, LGU Head. Below is the real-time safety and serviceability status of all heritage structures under your jurisdiction.",
+                "Welcome, LGU Officer. Below is the real-time safety and serviceability status of all heritage structures under your jurisdiction.",
                 SwingConstants.CENTER
         );
         statusOverviewSubheaderLabel.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -661,7 +661,7 @@ public class OfficerSetupConnectionWindow extends JFrame {
 
         viewDetailsBtn.addActionListener(e -> {
             SwingUtilities.invokeLater(() -> {
-                //new OfficerESP32Connect();
+                //new OfficerESP32Connect(); // opens ESP32 connection page for officer
                 instance.setVisible(false);
             });
         });
