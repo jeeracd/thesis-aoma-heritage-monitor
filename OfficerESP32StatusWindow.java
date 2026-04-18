@@ -668,7 +668,7 @@ public class OfficerESP32StatusWindow extends JFrame {
         JPanel rowActionsPanel = new JPanel(new BorderLayout());
         rowActionsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
-        JButton dataAquisitionBtn = new JButton("Start Data Aquisition");
+        JButton dataAquisitionBtn = new JButton("Connect ESP32 HUB");
         dataAquisitionBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         dataAquisitionBtn.setFocusPainted(false);
 
