@@ -512,7 +512,7 @@ public class HeadConfigureSensors extends JFrame {
                     "Edit Structural Details",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new EditStructuralDetails();
+            new HeadStructuralDetails();
             this.dispose();
         });
         
