@@ -5,7 +5,7 @@ import javax.swing.border.Border;
 public class EngineerStructuralDetails extends JFrame {
 
     public EngineerStructuralDetails() {
-        setTitle("AOMA-Heritage Monitor");
+        setTitle("AOMA-Heritage Monitor - ENGINEER");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
         setSize(600, 650);
         setLocationRelativeTo(null);

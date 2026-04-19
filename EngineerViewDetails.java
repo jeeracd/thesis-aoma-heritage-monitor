@@ -473,7 +473,7 @@ public class EngineerViewDetails extends JFrame {
                     "Edit Project Details",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new EditStructuralDetails();
+            new EngineerStructuralDetails();
             this.dispose();
         });
         formPanel.add(editProjectBtn);
@@ -491,7 +491,7 @@ public class EngineerViewDetails extends JFrame {
                     "Manage Access",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadDashboardManageAccess();
+            new EngineerDashboardManageAccess();
             this.dispose();
         });
         formPanel.add(manageAccessBtn);

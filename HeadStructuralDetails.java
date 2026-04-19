@@ -5,7 +5,7 @@ import javax.swing.border.Border;
 public class HeadStructuralDetails extends JFrame {
 
     public HeadStructuralDetails() {
-        setTitle("AOMA-Heritage Monitor");
+        setTitle("AOMA-Heritage Monitor - LGU HEAD");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
         setSize(600, 650);
         setLocationRelativeTo(null);

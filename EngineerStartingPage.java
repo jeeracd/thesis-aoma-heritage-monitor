@@ -67,16 +67,60 @@ public class EngineerStartingPage extends JFrame {
         JPopupMenu projectsMenu = new JPopupMenu();
 
         JMenuItem newProject = new JMenuItem("New Project");
+        newProject.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "New Project initialization process will start.",
+                    "New Project",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new EngineerEditStructuralDetails();
+            this.dispose();
+        });
+
         JMenuItem openProject = new JMenuItem("Open Project");
         JMenuItem importCsv = new JMenuItem("Import Sensor Data (.csv)");
-        JMenuItem exportPdf = new JMenuItem("Export Report (PDF)");
+        importCsv.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Import Sensor Data page.",
+                    "Import Sensor Data",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new EngineerImportSensorData();
+            this.dispose();
+        });
+
+        JMenuItem exportPDF = new JMenuItem("Export Report (PDF)");
+        exportPDF.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Export Report page.",
+                    "Export Report",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new EngineerExportSensorData();
+            this.dispose();
+        });
+
         JMenuItem exit = new JMenuItem("Exit");
+        exit.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to exit?",
+                    "Exit Confirmation",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                System.exit(0);
+            }
+        });
 
         projectsMenu.add(newProject);
         projectsMenu.add(openProject);
         projectsMenu.addSeparator();
         projectsMenu.add(importCsv);
-        projectsMenu.add(exportPdf);
+        projectsMenu.add(exportPDF);
         projectsMenu.addSeparator();
         projectsMenu.add(exit);
 
@@ -115,7 +159,7 @@ public class EngineerStartingPage extends JFrame {
                     "Dashboard View",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadBldgStatusOverview();
+            new EngineerBldgStatusOverview();
             this.dispose();
         });
 
@@ -127,7 +171,7 @@ public class EngineerStartingPage extends JFrame {
                     "Setup & Connection",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadSetupConnectionWindow();
+            new EngineerSetupConnectionWindow();
             this.dispose();
         });
 
@@ -140,7 +184,7 @@ public class EngineerStartingPage extends JFrame {
                     "Configure Sensor",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadConfigureSensorWindow();
+            new EngineerConfigureSensorWindow();
             this.dispose();
         });
 
@@ -152,7 +196,7 @@ public class EngineerStartingPage extends JFrame {
                     "ESP32 Status",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadESP32StatusWindow();
+            new EngineerESP32StatusWindow();
             this.dispose();
         });
 
@@ -164,7 +208,7 @@ public class EngineerStartingPage extends JFrame {
                     "Vibration Data",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadVibrationDataWindow();
+            new EngineerVibrationDataWindow();
             this.dispose();
         }); 
 
@@ -176,7 +220,7 @@ public class EngineerStartingPage extends JFrame {
                     "OMA Analysis Result",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadOMAAnalysisResultWindow();
+            new EngineerOMAAnalysisResultWindow();
             this.dispose();
         });
 
@@ -188,22 +232,11 @@ public class EngineerStartingPage extends JFrame {
                     "View Report",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadViewReportWindow();
+            new EngineerViewReportWindow();
             this.dispose();
         });
 
         JMenuItem systemLogs = new JMenuItem("System Logs");
-        systemLogs.addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Directing to System Logs page.",
-                    "System Logs",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-            new HeadSystemLogsWindow();
-            this.dispose();
-        });
-
         systemLogs.setEnabled(false);
 
         viewMenu.add(dashboardView);
@@ -255,10 +288,52 @@ public class EngineerStartingPage extends JFrame {
         JPopupMenu helpMenu = new JPopupMenu();
 
         JMenuItem sensorSetupGuide = new JMenuItem("Sensor Setup Guide");
+        sensorSetupGuide.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Sensor Setup Guide.",
+                    "Sensor Setup Guide",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new EngineerSensorSetupGuide();
+            this.dispose();
+        });
+
         JMenuItem userDocumentation = new JMenuItem("User Documentation");
+        userDocumentation.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to User Documentation.",
+                    "User Documentation",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new EngineerUserDocumentation();
+            this.dispose();
+        });
 
         JMenuItem aboutAOMA = new JMenuItem("About AOMA-Heritage Monitor");
+        aboutAOMA.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to About AOMA-Heritage Monitor.",
+                    "About AOMA-Heritage Monitor",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new EngineerAboutAOMA();
+            this.dispose();
+        });
+
         JMenuItem contactSupport = new JMenuItem("Contact Support");
+        contactSupport.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Contact Support.",
+                    "Contact Support",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new EngineerContactSupport();
+            this.dispose();
+        });
 
         helpMenu.add(sensorSetupGuide);
         helpMenu.add(userDocumentation);
@@ -293,12 +368,39 @@ public class EngineerStartingPage extends JFrame {
         layeredPane.add(helpMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
     }); 
 
-        JLabel LGUHeadLabel = new JLabel("STRUCTURAL ENGINEER ACCOUNT");
-        LGUHeadLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        LGUHeadLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        LGUHeadLabel.setBounds(1080, 5, 280, 38);
+        //para hindi ma-select yung view/help kapag clinick yung dropdown or text 
+        tabsUI.addChangeListener(e -> {
+        int selectedIndex = tabsUI.getSelectedIndex();
 
-        layeredPane.add(LGUHeadLabel, JLayeredPane.PALETTE_LAYER);
+        if (selectedIndex == 1) { // View tab clicked
+            tabsUI.setSelectedIndex(0); // go back to Projects
+
+            Rectangle bounds = tabsUI.getBoundsAt(1);
+            viewMenu.show(
+                    tabsUI,
+                    bounds.x,
+                    bounds.y + bounds.height
+            );
+        }
+
+        if (selectedIndex == 2) { // Help tab clicked
+            tabsUI.setSelectedIndex(0); // go back to Projects
+
+            Rectangle bounds = tabsUI.getBoundsAt(2);
+            helpMenu.show(
+                    tabsUI,
+                    bounds.x,
+                    bounds.y + bounds.height
+            );
+        }
+    });
+
+        JLabel LGULabel = new JLabel("STRUCTURAL ENGINEER ACCOUNT");
+        LGULabel.setFont(new Font("Arial", Font.BOLD, 14));
+        LGULabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        LGULabel.setBounds(1080, 5, 280, 38);
+
+        layeredPane.add(LGULabel, JLayeredPane.PALETTE_LAYER);
 
         JPanel centerPanelDescription = new JPanel(new BorderLayout());
         centerPanelDescription.setBounds(10, 20, 1380, 40);
@@ -326,6 +428,18 @@ public class EngineerStartingPage extends JFrame {
             new EngineerDashboardUserSettings(); // opens settings window
         });
         JMenuItem logout = new JMenuItem("Logout");
+        logout.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to logout?",
+                    "Logout Confirmation",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                dispose(); 
+                new UsersLoginOptions(); // opens login page
+            }
+        });
 
         userMenu.add(userSettings);
         userMenu.addSeparator();
