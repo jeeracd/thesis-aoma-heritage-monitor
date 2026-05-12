@@ -2,6 +2,7 @@ import java.awt.*;
 import java.io.File;
 import javax.swing.*;
 import javax.swing.border.Border;
+import java.io.File;
 
 public class EngineerImportSensorData extends JFrame {
 
@@ -576,49 +577,75 @@ public class EngineerImportSensorData extends JFrame {
         uploadBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         importContentPanel.add(uploadBtn);
 
+        JLabel inlineMsg = new JLabel("", JLabel.CENTER);
+        inlineMsg.setFont(new Font("Arial", Font.PLAIN, 12));
+        inlineMsg.setBounds(150, 470, 1080, 20);
+        inlineMsg.setForeground(Color.GRAY);
+        importContentPanel.add(inlineMsg);
+
         final File[] selectedFile = {null};
         browseBtn.addActionListener(e -> {
-            JFileChooser chooser = new JFileChooser();
-            chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("CSV Files", "csv"));
+            inlineMsg.setForeground(Color.GRAY);
+            inlineMsg.setText("Opening file picker...");
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            browseBtn.setEnabled(false);
+            uploadBtn.setEnabled(false);
 
-            int result = chooser.showOpenDialog(this);
-
-            if (result == JFileChooser.APPROVE_OPTION) {
-                File file = chooser.getSelectedFile();
-                long fileSizeInMB = file.length() / (1024 * 1024);
-
-                if (fileSizeInMB > 50) {
-                    JOptionPane.showMessageDialog(this,
-                            "File exceeds 50MB limit.",
-                            "File Too Large",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                selectedFile[0] = file;
-
-                fileNameLabel.setText(file.getName());
-                fileSizeLabel.setText(fileSizeInMB + " MB");
-                selectedFilePanel.setVisible(true);
+            File file;
+            try {
+                file = NativeFilePicker.pickCsvFile(this, "Select CSV File");
+            } finally {
+                setCursor(Cursor.getDefaultCursor());
+                browseBtn.setEnabled(true);
+                uploadBtn.setEnabled(true);
             }
+
+            if (file == null) {
+                inlineMsg.setForeground(Color.GRAY);
+                inlineMsg.setText("No file selected.");
+                Toast.show(this, "Selection canceled", new Color(80, 80, 80), 1600);
+                return;
+            }
+
+            CsvFileValidator.ValidationResult vr = CsvFileValidator.validate(file);
+            if (!vr.valid()) {
+                inlineMsg.setForeground(Color.RED);
+                inlineMsg.setText(vr.message());
+                selectedFile[0] = null;
+                selectedFilePanel.setVisible(false);
+                Toast.show(this, vr.message(), new Color(160, 40, 40), 2200);
+                return;
+            }
+
+            selectedFile[0] = file;
+            long fileSizeInMB = file.length() / (1024 * 1024);
+            fileNameLabel.setText(file.getName());
+            fileSizeLabel.setText(fileSizeInMB + " MB");
+            selectedFilePanel.setVisible(true);
+            inlineMsg.setForeground(new Color(0, 128, 0));
+            inlineMsg.setText("CSV selected successfully.");
+            Toast.show(this, "CSV selected", new Color(0, 128, 0), 1600);
         });
 
         deleteBtn.addActionListener(e -> {
             selectedFile[0] = null;
             selectedFilePanel.setVisible(false);
+            inlineMsg.setForeground(Color.GRAY);
+            inlineMsg.setText("");
         });
 
         cancelBtn.addActionListener(e -> {
             selectedFile[0] = null;
             selectedFilePanel.setVisible(false);
+            inlineMsg.setForeground(Color.GRAY);
+            inlineMsg.setText("");
         });
 
         uploadBtn.addActionListener(e -> {
             if (selectedFile[0] == null) {
-                JOptionPane.showMessageDialog(this,
-                        "Please select a CSV file first.",
-                        "No File Selected",
-                        JOptionPane.WARNING_MESSAGE);
+                inlineMsg.setForeground(Color.RED);
+                inlineMsg.setText("Please select a CSV file first.");
+                Toast.show(this, "No file selected", new Color(160, 40, 40), 2000);
                 return;
             }
 
@@ -640,6 +667,7 @@ public class EngineerImportSensorData extends JFrame {
 
         if (choice == 0) {
             // Proceed to Analysis
+            AppSession.setLastUploadedCsv(selectedFile[0]);
             new EngineerOMAAnalysisResult(); 
             this.dispose();
         }

@@ -13,6 +13,10 @@ The flow no longer navigates to a separate edit screen when the user clicks “E
 
 This repository is a Java Swing desktop application. It does not include an HTTP frontend, browser targets, or a backend API layer. The persistence “backend” in this codebase is `ProjectRepository`, which saves to a local on-disk store.
 
+## Layout note (avoid overlap)
+
+The screens are built with absolute positioning (`null` layouts). To prevent overlap between the “Description” editor and the “Safety Assessment Report” area, the report panels are positioned relative to the bottom of the “View Details” container rather than hard-coded y coordinates.
+
 ## UX behavior
 
 - Default state is read-only.
@@ -54,4 +58,3 @@ Run:
 javac -cp ".;jSerialComm-2.11.4.jar" *.java
 java -ea -cp ".;jSerialComm-2.11.4.jar" ProjectDetailsControllerTest
 ```
-
