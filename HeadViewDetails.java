@@ -2,18 +2,43 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
+import java.util.UUID;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class HeadViewDetails extends JFrame {
+    private final UUID projectId;
 
     public HeadViewDetails() {
+        this(null);
+    }
+
+    public HeadViewDetails(UUID projectId) {
+        this.projectId = projectId;
         setTitle("AOMA-Heritage Monitor - View Details");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setSize(1225, 600);
         setSize(1225, 600);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int x_view = (screenSize.width - getWidth()) / 2;
         int y_view = (screenSize.height - getHeight()) / 2 - 400; //the use of this is to adjust the hright of the window
         setLocation(x_view, y_view);
+
+        Project project = null;
+        if (projectId != null) {
+            project = ProjectRepository.findById(projectId).orElse(null);
+            if (project == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Project not found. The data may have been removed or failed to load.",
+                        "Load Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
+        ProjectDetailsController controller = project == null ? null : new ProjectDetailsController(project);
 
         JTabbedPane tabsUI = new JTabbedPane(JTabbedPane.TOP);
         tabsUI.setFont(new Font("Arial", Font.BOLD, 17));
@@ -76,6 +101,9 @@ public class HeadViewDetails extends JFrame {
 
         JMenuItem newProject = new JMenuItem("New Project");
         newProject.addActionListener(e -> {
+            if (!confirmNavigateIfDirty(controller)) {
+                return;
+            }
             JOptionPane.showMessageDialog(
                     this,
                     "New Project initialization process will start.",
@@ -89,6 +117,9 @@ public class HeadViewDetails extends JFrame {
         JMenuItem openProject = new JMenuItem("Open Project");
         JMenuItem importCsv = new JMenuItem("Import Sensor Data (.csv)");
         importCsv.addActionListener(e -> {
+            if (!confirmNavigateIfDirty(controller)) {
+                return;
+            }
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to Import Sensor Data page.",
@@ -101,6 +132,9 @@ public class HeadViewDetails extends JFrame {
 
         JMenuItem exportPDF = new JMenuItem("Export Report (PDF)");
         exportPDF.addActionListener(e -> {
+            if (!confirmNavigateIfDirty(controller)) {
+                return;
+            }
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to Export Report page.",
@@ -113,6 +147,9 @@ public class HeadViewDetails extends JFrame {
 
         JMenuItem exit = new JMenuItem("Exit");
         exit.addActionListener(e -> {
+            if (!confirmExitIfDirty(controller)) {
+                return;
+            }
             int confirm = JOptionPane.showConfirmDialog(
                     this,
                     "Are you sure you want to exit?",
@@ -438,7 +475,7 @@ public class HeadViewDetails extends JFrame {
         headPanel.add(centerPanelDescription);
 
         JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.setBounds(10, 70, 1200, 400);
+        centerPanel.setBounds(10, 70, 1200, 520);
         Border secondBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
         centerPanel.setBorder(secondBorder);
         headPanel.add(centerPanel);
@@ -474,17 +511,6 @@ public class HeadViewDetails extends JFrame {
         editProjectBtn.setFocusPainted(false);
         editProjectBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         editProjectBtn.setBounds(800, y, 180, 25);
-
-        editProjectBtn.addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Directing to Edit Project Details page.",
-                    "Edit Project Details",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-            new EditStructuralDetails();
-            this.dispose();
-        });
         formPanel.add(editProjectBtn);
 
         JButton manageAccessBtn = new JButton("Manage Access");
@@ -492,17 +518,6 @@ public class HeadViewDetails extends JFrame {
         manageAccessBtn.setFocusPainted(false);
         manageAccessBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         manageAccessBtn.setBounds(990, y, 160, 25);
-
-        manageAccessBtn.addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Directing to Manage Access page.",
-                    "Manage Access",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-            new HeadDashboardManageAccess();
-            this.dispose();
-        });
         formPanel.add(manageAccessBtn);
 
         JTextField projectName = new JTextField("");
@@ -511,6 +526,9 @@ public class HeadViewDetails extends JFrame {
         projectName.setBounds(leftX, y + 30, 1130, 35);
         projectName.setEnabled(false);
         formPanel.add(projectName);
+        if (project != null) {
+            projectName.setText(project.getProjectName());
+        }
 
         y += 80;
 
@@ -532,6 +550,9 @@ public class HeadViewDetails extends JFrame {
         buildingField.setBounds(leftX + 160, y, 500, 30);
         buildingField.setEnabled(false);
         formPanel.add(buildingField);
+        if (project != null) {
+            buildingField.setText(project.getBuildingName());
+        }
 
         JLabel materialsLbl = new JLabel("Materials Used:");
         materialsLbl.setFont(labelFont);
@@ -544,6 +565,9 @@ public class HeadViewDetails extends JFrame {
         materialsField.setBounds(rightX + 150, y, 300, 30);
         materialsField.setEnabled(false);
         formPanel.add(materialsField);
+        if (project != null) {
+            materialsField.setText(project.getMaterialsUsed());
+        }
 
         y += gap;
 
@@ -562,6 +586,9 @@ public class HeadViewDetails extends JFrame {
         dateField.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
         dateField.setEnabled(false);
         datePanel.add(dateField, BorderLayout.CENTER);
+        if (project != null) {
+            dateField.setText(project.getDateConstructed());
+        }
 
         ImageIcon calendarIcon = new ImageIcon(
                 new ImageIcon("calendaricon.png")
@@ -593,6 +620,9 @@ public class HeadViewDetails extends JFrame {
         functionField.setBounds(rightX + 150, y, 300, 30);
         functionField.setEnabled(false);
         formPanel.add(functionField);
+        if (project != null) {
+            functionField.setText(project.getFunction());
+        }
 
         y += gap;
 
@@ -607,6 +637,9 @@ public class HeadViewDetails extends JFrame {
         conservationField.setBounds(leftX + 160, y, 300, 30);
         conservationField.setEnabled(false);
         formPanel.add(conservationField);
+        if (project != null) {
+            conservationField.setText(project.getConservationStatus());
+        }
 
         y += gap;
 
@@ -621,6 +654,9 @@ public class HeadViewDetails extends JFrame {
         addressField.setBounds(leftX + 160, y, 970, 30);
         addressField.setEnabled(false);
         formPanel.add(addressField);
+        if (project != null) {
+            addressField.setText(project.getAddress());
+        }
 
         y += gap;
 
@@ -635,6 +671,235 @@ public class HeadViewDetails extends JFrame {
         descArea.setWrapStyleWord(true);
         descArea.setBorder(fieldBorder);
         descArea.setEnabled(false);
+        if (project != null) {
+            descArea.setText(project.getDescription());
+        }
+        JScrollPane descScroll = new JScrollPane(descArea);
+        descScroll.setBounds(leftX + 160, y, 970, 90);
+        formPanel.add(descScroll);
+        y += 100;
+
+        if (controller == null) {
+            editProjectBtn.setEnabled(false);
+        }
+
+        Runnable applyControllerToUI = () -> {
+            if (controller == null) {
+                return;
+            }
+            Project p = controller.isEditing() ? controller.getDraft() : controller.getBaseline();
+            projectName.setText(p.getProjectName());
+            buildingField.setText(p.getBuildingName());
+            dateField.setText(p.getDateConstructed());
+            materialsField.setText(p.getMaterialsUsed());
+            functionField.setText(p.getFunction());
+            conservationField.setText(p.getConservationStatus());
+            addressField.setText(p.getAddress());
+            descArea.setText(p.getDescription());
+        };
+
+        Runnable setEditableState = () -> {
+            boolean enabled = controller != null && controller.isEditing();
+            projectName.setEnabled(enabled);
+            buildingField.setEnabled(enabled);
+            dateField.setEnabled(enabled);
+            materialsField.setEnabled(enabled);
+            functionField.setEnabled(enabled);
+            conservationField.setEnabled(enabled);
+            addressField.setEnabled(enabled);
+            descArea.setEnabled(enabled);
+            calendarBtn.setEnabled(enabled);
+
+            editProjectBtn.setText(enabled ? "Save Changes" : "Edit Project Details");
+            manageAccessBtn.setText(enabled ? "Cancel" : "Manage Access");
+            manageAccessBtn.setForeground(enabled ? Color.RED : Color.BLACK);
+        };
+
+        DocumentListener dirtyListener = new DocumentListener() {
+            private void mark() {
+                if (controller == null || !controller.isEditing()) {
+                    return;
+                }
+                controller.setDraftDetails(
+                        projectName.getText(),
+                        buildingField.getText(),
+                        dateField.getText(),
+                        materialsField.getText(),
+                        functionField.getText(),
+                        conservationField.getText(),
+                        addressField.getText(),
+                        descArea.getText()
+                );
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                mark();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                mark();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                mark();
+            }
+        };
+
+        projectName.getDocument().addDocumentListener(dirtyListener);
+        buildingField.getDocument().addDocumentListener(dirtyListener);
+        dateField.getDocument().addDocumentListener(dirtyListener);
+        materialsField.getDocument().addDocumentListener(dirtyListener);
+        functionField.getDocument().addDocumentListener(dirtyListener);
+        conservationField.getDocument().addDocumentListener(dirtyListener);
+        addressField.getDocument().addDocumentListener(dirtyListener);
+        descArea.getDocument().addDocumentListener(dirtyListener);
+
+        calendarBtn.addActionListener(e -> {
+            if (controller == null || !controller.isEditing()) {
+                return;
+            }
+            showCalendarDialog(this, dateField);
+        });
+
+        editProjectBtn.addActionListener(e -> {
+            if (controller == null) {
+                return;
+            }
+            if (!controller.isEditing()) {
+                controller.enterEditMode();
+                setEditableState.run();
+                return;
+            }
+
+            controller.setDraftDetails(
+                    projectName.getText(),
+                    buildingField.getText(),
+                    ProjectValidation.normalizeDateOrReturnOriginal(dateField.getText()),
+                    materialsField.getText(),
+                    functionField.getText(),
+                    conservationField.getText(),
+                    addressField.getText(),
+                    descArea.getText()
+            );
+            dateField.setText(ProjectValidation.normalizeDateOrReturnOriginal(dateField.getText()));
+            dateField.setText(ProjectValidation.normalizeDateOrReturnOriginal(dateField.getText()));
+
+            try {
+                controller.validateDraft();
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        ex.getMessage(),
+                        "Validation Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            JDialog savingDialog = createSavingDialog(this);
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            editProjectBtn.setEnabled(false);
+            manageAccessBtn.setEnabled(false);
+
+            SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() throws Exception {
+                    Project updated = controller.getBaseline().withUpdatedDetails(
+                            controller.getDraft().getProjectName(),
+                            controller.getDraft().getBuildingName(),
+                            controller.getDraft().getDateConstructed(),
+                            controller.getDraft().getMaterialsUsed(),
+                            controller.getDraft().getFunction(),
+                            controller.getDraft().getConservationStatus(),
+                            controller.getDraft().getAddress(),
+                            controller.getDraft().getDescription()
+                    );
+                    ProjectRepository.updateProject(updated);
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    savingDialog.dispose();
+                    setCursor(Cursor.getDefaultCursor());
+                    editProjectBtn.setEnabled(true);
+                    manageAccessBtn.setEnabled(true);
+                    try {
+                        get();
+                        Project persisted = ProjectRepository.findById(controller.getBaseline().getId()).orElse(controller.getDraft());
+                        controller.applySaveSuccess(persisted);
+                        applyControllerToUI.run();
+                        setEditableState.run();
+                        JOptionPane.showMessageDialog(
+                                HeadViewDetails.this,
+                                "Project details saved successfully.",
+                                "Success",
+                                JOptionPane.INFORMATION_MESSAGE
+                        );
+                    } catch (Exception ex) {
+                        controller.applySaveFailureRevert();
+                        applyControllerToUI.run();
+                        setEditableState.run();
+                        JOptionPane.showMessageDialog(
+                                HeadViewDetails.this,
+                                "Failed to save changes. Reverted to last saved values.",
+                                "Save Error",
+                                JOptionPane.ERROR_MESSAGE
+                        );
+                    }
+                }
+            };
+            worker.execute();
+            savingDialog.setVisible(true);
+        });
+
+        manageAccessBtn.addActionListener(e -> {
+            if (controller != null && controller.isEditing()) {
+                if (controller.isDirty()) {
+                    int c = JOptionPane.showConfirmDialog(
+                            this,
+                            "You have unsaved changes. Discard them?",
+                            "Unsaved Changes",
+                            JOptionPane.YES_NO_OPTION
+                    );
+                    if (c != JOptionPane.YES_OPTION) {
+                        return;
+                    }
+                }
+                controller.cancelEdits();
+                applyControllerToUI.run();
+                setEditableState.run();
+                return;
+            }
+
+            if (!confirmNavigateIfDirty(controller)) {
+                return;
+            }
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Directing to Manage Access page.",
+                    "Manage Access",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            new HeadDashboardManageAccess();
+            this.dispose();
+        });
+
+        applyControllerToUI.run();
+        setEditableState.run();
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (!confirmNavigateIfDirty(controller)) {
+                    return;
+                }
+                dispose();
+            }
+        });
 
         JLabel monitoringSessionLbl = new JLabel("Select Monitoring Session:");
         monitoringSessionLbl.setFont(labelFont);
@@ -666,8 +931,9 @@ public class HeadViewDetails extends JFrame {
         formPanel.add(reportTypeLbl);
 
         // EXECUTIVE SUMMARY (NON TECHNICAL) & FULL TECHNICAL AUDIT (STANDARD)
+        int reportTopY = centerPanel.getY() + centerPanel.getHeight() + 30;
         JPanel reportTypePanel = new JPanel(null);
-        reportTypePanel.setBounds(10, 480, 1200, 50);
+        reportTypePanel.setBounds(10, reportTopY, 1200, 50);
         reportTypePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         reportTypePanel.setBackground(new Color(230,230,230));
 
@@ -693,7 +959,7 @@ public class HeadViewDetails extends JFrame {
 
         // SAFETY ASSESSMENT REPORT PANEL -- DATABASE TO AH
         JPanel reportPanel = new JPanel(null);
-        reportPanel.setBounds(10, 540, 1200, 800);
+        reportPanel.setBounds(10, reportTopY + 60, 1200, 800);
         reportPanel.setPreferredSize(new Dimension(1200, 1000)); // purpose nito is para maadjust yung scrollbar pababa
         reportPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         reportPanel.setBackground(new Color(245,245,245));
@@ -1061,6 +1327,132 @@ public class HeadViewDetails extends JFrame {
         add(footerPanel, BorderLayout.SOUTH);
 
         setVisible(true);
+    }
+
+    private static boolean confirmNavigateIfDirty(ProjectDetailsController controller) {
+        if (controller != null && controller.isEditing() && controller.isDirty()) {
+            int c = JOptionPane.showConfirmDialog(
+                    null,
+                    "You have unsaved changes. Discard them and continue?",
+                    "Unsaved Changes",
+                    JOptionPane.YES_NO_OPTION
+            );
+            return c == JOptionPane.YES_OPTION;
+        }
+        return true;
+    }
+
+    private static boolean confirmExitIfDirty(ProjectDetailsController controller) {
+        if (controller != null && controller.isEditing() && controller.isDirty()) {
+            int c = JOptionPane.showConfirmDialog(
+                    null,
+                    "You have unsaved changes. Discard them and exit?",
+                    "Unsaved Changes",
+                    JOptionPane.YES_NO_OPTION
+            );
+            return c == JOptionPane.YES_OPTION;
+        }
+        return true;
+    }
+
+    private static JDialog createSavingDialog(JFrame owner) {
+        JDialog dialog = new JDialog(owner, "Saving", true);
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        dialog.setSize(300, 120);
+        dialog.setLocationRelativeTo(owner);
+
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+        JLabel label = new JLabel("Saving changes...");
+        label.setFont(new Font("Arial", Font.BOLD, 14));
+        panel.add(label, BorderLayout.NORTH);
+
+        JProgressBar bar = new JProgressBar();
+        bar.setIndeterminate(true);
+        panel.add(bar, BorderLayout.CENTER);
+
+        dialog.setContentPane(panel);
+        return dialog;
+    }
+
+    private static void showCalendarDialog(JFrame owner, JTextField dateField) {
+        JDialog calendarDialog = new JDialog(owner, "Select Date", true);
+        calendarDialog.setSize(340, 320);
+        calendarDialog.setLocationRelativeTo(owner);
+        calendarDialog.setLayout(new BorderLayout());
+
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+
+        String[] months = {
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+        };
+
+        JComboBox<String> monthBox = new JComboBox<>(months);
+        monthBox.setFont(new Font("Arial", Font.PLAIN, 12));
+
+        java.time.LocalDate now = java.time.LocalDate.now();
+        monthBox.setSelectedIndex(now.getMonthValue() - 1);
+
+        JSpinner yearSpinner = new JSpinner(
+                new SpinnerNumberModel(now.getYear(), 1500, 2100, 1)
+        );
+        yearSpinner.setFont(new Font("Arial", Font.PLAIN, 12));
+
+        topPanel.add(monthBox);
+        topPanel.add(yearSpinner);
+
+        calendarDialog.add(topPanel, BorderLayout.NORTH);
+
+        JPanel calendarPanel = new JPanel();
+        calendarPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        Runnable buildCalendar = () -> {
+            calendarPanel.removeAll();
+            calendarPanel.setLayout(new GridLayout(0, 7, 5, 5));
+
+            String[] days = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+            for (String d : days) {
+                JLabel lbl = new JLabel(d, SwingConstants.CENTER);
+                lbl.setFont(new Font("Arial", Font.BOLD, 12));
+                calendarPanel.add(lbl);
+            }
+
+            int year = (int) yearSpinner.getValue();
+            int month = monthBox.getSelectedIndex() + 1;
+
+            java.time.LocalDate firstDay = java.time.LocalDate.of(year, month, 1);
+
+            int startDay = firstDay.getDayOfWeek().getValue() % 7;
+            int daysInMonth = firstDay.lengthOfMonth();
+
+            for (int i = 0; i < startDay; i++) {
+                calendarPanel.add(new JLabel(""));
+            }
+
+            for (int day = 1; day <= daysInMonth; day++) {
+                JButton dayBtn = new JButton(String.valueOf(day));
+                dayBtn.setFocusPainted(false);
+                int selectedDay = day;
+                dayBtn.addActionListener(ev -> {
+                    dateField.setText(String.format("%04d-%02d-%02d", year, month, selectedDay));
+                    calendarDialog.dispose();
+                });
+                calendarPanel.add(dayBtn);
+            }
+
+            calendarPanel.revalidate();
+            calendarPanel.repaint();
+        };
+
+        buildCalendar.run();
+
+        monthBox.addActionListener(ev -> buildCalendar.run());
+        yearSpinner.addChangeListener(ev -> buildCalendar.run());
+
+        calendarDialog.add(calendarPanel, BorderLayout.CENTER);
+        calendarDialog.setVisible(true);
     }
 
     public static void main(String[] args) {

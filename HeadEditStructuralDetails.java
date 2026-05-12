@@ -714,43 +714,46 @@ public class HeadEditStructuralDetails extends JFrame {
         formPanel.add(submitBtn);
 
         submitBtn.addActionListener(e -> {
+            try {
+                ProjectRepository.createProject(
+                        projectName.getText(),
+                        buildingField.getText(),
+                        dateField.getText(),
+                        materialsField.getText(),
+                        functionField.getText(),
+                        conservationField.getText(),
+                        addressField.getText(),
+                        descArea.getText()
+                );
 
-        String buildingName = buildingField.getText().isEmpty()
-                ? "New Heritage Building " + HeadBldgStatusOverview.projectCount
-                : buildingField.getText();
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Project saved successfully.",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
 
-        String location = addressField.getText().isEmpty()
-                ? "Location Not Set"
-                : addressField.getText();
+                dispose();
 
-        String function = functionField.getText().isEmpty()
-                ? "Not Specified"
-                : functionField.getText();
-
-        String healthStatus = "NO DATA";
-
-        HeadBldgStatusOverview.projectCount++;
-
-        JOptionPane.showMessageDialog(
-                this,
-                "Project added to Dashboard!",
-                "Success",
-                JOptionPane.INFORMATION_MESSAGE
-        );
-
-        dispose();
-
-        SwingUtilities.invokeLater(() -> {
-            HeadBldgStatusOverview dashboard = new HeadBldgStatusOverview();
-            dashboard.setVisible(true);
-
-            HeadBldgStatusOverview.addNewProjectRow(
-                    buildingName,
-                    location,
-                    function,
-                    healthStatus
-            );
-        });
+                SwingUtilities.invokeLater(() -> {
+                    HeadBldgStatusOverview dashboard = new HeadBldgStatusOverview();
+                    dashboard.setVisible(true);
+                });
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        ex.getMessage(),
+                        "Validation Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            } catch (java.io.IOException ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Failed to save project data. Please try again.",
+                        "Persistence Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
     });
 
         JPanel footerPanel = new JPanel(new BorderLayout());
