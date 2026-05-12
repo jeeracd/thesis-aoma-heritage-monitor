@@ -1,7 +1,10 @@
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.Border;
+import java.awt.image.BufferedImage;
+import java.io.File;
 public class HeadOMAAnalysisResult extends JFrame {
+
 
     public HeadOMAAnalysisResult() {
         setTitle("AOMA-Heritage Monitor - OMA Analysis Result");
@@ -624,7 +627,43 @@ public class HeadOMAAnalysisResult extends JFrame {
         vibrationPanel.add(legendPanel);
         vibrationPanel.add(Box.createVerticalStrut(10));
 
-        // GRAPH PANEL (placeholder only)
+        JLabel spectrogramLabel = new JLabel("Spectrogram");
+        spectrogramLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        spectrogramLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        vibrationPanel.add(spectrogramLabel);
+        vibrationPanel.add(Box.createVerticalStrut(5));
+
+        SpectrogramPanel spectrogramPanel = new SpectrogramPanel();
+        spectrogramPanel.setStatusText("Loading spectrogram...");
+        vibrationPanel.add(spectrogramPanel);
+        vibrationPanel.add(Box.createVerticalStrut(15));
+
+        File csv = AppSession.getLastUploadedCsv();
+        if (csv == null) {
+            spectrogramPanel.setStatusText("No CSV loaded. Import sensor data to view spectrogram.");
+        } else {
+            SwingWorker<SpectrogramData, Void> worker = new SwingWorker<>() {
+                @Override
+                protected SpectrogramData doInBackground() throws Exception {
+                    return SpectrogramGenerator.generateDataFromCsv(csv);
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        SpectrogramData data = get();
+                        BufferedImage img = SpectrogramGenerator.renderImage(data);
+                        spectrogramPanel.setSpectrogram(data, img);
+                    } catch (Exception ex) {
+                        spectrogramPanel.setImage(null);
+                        spectrogramPanel.setStatusText("Failed to render spectrogram.");
+                    }
+                }
+            };
+            worker.execute();
+        }
+
+        // GRAPH PANEL
         JPanel graphPanel = new JPanel();
         graphPanel.setLayout(new BoxLayout(graphPanel, BoxLayout.Y_AXIS));
         graphPanel.setOpaque(false);
