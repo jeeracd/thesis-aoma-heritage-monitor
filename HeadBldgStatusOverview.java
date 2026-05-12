@@ -1,6 +1,7 @@
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.Border;
+import java.util.UUID;
 
 public class HeadBldgStatusOverview extends JFrame {
 
@@ -660,6 +661,7 @@ public class HeadBldgStatusOverview extends JFrame {
         projectsContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         centerContentWrapper.add(projectsContainer);
+        loadPersistedProjectsIntoUI();
 
         JPanel createBtnWrapper = new JPanel();
         createBtnWrapper.setLayout(new GridBagLayout()); 
@@ -715,7 +717,49 @@ public class HeadBldgStatusOverview extends JFrame {
             String location,
             String function,
             String healthStatus) {
+        renderProjectRow(null, buildingName, location, function, healthStatus);
+    }
 
+    private static void loadPersistedProjectsIntoUI() {
+        if (projectsContainer == null) {
+            return;
+        }
+        projectsContainer.removeAll();
+
+        totalBuildingsCount = 0;
+        criticalBuildingsCount = 0;
+        if (totalBuildingsValue != null) {
+            totalBuildingsValue.setText(String.valueOf(totalBuildingsCount));
+        }
+        if (criticalValue != null) {
+            criticalValue.setText(String.valueOf(criticalBuildingsCount));
+        }
+
+        for (Project p : ProjectRepository.getAll()) {
+            String buildingName = p.getBuildingName().isEmpty()
+                    ? "New Heritage Building"
+                    : p.getBuildingName();
+            String location = p.getAddress().isEmpty()
+                    ? "Location Not Set"
+                    : p.getAddress();
+            String function = p.getFunction().isEmpty()
+                    ? "Not Specified"
+                    : p.getFunction();
+            String healthStatus = "NO DATA";
+            renderProjectRow(p.getId(), buildingName, location, function, healthStatus);
+        }
+
+        projectsContainer.revalidate();
+        projectsContainer.repaint();
+    }
+
+    private static void renderProjectRow(
+            UUID projectId,
+            String buildingName,
+            String location,
+            String function,
+            String healthStatus
+    ) {
         if (projectsContainer == null) {
             System.err.println("Projects container not initialized!");
             return;
@@ -761,7 +805,11 @@ public class HeadBldgStatusOverview extends JFrame {
 
         viewDetailsBtn.addActionListener(e -> {
             SwingUtilities.invokeLater(() -> {
-                new HeadViewDetails();
+                if (projectId == null) {
+                    new HeadViewDetails();
+                } else {
+                    new HeadViewDetails(projectId);
+                }
                 instance.setVisible(false);
             });
         });
@@ -776,9 +824,6 @@ public class HeadBldgStatusOverview extends JFrame {
 
         projectsContainer.add(Box.createVerticalStrut(3));
         projectsContainer.add(rowPanel);
-
-        projectsContainer.revalidate();
-        projectsContainer.repaint();
     }
     
 

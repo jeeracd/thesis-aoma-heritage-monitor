@@ -454,7 +454,7 @@ public class OfficerESP32Status extends JFrame {
                     "Edit Structural Details",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new EditStructuralDetails();
+            new EngineerEditStructuralDetails();
             this.dispose();
         });
 

@@ -453,7 +453,7 @@ public class OfficerConfigureSensors extends JFrame {
                     "Edit Structural Details",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new EditStructuralDetails();
+            new EngineerEditStructuralDetails();
             this.dispose();
         });
 

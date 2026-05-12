@@ -414,7 +414,7 @@ public class OfficerViewDetails extends JFrame {
         officerPanel.add(centerPanelDescription);
 
         JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.setBounds(10, 70, 1200, 400);
+        centerPanel.setBounds(10, 70, 1200, 520);
         Border secondBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
         centerPanel.setBorder(secondBorder);
         officerPanel.add(centerPanel);
@@ -458,7 +458,7 @@ public class OfficerViewDetails extends JFrame {
                     "Edit Project Details",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new EditStructuralDetails();
+            new EngineerEditStructuralDetails();
             this.dispose();
         });
         formPanel.add(editProjectBtn);
@@ -645,8 +645,9 @@ public class OfficerViewDetails extends JFrame {
         formPanel.add(reportTypeLbl);
 
         // EXECUTIVE SUMMARY (NON TECHNICAL) & FULL TECHNICAL AUDIT (STANDARD)
+        int reportTopY = centerPanel.getY() + centerPanel.getHeight() + 30;
         JPanel reportTypePanel = new JPanel(null);
-        reportTypePanel.setBounds(10, 480, 1200, 50);
+        reportTypePanel.setBounds(10, reportTopY, 1200, 50);
         reportTypePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         reportTypePanel.setBackground(new Color(230,230,230));
 
@@ -672,7 +673,7 @@ public class OfficerViewDetails extends JFrame {
 
         // SAFETY ASSESSMENT REPORT PANEL -- DATABASE TO AH
         JPanel reportPanel = new JPanel(null);
-        reportPanel.setBounds(10, 540, 1200, 800);
+        reportPanel.setBounds(10, reportTopY + 60, 1200, 800);
         reportPanel.setPreferredSize(new Dimension(1200, 1000)); // purpose nito is para maadjust yung scrollbar pababa
         reportPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         reportPanel.setBackground(new Color(245,245,245));
