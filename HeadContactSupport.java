@@ -5,10 +5,13 @@ import javax.swing.border.Border;
 public class HeadContactSupport extends JFrame {
 
     public HeadContactSupport() {
+
         setTitle("AOMA-Heritage Monitor - Contact Support");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
         setLocationRelativeTo(null);
+
+        // TABBED PANE
 
         JTabbedPane tabsUI = new JTabbedPane(JTabbedPane.TOP);
         tabsUI.setFont(new Font("Arial", Font.BOLD, 17));
@@ -16,54 +19,61 @@ public class HeadContactSupport extends JFrame {
         tabsUI.setForeground(Color.BLACK);
 
         JPanel contactSupportPanel = new JPanel(null);
+        contactSupportPanel.setBackground(Color.WHITE);
 
         tabsUI.addTab("Projects", new JPanel());
         tabsUI.addTab("View", new JPanel());
         tabsUI.addTab("Help", contactSupportPanel);
 
-        tabsUI.setSelectedIndex(2); //set default tab
+        tabsUI.setSelectedIndex(2);
 
         tabsUI.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
-    @Override
-        protected void paintTabBackground(
-                Graphics g,
-                int tabPlacement,
-                int tabIndex,
-                int x, int y, int w, int h,
-                boolean isSelected
-        ) {
-            if (isSelected) {
-                g.setColor(new Color(0, 102, 204)); 
-                g.fillRect(x, y, w, h);
+
+            @Override
+            protected void paintTabBackground(
+                    Graphics g,
+                    int tabPlacement,
+                    int tabIndex,
+                    int x, int y, int w, int h,
+                    boolean isSelected
+            ) {
+
+                if (isSelected) {
+                    g.setColor(new Color(0, 102, 204));
+                    g.fillRect(x, y, w, h);
+                }
             }
-        }
 
-        @Override
-        protected void paintText(
-                Graphics g,
-                int tabPlacement,
-                Font font,
-                FontMetrics metrics,
-                int tabIndex,
-                String title,
-                Rectangle textRect,
-                boolean isSelected
-        ) {
-            g.setFont(font);
-            g.setColor(isSelected ? Color.WHITE : Color.BLACK);
-            g.drawString(title, textRect.x, textRect.y + metrics.getAscent());
-        }
+            @Override
+            protected void paintText(
+                    Graphics g,
+                    int tabPlacement,
+                    Font font,
+                    FontMetrics metrics,
+                    int tabIndex,
+                    String title,
+                    Rectangle textRect,
+                    boolean isSelected
+            ) {
 
-        @Override
-        protected Insets getTabInsets(int tabPlacement, int tabIndex) {
-            return new Insets(6, 20, 6, 20);
-        }
+                g.setFont(font);
+                g.setColor(isSelected ? Color.WHITE : Color.BLACK);
 
-        @Override
-        protected Insets getTabAreaInsets(int tabPlacement) {
-            return new Insets(5, 10, 5, 0);
-        }
-    });
+                g.drawString(
+                        title,
+                        textRect.x,
+                        textRect.y + metrics.getAscent()
+                );
+            }
+
+            @Override
+            protected Insets getTabInsets(
+                    int tabPlacement,
+                    int tabIndex
+            ) {
+                return new Insets(6, 20, 6, 20);
+            }
+        });
 
         //projects menu
         JPopupMenu projectsMenu = new JPopupMenu();
@@ -403,24 +413,62 @@ public class HeadContactSupport extends JFrame {
         // Always return to Help tab
         SwingUtilities.invokeLater(() -> tabsUI.setSelectedIndex(2));
     });
+        // ACCOUNT LABEL
 
         JLabel LGUHeadLabel = new JLabel("LGU HEAD ACCOUNT");
+
         LGUHeadLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
         LGUHeadLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+
         LGUHeadLabel.setBounds(1080, 5, 280, 38);
 
-        layeredPane.add(LGUHeadLabel, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(
+                LGUHeadLabel,
+                JLayeredPane.PALETTE_LAYER
+        );
 
-        JPanel centerPanelDescription = new JPanel(new BorderLayout());
-        centerPanelDescription.setBounds(10, 20, 1380, 40);
-        Border firstBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
+        // TOP TITLE PANEL
+
+        JPanel centerPanelDescription =
+                new JPanel(new BorderLayout());
+
+        centerPanelDescription.setBounds(
+                10,
+                20,
+                1380,
+                40
+        );
+
+        Border firstBorder =
+                BorderFactory.createLineBorder(
+                        Color.BLACK,
+                        2
+                );
+
         centerPanelDescription.setBorder(firstBorder);
 
         JLabel centerTitleLabel = new JLabel(
-                "Automated - Operational Modal Analysis to Monitor the Safety and Serviceability of Heritage Buildings",JLabel.CENTER
+                "Automated - Operational Modal Analysis to Monitor the Safety and Serviceability of Heritage Buildings",
+                JLabel.CENTER
         );
-        centerTitleLabel.setFont(new Font("Arial", Font.ITALIC | Font.BOLD, 20));
-        centerTitleLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+        centerTitleLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.ITALIC | Font.BOLD,
+                        20
+                )
+        );
+
+        centerTitleLabel.setBorder(
+                BorderFactory.createEmptyBorder(
+                        5,
+                        10,
+                        5,
+                        10
+                )
+        );
 
         ImageIcon userIcon = new ImageIcon("usericon.png");
         Image userImgScaled = userIcon.getImage().getScaledInstance(26, 26, Image.SCALE_SMOOTH);
@@ -467,37 +515,255 @@ public class HeadContactSupport extends JFrame {
         contactSupportPanel.add(centerPanelDescription);
 
         JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.setBounds(10, 70, 1380, 648);
-        Border secondBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
+
+        centerPanel.setBounds(
+                10,
+                70,
+                1380,
+                648
+        );
+
+        Border secondBorder = BorderFactory.createLineBorder(Color.BLACK,2);
         centerPanel.setBorder(secondBorder);
         contactSupportPanel.add(centerPanel);
 
-        JLabel greetingLabel = new JLabel("Contact Support", JLabel.LEFT); 
-        greetingLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        greetingLabel.setBorder( BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(120, 120, 120)), 
-        BorderFactory.createEmptyBorder(10, 10, 10, 10)));
-        centerPanel.add(greetingLabel, BorderLayout.NORTH);
+        // HEADER LABEL
+        JLabel greetingLabel = new JLabel("Contact Support",JLabel.LEFT);
 
-        JPanel footerPanel = new JPanel(new BorderLayout());
-        footerPanel.setPreferredSize(new java.awt.Dimension(1400, 45));
-        footerPanel.setBorder(BorderFactory.createMatteBorder(3, 0, 0, 0, new Color(120, 120, 120)) );
+        greetingLabel.setFont(
+                new Font("Arial",Font.BOLD,18));
 
-        JLabel footerLabel = new JLabel("Status: ESP32 Hub Not Connected");
-        footerLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        greetingLabel.setBorder( BorderFactory.createCompoundBorder( BorderFactory.createMatteBorder(
+                                0,0,2,0,new Color(120, 120, 120)),
+                        BorderFactory.createEmptyBorder(
+                                10,
+                                10,
+                                10,
+                                10
+                        )
+                )
+        );
+
+        centerPanel.add(
+                greetingLabel,
+                BorderLayout.NORTH
+        );
+
+        // SUPPORT CARDS CONTAINER
+
+        JPanel supportContainer = new JPanel();
+
+        supportContainer.setBackground(Color.WHITE);
+
+        supportContainer.setLayout(
+                new FlowLayout(
+                        FlowLayout.CENTER,
+                        45,
+                        35
+                )
+        );
+
+        // SUPPORT CARDS
+
+        supportContainer.add(createSupportCard(
+                "JOHN RAFAEL A. ALEJANDRINO",
+                "202310450",
+                "09561260465",
+                "Balangkas, Valenzuela City",
+                "alejandrino.johnrafael@gmail.com",
+                "FEU TECH"
+        ));
+
+        supportContainer.add(createSupportCard(
+                "JUDINELE LORENZ P. PINZA",
+                "202310630",
+                "09613511301",
+                "Lias, Marilao, Bulacan",
+                "pinzajud@gmail.com",
+                "FEU TECH"
+        ));
+
+        supportContainer.add(createSupportCard(
+                "JEROME M. DEL ROSARIO",
+                "202311234",
+                "09763028338",
+                "Corazon de Jesus, San Juan City",
+                "delrosariomrj@gmail.com",
+                "FEU TECH"
+        ));
+
+        supportContainer.add(createSupportCard(
+                "RALPH CHRISTIAN A. DEL MUNDO ",
+                "202211430",
+                "09569534569",
+                "Brgy. Bagbag Novaliches, Quezon City",
+                "delmundo.rc@gmail.com",
+                "FEU TECH"
+        ));
+
+        centerPanel.add(
+                supportContainer,
+                BorderLayout.CENTER
+        );
+
+        // FOOTER PANEL
+
+        JPanel footerPanel =
+                new JPanel(new BorderLayout());
+
+        footerPanel.setPreferredSize(
+                new Dimension(1400, 45)
+        );
+
+        footerPanel.setBorder(
+                BorderFactory.createMatteBorder(
+                        3,
+                        0,
+                        0,
+                        0,
+                        new Color(120, 120, 120)
+                )
+        );
+
+        JLabel footerLabel =
+                new JLabel(
+                        "Status: ESP32 Hub Not Connected"
+                );
+
+        footerLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        14
+                )
+        );
+
         footerLabel.setForeground(Color.RED);
-        footerLabel.setHorizontalAlignment(SwingConstants.LEFT);
-        footerLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 
-        footerPanel.add(footerLabel, BorderLayout.CENTER);
+        footerLabel.setHorizontalAlignment(
+                SwingConstants.LEFT
+        );
 
+        footerLabel.setBorder(
+                BorderFactory.createEmptyBorder(
+                        0,
+                        10,
+                        0,
+                        0
+                )
+        );
+
+        footerPanel.add(
+                footerLabel,
+                BorderLayout.CENTER
+        );
+
+        // FRAME LAYOUT
         setLayout(new BorderLayout());
         add(layeredPane, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
-        
         setVisible(true);
     }
 
+    //  SUPPORT CARD 
+    private JPanel createSupportCard(
+            String name,
+            String sn,
+            String phone,
+            String address,
+            String email,
+            String school
+    ) {
+
+        JPanel card = new JPanel();
+
+        card.setPreferredSize(
+                new Dimension(240, 500)
+        );
+
+        card.setBackground(Color.WHITE);
+
+        card.setBorder(
+                BorderFactory.createLineBorder(
+                        Color.BLACK,
+                        2
+                )
+        );
+        card.setLayout(null);
+
+        // ICON
+        JLabel iconLabel = new JLabel();
+
+        iconLabel.setHorizontalAlignment(
+                SwingConstants.CENTER
+        );
+
+        iconLabel.setBounds(65, 20, 100, 100);
+
+        try {
+
+            ImageIcon icon =
+                    new ImageIcon("usericon.png");
+            Image scaled =
+                    icon.getImage().getScaledInstance(
+                            85,
+                            85,
+                            Image.SCALE_SMOOTH
+                    );
+            iconLabel.setIcon(
+                    new ImageIcon(scaled)
+            );
+        } catch (Exception e) {
+            iconLabel.setText("USER");
+
+        }
+
+        // TEXT AREA
+        JTextArea infoArea = new JTextArea();
+        infoArea.setEditable(false);
+        infoArea.setFocusable(false);
+        infoArea.setFont(
+                new Font(
+                        "Arial",
+                        Font.PLAIN,
+                        15
+                )
+        );
+
+        infoArea.setBackground(Color.WHITE);
+        infoArea.setLineWrap(true);
+        infoArea.setWrapStyleWord(true);
+        infoArea.setText(
+                "NAME: " + name + "\n\n" +
+                "SN: " + sn + "\n\n" +
+                "Phone: " + phone + "\n\n" +
+                "Residential Address:\n" +
+                address + "\n\n" +
+                "Email Address:\n" +
+                email + "\n\n" +
+                "School: " + school
+        );
+
+        JScrollPane scrollPane = new JScrollPane(infoArea);
+        scrollPane.setBorder(null);
+        scrollPane.setBounds(
+                15,
+                120,
+                205,
+                360
+        );
+
+        // COMPONENTS
+        card.add(iconLabel);
+        card.add(scrollPane);
+
+        return card;
+    }
+
     public static void main(String[] args) {
-        new HeadContactSupport();
+
+        SwingUtilities.invokeLater(() -> {
+            new HeadContactSupport();
+        });
     }
 }

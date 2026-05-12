@@ -5,6 +5,7 @@ import javax.swing.border.Border;
 public class EngineerAboutAOMA extends JFrame {
 
     public EngineerAboutAOMA() {
+
         setTitle("AOMA-Heritage Monitor - About AOMA");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
@@ -24,47 +25,54 @@ public class EngineerAboutAOMA extends JFrame {
         tabsUI.setSelectedIndex(2); //set default tab
 
         tabsUI.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
-    @Override
-        protected void paintTabBackground(
-                Graphics g,
-                int tabPlacement,
-                int tabIndex,
-                int x, int y, int w, int h,
-                boolean isSelected
-        ) {
-            if (isSelected) {
-                g.setColor(new Color(0, 102, 204)); 
-                g.fillRect(x, y, w, h);
+
+            @Override
+            protected void paintTabBackground(
+                    Graphics g,
+                    int tabPlacement,
+                    int tabIndex,
+                    int x,
+                    int y,
+                    int w,
+                    int h,
+                    boolean isSelected
+            ) {
+
+                if (isSelected) {
+                    g.setColor(new Color(0, 102, 204));
+                    g.fillRect(x, y, w, h);
+                }
             }
-        }
 
-        @Override
-        protected void paintText(
-                Graphics g,
-                int tabPlacement,
-                Font font,
-                FontMetrics metrics,
-                int tabIndex,
-                String title,
-                Rectangle textRect,
-                boolean isSelected
-        ) {
-            g.setFont(font);
-            g.setColor(isSelected ? Color.WHITE : Color.BLACK);
-            g.drawString(title, textRect.x, textRect.y + metrics.getAscent());
-        }
+            @Override
+            protected void paintText(
+                    Graphics g,
+                    int tabPlacement,
+                    Font font,
+                    FontMetrics metrics,
+                    int tabIndex,
+                    String title,
+                    Rectangle textRect,
+                    boolean isSelected
+            ) {
 
-        @Override
-        protected Insets getTabInsets(int tabPlacement, int tabIndex) {
-            return new Insets(6, 20, 6, 20);
-        }
+                g.setFont(font);
+                g.setColor(isSelected ? Color.WHITE : Color.BLACK);
+                g.drawString(title, textRect.x, textRect.y + metrics.getAscent());
+            }
 
-        @Override
-        protected Insets getTabAreaInsets(int tabPlacement) {
-            return new Insets(5, 10, 5, 0);
-        }
-    });
+            @Override
+            protected Insets getTabInsets(int tabPlacement, int tabIndex) {
+                return new Insets(6, 20, 6, 20);
+            }
 
+            @Override
+            protected Insets getTabAreaInsets(int tabPlacement) {
+                return new Insets(5, 10, 5, 0);
+            }
+        });
+
+        //projects menu
         //projects menu
         JPopupMenu projectsMenu = new JPopupMenu();
 
@@ -394,31 +402,69 @@ public class EngineerAboutAOMA extends JFrame {
         // Always return to Help tab
         SwingUtilities.invokeLater(() -> tabsUI.setSelectedIndex(2));
     });
+        // ACCOUNT LABEL
 
         JLabel LGULabel = new JLabel("STRUCTURAL ENGINEER ACCOUNT");
+
         LGULabel.setFont(new Font("Arial", Font.BOLD, 14));
+
         LGULabel.setHorizontalAlignment(SwingConstants.RIGHT);
+
         LGULabel.setBounds(1080, 5, 280, 38);
 
-        layeredPane.add(LGULabel, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(
+                LGULabel,
+                JLayeredPane.PALETTE_LAYER
+        );
 
-        JPanel centerPanelDescription = new JPanel(new BorderLayout());
-        centerPanelDescription.setBounds(10, 20, 1380, 40);
-        Border firstBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
+        // TOP TITLE PANEL
+
+        JPanel centerPanelDescription =
+                new JPanel(new BorderLayout());
+
+        centerPanelDescription.setBounds(
+                10,
+                20,
+                1380,
+                40
+        );
+
+        Border firstBorder =
+                BorderFactory.createLineBorder(
+                        Color.BLACK,
+                        2
+                );
+
         centerPanelDescription.setBorder(firstBorder);
 
         JLabel centerTitleLabel = new JLabel(
-                "Automated - Operational Modal Analysis to Monitor the Safety and Serviceability of Heritage Buildings",JLabel.CENTER
+                "Automated - Operational Modal Analysis to Monitor the Safety and Serviceability of Heritage Buildings",
+                JLabel.CENTER
         );
-        centerTitleLabel.setFont(new Font("Arial", Font.ITALIC | Font.BOLD, 20));
-        centerTitleLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+        centerTitleLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.ITALIC | Font.BOLD,
+                        20
+                )
+        );
+
+        centerTitleLabel.setBorder(
+                BorderFactory.createEmptyBorder(
+                        5,
+                        10,
+                        5,
+                        10
+                )
+        );
 
         ImageIcon userIcon = new ImageIcon("usericon.png");
         Image userImgScaled = userIcon.getImage().getScaledInstance(26, 26, Image.SCALE_SMOOTH);
         JLabel userIconLabel = new JLabel(new ImageIcon(userImgScaled));
         userIconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
 
-        // Head POPUP MENU
+        // Engineer POPUP MENU
         JPopupMenu userMenu = new JPopupMenu();
         JMenuItem userSettings = new JMenuItem("User Settings");
         userSettings.addActionListener(e -> {
@@ -455,42 +501,150 @@ public class EngineerAboutAOMA extends JFrame {
 
         centerPanelDescription.add(centerTitleLabel, BorderLayout.CENTER);
         centerPanelDescription.add(userIconLabel, BorderLayout.EAST);
-
         aboutAOMAPanel.add(centerPanelDescription);
 
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.setBounds(10, 70, 1380, 648);
-        Border secondBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
+        JPanel centerPanel =
+                new JPanel(new BorderLayout());
+
+        centerPanel.setBounds(10, 70, 1380, 640);
+
+        Border secondBorder =
+                BorderFactory.createLineBorder(Color.BLACK, 2);
+
         centerPanel.setBorder(secondBorder);
+
         aboutAOMAPanel.add(centerPanel);
 
-        JLabel greetingLabel = new JLabel("About AOMA-Monitor", JLabel.LEFT); 
-        greetingLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        greetingLabel.setBorder( BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(120, 120, 120)), 
-        BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+        JLabel greetingLabel =
+                new JLabel(
+                        "About AOMA-Monitor",
+                        JLabel.LEFT
+                );
+
+        greetingLabel.setFont(
+                new Font("Arial", Font.BOLD, 18)
+        );
+
+        greetingLabel.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(
+                                0,
+                                0,
+                                2,
+                                0,
+                                new Color(120, 120, 120)
+                        ),
+                        BorderFactory.createEmptyBorder(
+                                10,
+                                10,
+                                10,
+                                10
+                        )
+                )
+        );
+
         centerPanel.add(greetingLabel, BorderLayout.NORTH);
 
-        JPanel footerPanel = new JPanel(new BorderLayout());
-        footerPanel.setPreferredSize(new java.awt.Dimension(1400, 45));
-        footerPanel.setBorder(BorderFactory.createMatteBorder(3, 0, 0, 0, new Color(120, 120, 120)) );
+        // ABOUT CONTENT
+        JTextArea aboutTextArea = new JTextArea();
 
-        JLabel footerLabel = new JLabel("Status: ESP32 Hub Not Connected");
-        footerLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        aboutTextArea.setText(
+                "AOMA Heritage Monitor is an Automated Operational Modal Analysis (AOMA) system developed to monitor the safety and serviceability of heritage buildings through non-destructive structural health monitoring techniques. The system is designed to help preserve culturally and historically significant structures by detecting possible structural degradation using vibration-based analysis.\n\n"
+
+                +
+
+                "The system utilizes Operational Modal Analysis (OMA), a method that analyzes naturally occurring vibrations caused by environmental and operational conditions such as wind, vehicle movement, and human activity. Through this approach, the system identifies important structural modal parameters including natural frequencies, damping ratios, and mode shapes without interrupting the normal operation of the building.\n\n"
+
+                +
+
+                "AOMA Heritage Monitor integrates IoT-based technologies using ESP32 microcontrollers and MEMS accelerometers to collect real-time vibration data from heritage structures. The gathered data undergoes preprocessing techniques such as Root Mean Square (RMS) analysis, spectrogram segmentation, filtering, and noise reduction to ensure accurate and reliable measurements. The processed data is then analyzed using the Stochastic Subspace Identification (SSI) algorithm to extract modal parameters used for structural assessment.\n\n"
+
+                +
+
+                "The system was developed to reduce the limitations of traditional visual inspections by providing continuous and automated structural monitoring. Through real-time data processing and analysis, AOMA Heritage Monitor helps identify invisible structural deterioration that may not be noticeable during manual inspections, allowing engineers and local authorities to make informed decisions regarding maintenance, preservation, and safety assessment of heritage buildings. The system also supports heritage conservation and public safety by enabling monitoring without requiring the closure of buildings to the public, promoting a proactive and data-driven approach to heritage preservation in the Philippines."
+        );
+
+        aboutTextArea.setFont(
+                new Font("Arial", Font.PLAIN, 17)
+        );
+
+        aboutTextArea.setLineWrap(true);
+        aboutTextArea.setWrapStyleWord(true);
+        aboutTextArea.setEditable(false);
+
+        aboutTextArea.setBackground(Color.WHITE);
+
+        aboutTextArea.setMargin(
+                new Insets(15, 15, 15, 15)
+        );
+
+        JScrollPane aboutScrollPane =
+                new JScrollPane(aboutTextArea);
+
+        aboutScrollPane.setBorder(null);
+
+        centerPanel.add(
+                aboutScrollPane,
+                BorderLayout.CENTER
+        );
+
+        JPanel footerPanel =
+                new JPanel(new BorderLayout());
+
+        footerPanel.setPreferredSize(
+                new java.awt.Dimension(1400, 45)
+        );
+
+        footerPanel.setBorder(
+                BorderFactory.createMatteBorder(
+                        3,
+                        0,
+                        0,
+                        0,
+                        new Color(120, 120, 120)
+                )
+        );
+
+        JLabel footerLabel =
+                new JLabel(
+                        "Status: ESP32 Hub Not Connected"
+                );
+
+        footerLabel.setFont(
+                new Font("Arial", Font.BOLD, 14)
+        );
+
         footerLabel.setForeground(Color.RED);
-        footerLabel.setHorizontalAlignment(SwingConstants.LEFT);
-        footerLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 
-        footerPanel.add(footerLabel, BorderLayout.CENTER);
+        footerLabel.setHorizontalAlignment(
+                SwingConstants.LEFT
+        );
+
+        footerLabel.setBorder(
+                BorderFactory.createEmptyBorder(
+                        0,
+                        10,
+                        0,
+                        0
+                )
+        );
+
+        footerPanel.add(
+                footerLabel,
+                BorderLayout.CENTER
+        );
 
         setLayout(new BorderLayout());
+
         add(layeredPane, BorderLayout.CENTER);
+
         add(footerPanel, BorderLayout.SOUTH);
-        
+
         setVisible(true);
     }
 
     public static void main(String[] args) {
+
         new EngineerAboutAOMA();
     }
 }
-
