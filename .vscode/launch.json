@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "UsersLoginOptions",
+            "request": "launch",
+            "mainClass": "UsersLoginOptions",
+            "projectName": "thesis-aoma-heritage-monitor_16a1b6b2"
+        },
+        {
+            "type": "java",
             "name": "test",
             "request": "launch",
             "mainClass": "test",
