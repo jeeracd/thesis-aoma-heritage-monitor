@@ -629,6 +629,12 @@ public class EngineerOMAAnalysisResult extends JFrame {
         vibrationPanel.add(spectrogramPanel);
         vibrationPanel.add(Box.createVerticalStrut(15));
 
+        SpectrogramDataTableViewer spectrogramViewer = new SpectrogramDataTableViewer();
+        vibrationPanel.add(spectrogramViewer);
+        vibrationPanel.add(Box.createVerticalStrut(20));
+
+        spectrogramPanel.setViewWindowListener(spectrogramViewer);
+
         File csv = AppSession.getLastUploadedCsv();
         if (csv == null) {
             spectrogramPanel.setStatusText("No CSV loaded. Import sensor data to view spectrogram.");
@@ -645,6 +651,7 @@ public class EngineerOMAAnalysisResult extends JFrame {
                         SpectrogramData data = get();
                         BufferedImage img = SpectrogramGenerator.renderImage(data);
                         spectrogramPanel.setSpectrogram(data, img);
+                            spectrogramViewer.setSpectrogram(data);
                     } catch (Exception ex) {
                         spectrogramPanel.setImage(null);
                         spectrogramPanel.setStatusText("Failed to render spectrogram.");

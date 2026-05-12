@@ -27,5 +27,31 @@ public final class NativeFilePicker {
         PREFS.put(KEY_LAST_DIR_CSV, dir);
         return new File(dir, file);
     }
+
+    public static File pickSaveCsvFile(Frame owner, String title, String defaultFileName) {
+        String lastDir = PREFS.get(KEY_LAST_DIR_CSV, System.getProperty("user.home"));
+
+        FileDialog dialog = new FileDialog(owner, title == null ? "Save CSV File" : title, FileDialog.SAVE);
+        dialog.setDirectory(lastDir);
+        if (defaultFileName != null && !defaultFileName.isBlank()) {
+            dialog.setFile(defaultFileName);
+        } else {
+            dialog.setFile("export.csv");
+        }
+        dialog.setFilenameFilter((dir, name) -> name != null && name.toLowerCase().endsWith(".csv"));
+        dialog.setVisible(true);
+
+        String file = dialog.getFile();
+        String dir = dialog.getDirectory();
+        if (file == null || dir == null) {
+            return null;
+        }
+
+        PREFS.put(KEY_LAST_DIR_CSV, dir);
+        if (!file.toLowerCase().endsWith(".csv")) {
+            file = file + ".csv";
+        }
+        return new File(dir, file);
+    }
 }
 
