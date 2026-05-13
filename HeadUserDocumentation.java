@@ -479,6 +479,173 @@ public class HeadUserDocumentation extends JFrame {
         BorderFactory.createEmptyBorder(10, 10, 10, 10)));
         centerPanel.add(greetingLabel, BorderLayout.NORTH);
 
+        // Documentation content - newly added
+        JTextArea documentationArea = new JTextArea();
+
+        documentationArea.setFont(new Font("Arial", Font.PLAIN, 24));
+        documentationArea.setEditable(false);
+        documentationArea.setLineWrap(true);
+        documentationArea.setWrapStyleWord(true);
+        documentationArea.setMargin(new Insets(15, 15, 15, 15));
+
+        documentationArea.setText(
+                "1. System Features\n\n" +
+
+                "The AOMA Heritage Monitor provides the following features:\n\n" +
+
+                "* Real-time vibration monitoring\n" +
+                "* Structural health monitoring\n" +
+                "* Automated modal analysis\n" +
+                "* Project management\n" +
+                "* Sensor management\n" +
+                "* Report generation\n" +
+                "* Data visualization\n" +
+                "* Historical data storage\n" +
+                "* User account management\n" +
+                "* Structural assessment dashboard\n\n" +
+
+                "------------------------------------------------------------\n\n" +
+
+                "2. User Roles and Permissions\n\n" +
+
+                "User Role Permissions\n\n" +
+
+                "* LGU Head - Manage accounts, review reports, monitor projects\n" +
+                "* Structural Engineer - Perform analysis, generate reports, manage projects\n" +
+                "* LGU Officer - Setup ESP32 placements, create projects, monitor data\n\n" +
+
+                "------------------------------------------------------------\n\n" +
+
+                "3. Hardware Requirements\n\n" +
+                "Minimum Hardware Requirements\n\n" +
+                "Component | Specification \n\n" +
+
+                "* Processor - Dual-core processor (2.0 GHz or higher).\n" +
+                "* RAM - 4GB.\n" +
+                "* Storage - 50 GB HDD or SSD \n\n" +
+
+                "IoT Devices Used\n\n" +
+                "* ESP32-WROOM-32\n" +
+                "* MPU6050 MEMS Accelerometers.\n" +
+                "* 3.3V Li/Po Batteries \n\n" +
+
+                "------------------------------------------------------------\n\n" +
+
+                "4. Software Requirements\n\n" +
+                "The following software is required to run the system:\n\n" +
+
+                "* Windows 10 Operating System.\n" +
+                "* Python Programming Language.\n" +
+                "* PyOMA2 Library.\n" +
+                "* PostgreSQL Database Management System.\n" +
+                "* Required Python Dependencies.\n\n" +
+
+                "------------------------------------------------------------\n\n" +
+
+                "5. User Guide\n\n" +
+
+                "Login Procedure\n\n" +
+
+                "1. Open the system.\n" +
+                "2. Enter username and password.\n" +
+                "3. Click the Login button.\n\n" +
+
+                "Create Project\n\n" +
+                "1. Navigate to the Project Management section.\n" +
+                "2. Click Create Project.\n" +
+                "2. Enter project details:\n\n" +
+
+                "Example:\n\n" +
+                
+                "Project Name\n" +
+                "Location\n" +
+                "etc..\n\n" +
+
+                "Setup ESP32 Placements\n\n" +
+
+                "1. Assign ESP32 sensor nodes to designated areas.\n" +
+                "2. Verify proper sensor placement.\n" +
+                "3. Ensure all devices are connected.\n\n" +
+
+                "View Analysis Results\n\n" +
+
+                "1. Open the Analysis Dashboard.\n" +
+                "2. View extracted modal parameters.\n" +
+                "3. Review graphs and visualizations.\n\n" +
+
+                "Generate Reports\n\n" +
+
+                "1. Navigate to Reports.\n" +
+                "2. Select the desired project.\n" +
+                "3. Click Generate Report.\n" + 
+                "4. Save the report.\n\n" +
+                
+                "------------------------------------------------------------\n\n" +
+
+                "6. Understanding the Results\n\n" +
+
+                "--Natural Frequency--\n" +
+                "* Natural Frequency refers to the vibration cycles of the structure over time. Significant changes may indicate structural deterioration.\n\n" +
+
+                "--Damping Ratio--\n" +
+                "* Damping Ratio measures how quickly vibrations decrease within the structure.\n\n" +
+
+                "--Mode Shape--\n" +
+                "* Mode Shape represents the movement pattern of the structure during vibration.\n\n" +
+
+                "--MAC Value--\n" +
+                "* The Modal Assurance Criterion (MAC) Value is used to evaluate the reliability and similarity of modal parameters.\n\n" +
+
+                "--RMS Analysis--\n" +
+                "* Root Mean Square (RMS) analysis helps identify irregular vibration behavior and noise.\n\n" +
+
+                "------------------------------------------------------------\n\n" +
+
+                "7. Troubleshooting Guide\n\n" +
+
+                "| Problem | Possible Cause | Solution |\n" + 
+                "--------------------------------------------------\n" + 
+                "ESP32 device not detected -> Device disconnected -> [Reconnect the device]\n" + 
+                "No vibration data -> Sensor issue  -> [Check sensor wiring]\n" + 
+                "Slow data processing -> Low system memory -> [Close unused applications]\n" + 
+                "Connection failure  -> ESP-NOW interruption -> [Restart ESP32 devices]\n\n" + 
+
+                "------------------------------------------------------------\n\n" +
+
+                "8. Safety and Usage Notes\n\n" +
+
+                "1. Ensure proper placement of sensors before data collection.\n" +
+                "2. Avoid moving ESP32 devices during monitoring.\n" +
+                "3. Maintain stable power supply for all devices.\n" + 
+                "4. Ensure proper internet or local connection during operation.\n" + 
+                "5. Only authorized personnel should modify system settings.\n\n" +
+
+                "------------------------------------------------------------\n\n" +
+
+                "9. Safety and Usage Notes\n\n" +
+
+                "To maintain system performance:\n\n" +
+
+                "1. Regularly inspect sensors and ESP32 devices.\n" +
+                "2. Backup monitoring data frequently.\n" +
+                "3. Check battery levels before data acquisition.\n" + 
+                "4. Verify calibration of accelerometers periodically.\n\n"
+        );
+
+        JScrollPane scrollPane = new JScrollPane(documentationArea);
+
+        scrollPane.setVerticalScrollBarPolicy(
+                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+        );
+
+        scrollPane.setHorizontalScrollBarPolicy(
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
+
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+        centerPanel.add(scrollPane, BorderLayout.CENTER); //end of documentation content code
+
         JPanel footerPanel = new JPanel(new BorderLayout());
         footerPanel.setPreferredSize(new java.awt.Dimension(1400, 45));
         footerPanel.setBorder(BorderFactory.createMatteBorder(3, 0, 0, 0, new Color(120, 120, 120)) );
