@@ -1,13 +1,12 @@
 import java.awt.*;
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.table.DefaultTableCellRenderer;
-import java.util.UUID;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
+import java.util.UUID;
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class EngineerViewDetails extends JFrame {
     private final UUID projectId;
@@ -20,11 +19,11 @@ public class EngineerViewDetails extends JFrame {
         this.projectId = projectId;
         setTitle("AOMA-Heritage Monitor - View Details");
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        setSize(1225, 600);
-        setSize(1225, 600);
+        setSize(1225, 720); // responsible for the size of the window
+        setSize(1225, 720);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int x_view = (screenSize.width - getWidth()) / 2;
-        int y_view = (screenSize.height - getHeight()) / 2 - 400; //the use of this is to adjust the hright of the window
+        int y_view = (screenSize.height - getHeight()) / 2 - 320; //the use of this is to adjust the hright of the window
         setLocation(x_view, y_view);
 
         Project project = null;
@@ -944,7 +943,7 @@ public class EngineerViewDetails extends JFrame {
             String selected = (String) sessionDropdown.getSelectedItem();
 
             if (selected.equals("---none---")) {
-                setSize(1225, 600);
+                setSize(1225, 720);
             } else {
                 setSize(1225, 1500);
             }
@@ -1199,14 +1198,20 @@ public class EngineerViewDetails extends JFrame {
     });
 
         JPanel reportContainer = new JPanel(new CardLayout());
-        reportContainer.setBounds(10, 540, 1200, 750);
+        reportContainer.setBounds(
+                10,
+                reportTopY + 60,
+                1200,
+                750
+        );
+
         engineerPanel.add(reportContainer);
 
         JScrollPane reportScrollPane = new JScrollPane(reportPanel);
-        reportScrollPane.setBounds(10, 540, 1200, 750); //adjust the height to show the report without scrolling
         reportScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         reportScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         reportScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
         reportContainer.add(reportScrollPane, "EXEC_SUMMARY");
         
         //TECHNICAL AUDIT LOG  -- DATABASE TO AH
@@ -1466,7 +1471,7 @@ public class EngineerViewDetails extends JFrame {
 
     private static void showCalendarDialog(JFrame owner, JTextField dateField) {
         JDialog calendarDialog = new JDialog(owner, "Select Date", true);
-        calendarDialog.setSize(340, 320);
+        calendarDialog.setSize(450, 420);
         calendarDialog.setLocationRelativeTo(owner);
         calendarDialog.setLayout(new BorderLayout());
 
