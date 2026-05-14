@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
  
 public final class FddPlotPanel extends JPanel {
     private FddResult result;
@@ -13,6 +14,16 @@ public final class FddPlotPanel extends JPanel {
     private final boolean[] lineVisible = new boolean[]{true, true, true, true};
     private Rectangle legendRect;
     private Rectangle[] legendItemRects;
+
+    private List<FddPeak> peaks = List.of();
+    private int selectedPeakBinIndex = -1;
+    private String cursorText;
+
+    public interface PeakSelectionListener {
+        void onPeakBinSelected(int binIndex);
+    }
+
+    private volatile PeakSelectionListener peakSelectionListener;
  
     public FddPlotPanel() {
         setBackground(Color.WHITE);
@@ -21,20 +32,41 @@ public final class FddPlotPanel extends JPanel {
         MouseAdapter ma = new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (legendItemRects == null) {
-                    return;
-                }
-                for (int i = 0; i < legendItemRects.length; i++) {
-                    Rectangle r = legendItemRects[i];
-                    if (r != null && r.contains(e.getPoint())) {
-                        lineVisible[i] = !lineVisible[i];
-                        repaint();
-                        return;
+                if (legendItemRects != null) {
+                    for (int i = 0; i < legendItemRects.length; i++) {
+                        Rectangle r = legendItemRects[i];
+                        if (r != null && r.contains(e.getPoint())) {
+                            lineVisible[i] = !lineVisible[i];
+                            repaint();
+                            return;
+                        }
                     }
                 }
+
+                int bin = findNearestPeakBinForPoint(e.getX(), e.getY());
+                if (bin >= 0) {
+                    selectedPeakBinIndex = bin;
+                    PeakSelectionListener l = peakSelectionListener;
+                    if (l != null) {
+                        l.onPeakBinSelected(bin);
+                    }
+                    repaint();
+                }
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                updateCursorText(e.getX(), e.getY());
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                cursorText = null;
+                repaint();
             }
         };
         addMouseListener(ma);
+        addMouseMotionListener(ma);
     }
  
     public void setStatusText(String text) {
@@ -46,6 +78,20 @@ public final class FddPlotPanel extends JPanel {
         this.result = result;
         this.statusText = "";
         repaint();
+    }
+
+    public void setPeaks(List<FddPeak> peaks) {
+        this.peaks = peaks == null ? List.of() : peaks;
+        repaint();
+    }
+
+    public void setSelectedPeakBinIndex(int binIndex) {
+        this.selectedPeakBinIndex = binIndex;
+        repaint();
+    }
+
+    public void setPeakSelectionListener(PeakSelectionListener listener) {
+        this.peakSelectionListener = listener;
     }
  
     public void setFrequencyBounds(Double minHz, Double maxHz) {
@@ -226,9 +272,182 @@ public final class FddPlotPanel extends JPanel {
             g2.drawString(f1, left + pw - fm.stringWidth(f1), top + ph + 12);
  
             drawLegend(g2, left, top, pw, ph, lines, colors, strokes, freq, sv, start, end, fMin, fMax, vMin, vMax);
+            drawPeaks(g2, left, top, pw, ph, fMin, fMax);
+            drawCursor(g2, left, top);
         } finally {
             g2.dispose();
         }
+    }
+
+    private void drawPeaks(Graphics2D g2, int left, int top, int pw, int ph, double fMin, double fMax) {
+        if (peaks == null || peaks.isEmpty()) {
+            return;
+        }
+        Stroke prev = g2.getStroke();
+        for (FddPeak p : peaks) {
+            double f = p.frequencyHz();
+            if (!(f >= fMin && f <= fMax)) {
+                continue;
+            }
+            int x = left + (int) Math.round(((f - fMin) / (fMax - fMin)) * pw);
+            if (p.binIndex() == selectedPeakBinIndex) {
+                g2.setColor(new Color(200, 0, 0, 180));
+                g2.setStroke(new BasicStroke(2.0f));
+            } else {
+                g2.setColor(new Color(120, 120, 120, 140));
+                g2.setStroke(new BasicStroke(1.0f));
+            }
+            g2.drawLine(x, top, x, top + ph);
+        }
+        g2.setStroke(prev);
+    }
+
+    private void drawCursor(Graphics2D g2, int left, int top) {
+        if (cursorText == null || cursorText.isBlank()) {
+            return;
+        }
+        g2.setFont(UiControlMetrics.CONTROL_FONT);
+        FontMetrics fm = g2.getFontMetrics();
+        int pad = 6;
+        int w = fm.stringWidth(cursorText) + pad * 2;
+        int h = fm.getHeight() + pad;
+        int bx = left + 6;
+        int by = top + 6;
+        g2.setColor(new Color(255, 255, 255, 220));
+        g2.fillRect(bx, by, w, h);
+        g2.setColor(new Color(120, 120, 120, 200));
+        g2.drawRect(bx, by, w, h);
+        g2.setColor(Color.DARK_GRAY);
+        g2.drawString(cursorText, bx + pad, by + pad + fm.getAscent());
+    }
+
+    private int findNearestPeakBinForPoint(int px, int py) {
+        if (result == null || peaks == null || peaks.isEmpty()) {
+            return -1;
+        }
+        int w = getWidth();
+        int h = getHeight();
+        int left = 70;
+        int right = 12;
+        int top = 10;
+        int bottom = 26;
+        int pw = Math.max(1, w - left - right);
+        int ph = Math.max(1, h - top - bottom);
+        Rectangle plot = new Rectangle(left, top, pw, ph);
+        if (!plot.contains(px, py)) {
+            return -1;
+        }
+
+        double[] freq = result.freqHz();
+        if (freq == null || freq.length == 0) {
+            return -1;
+        }
+        double fMin = 0.0;
+        double fMax = freq[freq.length - 1];
+        if (freqMinHz != null) {
+            fMin = Math.max(0.0, freqMinHz);
+        }
+        if (freqMaxHz != null) {
+            fMax = Math.min(freqMaxHz, freq[freq.length - 1]);
+        }
+        if (!(fMax > fMin)) {
+            return -1;
+        }
+
+        double fx = fMin + ((px - left) / (double) pw) * (fMax - fMin);
+        double bestDist = Double.POSITIVE_INFINITY;
+        int bestBin = -1;
+        double tolHz = Math.max(0.05, (fMax - fMin) * 0.01);
+        for (FddPeak p : peaks) {
+            double d = Math.abs(p.frequencyHz() - fx);
+            if (d < bestDist) {
+                bestDist = d;
+                bestBin = p.binIndex();
+            }
+        }
+        if (bestBin >= 0 && bestDist <= tolHz) {
+            return bestBin;
+        }
+        return -1;
+    }
+
+    private void updateCursorText(int px, int py) {
+        if (result == null || result.freqHz() == null || result.singularValuesDb() == null || result.singularValuesDb().length == 0) {
+            if (cursorText != null) {
+                cursorText = null;
+                repaint();
+            }
+            return;
+        }
+        int w = getWidth();
+        int h = getHeight();
+        int left = 70;
+        int right = 12;
+        int top = 10;
+        int bottom = 26;
+        int pw = Math.max(1, w - left - right);
+        int ph = Math.max(1, h - top - bottom);
+        Rectangle plot = new Rectangle(left, top, pw, ph);
+        if (!plot.contains(px, py)) {
+            if (cursorText != null) {
+                cursorText = null;
+                repaint();
+            }
+            return;
+        }
+
+        double[] freq = result.freqHz();
+        double[] svd1 = result.singularValuesDb()[0];
+        double fMin = 0.0;
+        double fMax = freq[freq.length - 1];
+        if (freqMinHz != null) {
+            fMin = Math.max(0.0, freqMinHz);
+        }
+        if (freqMaxHz != null) {
+            fMax = Math.min(freqMaxHz, freq[freq.length - 1]);
+        }
+        if (!(fMax > fMin)) {
+            return;
+        }
+        double fx = fMin + ((px - left) / (double) pw) * (fMax - fMin);
+        int idx = nearestIndex(freq, fx);
+        if (idx < 0 || idx >= svd1.length) {
+            return;
+        }
+        double v = svd1[idx];
+        if (!Double.isFinite(v)) {
+            return;
+        }
+        String txt = "Cursor: " + formatHz(freq[idx]) + " Hz, " + String.format("%.2f", v) + " dB";
+        if (!txt.equals(cursorText)) {
+            cursorText = txt;
+            repaint();
+        }
+    }
+
+    private static int nearestIndex(double[] a, double x) {
+        int lo = 0;
+        int hi = a.length - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) >>> 1;
+            double v = a[mid];
+            if (v < x) {
+                lo = mid + 1;
+            } else if (v > x) {
+                hi = mid - 1;
+            } else {
+                return mid;
+            }
+        }
+        if (lo <= 0) {
+            return 0;
+        }
+        if (lo >= a.length) {
+            return a.length - 1;
+        }
+        double d0 = Math.abs(a[lo - 1] - x);
+        double d1 = Math.abs(a[lo] - x);
+        return d0 <= d1 ? (lo - 1) : lo;
     }
  
     private void drawStatus(Graphics2D g2, int w, int h) {

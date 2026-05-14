@@ -19,6 +19,7 @@ public class HeadContactSupport extends JFrame {
         tabsUI.setForeground(Color.BLACK);
 
         JPanel contactSupportPanel = new JPanel(null);
+        RoleMenuBar.install(this, RoleMenuBar.Role.HEAD);
         contactSupportPanel.setBackground(Color.WHITE);
 
         tabsUI.addTab("Projects", new JPanel());
@@ -423,10 +424,7 @@ public class HeadContactSupport extends JFrame {
 
         LGUHeadLabel.setBounds(1080, 5, 280, 38);
 
-        layeredPane.add(
-                LGUHeadLabel,
-                JLayeredPane.PALETTE_LAYER
-        );
+        contactSupportPanel.add(LGUHeadLabel);
 
         // TOP TITLE PANEL
 
@@ -660,7 +658,7 @@ public class HeadContactSupport extends JFrame {
 
         // FRAME LAYOUT
         setLayout(new BorderLayout());
-        add(layeredPane, BorderLayout.CENTER);
+        add(contactSupportPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         setVisible(true);
     }

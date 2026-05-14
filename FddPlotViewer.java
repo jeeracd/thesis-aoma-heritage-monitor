@@ -14,6 +14,15 @@ public final class FddPlotViewer extends JPanel {
  
     private Double minHz;
     private Double maxHz;
+
+    private java.util.List<FddPeak> peaks = java.util.List.of();
+    private volatile FddResult lastResult;
+
+    public interface PeakSelectionListener {
+        void onPeakSelected(FddPeak peak);
+    }
+
+    private volatile PeakSelectionListener peakSelectionListener;
  
     public FddPlotViewer() {
         setLayout(new BorderLayout());
@@ -32,10 +41,39 @@ public final class FddPlotViewer extends JPanel {
     }
  
     public void setResult(FddResult result) {
+        lastResult = result;
         plot.setResult(result);
         applyRangeToPlot();
+
+        peaks = FddPeakAnalysis.pickPeaks(result, 12, 6.0, 0.25);
+        plot.setPeaks(peaks);
+
+        plot.setPeakSelectionListener(binIndex -> {
+            plot.setSelectedPeakBinIndex(binIndex);
+            FddPeak p = findPeakByBinIndex(binIndex);
+            PeakSelectionListener l = peakSelectionListener;
+            if (l != null && p != null) {
+                l.onPeakSelected(p);
+            }
+        });
     }
- 
+
+    public java.util.List<FddPeak> getPeaks() {
+        return peaks;
+    }
+
+    public FddResult getResult() {
+        return lastResult;
+    }
+
+    public void setPeakSelectionListener(PeakSelectionListener listener) {
+        this.peakSelectionListener = listener;
+    }
+
+    public void selectPeakBinIndex(int binIndex) {
+        plot.setSelectedPeakBinIndex(binIndex);
+    }
+
     Double getMinHzForTesting() {
         return minHz;
     }
@@ -57,58 +95,52 @@ public final class FddPlotViewer extends JPanel {
     }
  
     private JPanel buildControls() {
-        JPanel p = new JPanel(new GridBagLayout());
-        p.setOpaque(false);
-        p.setBorder(BorderFactory.createEmptyBorder(8, 8, 6, 8));
- 
-        rangeLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        JPanel outer = new JPanel();
+        outer.setOpaque(false);
+        outer.setLayout(new BoxLayout(outer, BoxLayout.Y_AXIS));
+        outer.setBorder(BorderFactory.createEmptyBorder(8, 8, 6, 8));
+
+        rangeLabel.setFont(UiControlMetrics.CONTROL_FONT);
         rangeLabel.setForeground(Color.DARK_GRAY);
- 
+        rangeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JLabel minLbl = new JLabel("Min Hz:");
-        minLbl.setFont(new Font("Arial", Font.PLAIN, 12));
- 
+        minLbl.setFont(UiControlMetrics.CONTROL_FONT);
+
         JLabel maxLbl = new JLabel("Max Hz:");
-        maxLbl.setFont(new Font("Arial", Font.PLAIN, 12));
- 
-        minHzField.setMaximumSize(new Dimension(90, 26));
-        maxHzField.setMaximumSize(new Dimension(90, 26));
- 
-        GridBagConstraints c0 = new GridBagConstraints();
-        c0.gridx = 0;
-        c0.gridy = 0;
-        c0.gridwidth = 7;
-        c0.weightx = 1.0;
-        c0.fill = GridBagConstraints.HORIZONTAL;
-        c0.insets = new Insets(0, 0, 6, 0);
-        p.add(rangeLabel, c0);
- 
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridy = 1;
-        c.insets = new Insets(0, 6, 0, 6);
-        c.anchor = GridBagConstraints.WEST;
- 
-        int x = 0;
-        c.gridx = x++;
-        p.add(minLbl, c);
-        c.gridx = x++;
-        p.add(minHzField, c);
-        c.gridx = x++;
-        p.add(maxLbl, c);
-        c.gridx = x++;
-        p.add(maxHzField, c);
-        c.gridx = x++;
-        p.add(applyBtn, c);
-        c.gridx = x++;
-        p.add(resetBtn, c);
- 
-        GridBagConstraints filler = new GridBagConstraints();
-        filler.gridx = x;
-        filler.gridy = 1;
-        filler.weightx = 1.0;
-        filler.fill = GridBagConstraints.HORIZONTAL;
-        p.add(Box.createHorizontalStrut(1), filler);
- 
-        return p;
+        maxLbl.setFont(UiControlMetrics.CONTROL_FONT);
+
+        minLbl.setLabelFor(minHzField);
+        maxLbl.setLabelFor(maxHzField);
+
+        minHzField.setPreferredSize(new Dimension(90, UiControlMetrics.CONTROL_HEIGHT));
+        maxHzField.setPreferredSize(new Dimension(90, UiControlMetrics.CONTROL_HEIGHT));
+
+        applyBtn.setMnemonic('A');
+        resetBtn.setMnemonic('S');
+
+        JPanel row1 = new JPanel(new BorderLayout(UiControlMetrics.HGAP, 0));
+        row1.setOpaque(false);
+        UiControlMetrics.setRowMaxHeight(row1);
+        row1.add(rangeLabel, BorderLayout.CENTER);
+        outer.add(row1);
+
+        JPanel row2 = new JPanel(new FlowLayout(FlowLayout.LEFT, UiControlMetrics.HGAP, UiControlMetrics.VGAP));
+        row2.setOpaque(false);
+        UiControlMetrics.setRowMaxHeight(row2);
+        row2.add(minLbl);
+        row2.add(minHzField);
+        row2.add(maxLbl);
+        row2.add(maxHzField);
+        row2.add(applyBtn);
+        row2.add(resetBtn);
+        outer.add(row2);
+
+        UiControlMetrics.applyControlFont(rangeLabel, minHzField, maxHzField, applyBtn, resetBtn);
+        UiControlMetrics.setPreferredHeight(applyBtn, UiControlMetrics.CONTROL_HEIGHT);
+        UiControlMetrics.setPreferredHeight(resetBtn, UiControlMetrics.CONTROL_HEIGHT);
+
+        return outer;
     }
  
     private void wire() {
@@ -157,6 +189,15 @@ public final class FddPlotViewer extends JPanel {
  
     private void applyRangeToPlot() {
         plot.setFrequencyBounds(minHz, maxHz);
+    }
+
+    private FddPeak findPeakByBinIndex(int binIndex) {
+        for (FddPeak p : peaks) {
+            if (p.binIndex() == binIndex) {
+                return p;
+            }
+        }
+        return null;
     }
  
     private void updateRangeLabelPreview() {

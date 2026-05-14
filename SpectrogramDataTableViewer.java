@@ -11,6 +11,10 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
     private final JLabel windowLabel = new JLabel("");
     private final JTextField minField = new JTextField(6);
     private final JTextField maxField = new JTextField(6);
+    private final JTextField minTimeField = new JTextField(6);
+    private final JTextField maxTimeField = new JTextField(6);
+    private final JTextField minFreqField = new JTextField(6);
+    private final JTextField maxFreqField = new JTextField(6);
     private final JTextField searchField = new JTextField(10);
     private final JCheckBox anomaliesOnly = new JCheckBox("Anomalies only");
     private final JCheckBox selectAll = new JCheckBox("Select all");
@@ -81,96 +85,134 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
     }
 
     private JPanel buildControls() {
-        JPanel p = new JPanel(new GridBagLayout());
-        p.setOpaque(false);
-        p.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+        JPanel outer = new JPanel();
+        outer.setOpaque(false);
+        outer.setLayout(new BoxLayout(outer, BoxLayout.Y_AXIS));
+        outer.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
-        windowLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        windowLabel.setFont(UiControlMetrics.CONTROL_FONT);
         windowLabel.setForeground(Color.DARK_GRAY);
 
-        JLabel filterLbl = new JLabel("dB filter:");
-        filterLbl.setFont(new Font("Arial", Font.PLAIN, 12));
+        anomaliesOnly.setMnemonic('A');
+        selectAll.setMnemonic('L');
+        resetWindowBtn.setMnemonic('V');
+        exportSelectedBtn.setMnemonic('E');
+        exportWindowBtn.setMnemonic('W');
+        paramsBtn.setMnemonic('P');
 
-        JLabel toLbl = new JLabel("to");
-        toLbl.setFont(new Font("Arial", Font.PLAIN, 12));
+        resetWindowBtn.setPreferredSize(new Dimension(110, UiControlMetrics.CONTROL_HEIGHT));
 
+        JLabel dbLbl = new JLabel("dB filter:");
+        dbLbl.setFont(UiControlMetrics.CONTROL_FONT);
+        JLabel timeLbl = new JLabel("Time (s):");
+        timeLbl.setFont(UiControlMetrics.CONTROL_FONT);
+        JLabel freqLbl = new JLabel("Freq (Hz):");
+        freqLbl.setFont(UiControlMetrics.CONTROL_FONT);
         JLabel searchLbl = new JLabel("Search flag:");
-        searchLbl.setFont(new Font("Arial", Font.PLAIN, 12));
-
+        searchLbl.setFont(UiControlMetrics.CONTROL_FONT);
         JLabel decLbl = new JLabel("Decimals:");
-        decLbl.setFont(new Font("Arial", Font.PLAIN, 12));
+        decLbl.setFont(UiControlMetrics.CONTROL_FONT);
 
-        minField.setMaximumSize(new Dimension(80, 26));
-        maxField.setMaximumSize(new Dimension(80, 26));
-        searchField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
-        decimalsSpinner.setMaximumSize(new Dimension(70, 26));
-        scaleCombo.setMaximumSize(new Dimension(110, 26));
+        JLabel toDbLbl = new JLabel("to");
+        toDbLbl.setFont(UiControlMetrics.CONTROL_FONT);
+        JLabel toTimeLbl = new JLabel("to");
+        toTimeLbl.setFont(UiControlMetrics.CONTROL_FONT);
+        JLabel toFreqLbl = new JLabel("to");
+        toFreqLbl.setFont(UiControlMetrics.CONTROL_FONT);
 
-        Insets inTop = new Insets(2, 6, 2, 6);
-        Insets inRow = new Insets(2, 6, 2, 6);
+        dbLbl.setLabelFor(minField);
+        timeLbl.setLabelFor(minTimeField);
+        freqLbl.setLabelFor(minFreqField);
+        searchLbl.setLabelFor(searchField);
+        decLbl.setLabelFor(decimalsSpinner);
 
-        GridBagConstraints c0 = new GridBagConstraints();
-        c0.gridx = 0;
-        c0.gridy = 0;
-        c0.weightx = 1.0;
-        c0.fill = GridBagConstraints.HORIZONTAL;
-        c0.insets = inTop;
-        p.add(windowLabel, c0);
+        Dimension small = new Dimension(72, UiControlMetrics.CONTROL_HEIGHT);
+        Dimension med = new Dimension(90, UiControlMetrics.CONTROL_HEIGHT);
+        minField.setPreferredSize(small);
+        maxField.setPreferredSize(small);
+        minTimeField.setPreferredSize(small);
+        maxTimeField.setPreferredSize(small);
+        minFreqField.setPreferredSize(med);
+        maxFreqField.setPreferredSize(med);
+        searchField.setPreferredSize(new Dimension(220, UiControlMetrics.CONTROL_HEIGHT));
+        decimalsSpinner.setPreferredSize(new Dimension(70, UiControlMetrics.CONTROL_HEIGHT));
+        scaleCombo.setPreferredSize(new Dimension(110, UiControlMetrics.CONTROL_HEIGHT));
 
-        GridBagConstraints c1 = new GridBagConstraints();
-        c1.gridx = 1;
-        c1.gridy = 0;
-        c1.weightx = 0;
-        c1.anchor = GridBagConstraints.EAST;
-        c1.insets = inTop;
-        p.add(resetWindowBtn, c1);
+        JPanel header = new JPanel(new BorderLayout(UiControlMetrics.HGAP, 0));
+        header.setOpaque(false);
+        UiControlMetrics.setRowMaxHeight(header);
+        header.add(windowLabel, BorderLayout.CENTER);
+        header.add(resetWindowBtn, BorderLayout.EAST);
+        outer.add(header);
 
-        int x = 0;
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridy = 1;
-        c.insets = inRow;
-        c.anchor = GridBagConstraints.WEST;
+        JPanel row1 = new JPanel(new FlowLayout(FlowLayout.LEFT, UiControlMetrics.HGAP, UiControlMetrics.VGAP));
+        row1.setOpaque(false);
+        UiControlMetrics.setRowMaxHeight(row1);
+        row1.add(dbLbl);
+        row1.add(minField);
+        row1.add(toDbLbl);
+        row1.add(maxField);
+        row1.add(anomaliesOnly);
+        outer.add(row1);
 
-        c.gridx = x++;
-        p.add(filterLbl, c);
-        c.gridx = x++;
-        p.add(minField, c);
-        c.gridx = x++;
-        p.add(toLbl, c);
-        c.gridx = x++;
-        p.add(maxField, c);
-        c.gridx = x++;
-        p.add(anomaliesOnly, c);
-        c.gridx = x++;
-        p.add(searchLbl, c);
-        c.gridx = x++;
-        c.weightx = 1.0;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        p.add(searchField, c);
+        JPanel row2 = new JPanel(new FlowLayout(FlowLayout.LEFT, UiControlMetrics.HGAP, UiControlMetrics.VGAP));
+        row2.setOpaque(false);
+        UiControlMetrics.setRowMaxHeight(row2);
+        row2.add(timeLbl);
+        row2.add(minTimeField);
+        row2.add(toTimeLbl);
+        row2.add(maxTimeField);
+        row2.add(Box.createHorizontalStrut(12));
+        row2.add(freqLbl);
+        row2.add(minFreqField);
+        row2.add(toFreqLbl);
+        row2.add(maxFreqField);
+        outer.add(row2);
 
-        x = 0;
-        GridBagConstraints c2 = new GridBagConstraints();
-        c2.gridy = 2;
-        c2.insets = inRow;
-        c2.anchor = GridBagConstraints.WEST;
+        JPanel row3 = new JPanel(new FlowLayout(FlowLayout.LEFT, UiControlMetrics.HGAP, UiControlMetrics.VGAP));
+        row3.setOpaque(false);
+        UiControlMetrics.setRowMaxHeight(row3);
+        row3.add(searchLbl);
+        row3.add(searchField);
+        row3.add(decLbl);
+        row3.add(decimalsSpinner);
+        row3.add(scaleCombo);
+        row3.add(selectAll);
+        outer.add(row3);
 
-        c2.gridx = x++;
-        p.add(decLbl, c2);
-        c2.gridx = x++;
-        p.add(decimalsSpinner, c2);
-        c2.gridx = x++;
-        p.add(scaleCombo, c2);
-        c2.gridx = x++;
-        p.add(selectAll, c2);
-        c2.gridx = x++;
-        c2.anchor = GridBagConstraints.EAST;
-        p.add(exportSelectedBtn, c2);
-        c2.gridx = x++;
-        p.add(exportWindowBtn, c2);
-        c2.gridx = x++;
-        p.add(paramsBtn, c2);
+        JPanel row4 = new JPanel(new FlowLayout(FlowLayout.RIGHT, UiControlMetrics.HGAP, UiControlMetrics.VGAP));
+        row4.setOpaque(false);
+        UiControlMetrics.setRowMaxHeight(row4);
+        row4.add(exportSelectedBtn);
+        row4.add(exportWindowBtn);
+        row4.add(paramsBtn);
+        outer.add(row4);
 
-        return p;
+        UiControlMetrics.applyControlFont(
+                windowLabel,
+                anomaliesOnly,
+                selectAll,
+                resetWindowBtn,
+                exportSelectedBtn,
+                exportWindowBtn,
+                paramsBtn,
+                minField,
+                maxField,
+                minTimeField,
+                maxTimeField,
+                minFreqField,
+                maxFreqField,
+                searchField,
+                decimalsSpinner,
+                scaleCombo
+        );
+        UiControlMetrics.setPreferredHeight(anomaliesOnly, UiControlMetrics.CONTROL_HEIGHT);
+        UiControlMetrics.setPreferredHeight(selectAll, UiControlMetrics.CONTROL_HEIGHT);
+        UiControlMetrics.setPreferredHeight(exportSelectedBtn, UiControlMetrics.CONTROL_HEIGHT);
+        UiControlMetrics.setPreferredHeight(exportWindowBtn, UiControlMetrics.CONTROL_HEIGHT);
+        UiControlMetrics.setPreferredHeight(paramsBtn, UiControlMetrics.CONTROL_HEIGHT);
+
+        return outer;
     }
 
     private void configureTable() {
@@ -195,6 +237,10 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
         };
         minField.getDocument().addDocumentListener(dl);
         maxField.getDocument().addDocumentListener(dl);
+        minTimeField.getDocument().addDocumentListener(dl);
+        maxTimeField.getDocument().addDocumentListener(dl);
+        minFreqField.getDocument().addDocumentListener(dl);
+        maxFreqField.getDocument().addDocumentListener(dl);
         searchField.getDocument().addDocumentListener(dl);
 
         anomaliesOnly.addActionListener(e -> applyFilters());
@@ -229,7 +275,13 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
     private void applyFilters() {
         Double min = parseDoubleOrNull(minField.getText());
         Double max = parseDoubleOrNull(maxField.getText());
+        Double tMin = parseDoubleOrNull(minTimeField.getText());
+        Double tMax = parseDoubleOrNull(maxTimeField.getText());
+        Double fMin = parseDoubleOrNull(minFreqField.getText());
+        Double fMax = parseDoubleOrNull(maxFreqField.getText());
         model.setValueFilter(min, max);
+        model.setTimeFilterSec(tMin, tMax);
+        model.setFrequencyFilterHz(fMin, fMax);
         model.setAnomaliesOnly(anomaliesOnly.isSelected());
         model.setSearchText(searchField.getText());
         updateWindowLabel();
@@ -304,7 +356,30 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
     private void exportRows(int[] modelRows) {
         Window w = SwingUtilities.getWindowAncestor(this);
         Frame owner = w instanceof Frame f ? f : null;
-        File target = NativeFilePicker.pickSaveCsvFile(owner, "Export Spectral Data", "spectrogram_data.csv");
+        String[] options = new String[]{"CSV", "Excel (XML)", "PDF"};
+        int choice = JOptionPane.showOptionDialog(
+                this,
+                "Export format:",
+                "Export",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+        if (choice < 0) {
+            Toast.show(w, "Export canceled", new Color(80, 80, 80), 1600);
+            return;
+        }
+
+        File target;
+        if (choice == 0) {
+            target = NativeFilePicker.pickSaveFile(owner, "Export Spectral Data (CSV)", "spectrogram_data.csv", ".csv");
+        } else if (choice == 1) {
+            target = NativeFilePicker.pickSaveFile(owner, "Export Spectral Data (Excel XML)", "spectrogram_data.xml", ".xml");
+        } else {
+            target = NativeFilePicker.pickSaveFile(owner, "Export Spectral Data (PDF)", "spectrogram_data.pdf", ".pdf");
+        }
         if (target == null) {
             Toast.show(w, "Export canceled", new Color(80, 80, 80), 1600);
             return;
@@ -320,7 +395,13 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
             }
         }
         try {
-            SpectrogramCsvExport.writeRows(target, model, modelRows, mp);
+            if (choice == 0) {
+                SpectrogramCsvExport.writeRows(target, model, modelRows, mp);
+            } else if (choice == 1) {
+                SpectrogramExcelExport.writeRows(target, model, modelRows, mp);
+            } else {
+                SpectrogramPdfExport.writeRows(target, model, modelRows, mp);
+            }
             Toast.show(w, "Exported successfully", new Color(0, 128, 0), 1800);
         } catch (Exception ex) {
             Toast.show(w, "Export failed", new Color(160, 40, 40), 2200);

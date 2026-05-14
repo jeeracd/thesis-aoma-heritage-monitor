@@ -79,17 +79,17 @@ public class UsersLoginOptions extends JFrame {
         // Dummy accounts
         if (email.equals("juandelacruz1@engr.com") && password.equals("dummy123")) {
             JOptionPane.showMessageDialog(this, "Engineer Login Successful!");
-            new EngineerStartingPage();   
+            new EngineerBldgStatusOverview();
             dispose();
 
         } else if (email.equals("juandelacruz2@officer.com") && password.equals("dummy123")) {
             JOptionPane.showMessageDialog(this, "Officer Login Successful!");
-            new OfficerStartingPage();    
+            new OfficerBldgStatusOverview();
             dispose();
 
         } else if (email.equals("juandelacruz3@head.com") && password.equals("dummy123")) {
             JOptionPane.showMessageDialog(this, "Head Login Successful!");
-            new HeadStartingPage();      
+            new HeadBldgStatusOverview();
             dispose();
 
         } else {

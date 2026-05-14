@@ -19,6 +19,7 @@ public class OfficerContactSupport extends JFrame {
         tabsUI.setForeground(Color.BLACK);
 
         JPanel contactSupportPanel = new JPanel(null);
+        RoleMenuBar.install(this, RoleMenuBar.Role.OFFICER);
         contactSupportPanel.setBackground(Color.WHITE);
 
         tabsUI.addTab("Projects", new JPanel());
@@ -361,7 +362,7 @@ public class OfficerContactSupport extends JFrame {
         LGULabel.setHorizontalAlignment(SwingConstants.RIGHT);
         LGULabel.setBounds(1080, 5, 280, 38);
 
-        layeredPane.add(LGULabel, JLayeredPane.PALETTE_LAYER);
+        contactSupportPanel.add(LGULabel);
 
         JPanel centerPanelDescription = new JPanel(new BorderLayout());
         centerPanelDescription.setBounds(10, 20, 1380, 40);
@@ -567,7 +568,7 @@ public class OfficerContactSupport extends JFrame {
 
         // FRAME LAYOUT
         setLayout(new BorderLayout());
-        add(layeredPane, BorderLayout.CENTER);
+        add(contactSupportPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         setVisible(true);
     }

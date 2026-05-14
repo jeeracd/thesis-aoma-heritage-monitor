@@ -1,0 +1,20 @@
+{
+  "fs_hz": 1.0,
+  "channels": [
+    "accelX",
+    "accelY",
+    "accelZ"
+  ],
+  "ssi": {
+    "ordmax": 20,
+    "br": 10,
+    "modes_exported": 1
+  },
+  "files": {
+    "stabilization_png": "pyoma2_out_test\\stabilization.png",
+    "cmif_png": "pyoma2_out_test\\frequency_response_cmif.png",
+    "mode_shapes_png": "pyoma2_out_test\\mode_shapes.png",
+    "mac_png": "pyoma2_out_test\\mac_matrix.png",
+    "modal_properties_csv": "pyoma2_out_test\\modal_properties.csv"
+  }
+}

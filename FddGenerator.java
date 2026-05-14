@@ -43,6 +43,8 @@ public final class FddGenerator {
         if (channels.length == 0) {
             channels = new int[]{0};
         }
+
+        String[] channelLabels = inferChannelLabels(csv, ncolMax, timeCol, channels);
  
         int n = parsed.rows.size();
         double[][] sig = new double[channels.length][n];
@@ -62,7 +64,7 @@ public final class FddGenerator {
         if (!(fsHz > 0)) {
             fsHz = 100.0;
         }
-        return computeSingularValues(sig, fsHz);
+        return computeSingularValues(sig, fsHz, channelLabels);
     }
  
     public static FddResult generateFromSignals(double[][] signals, double fsHz) throws IOException {
@@ -79,10 +81,14 @@ public final class FddGenerator {
             }
         }
         double fs = fsHz > 0 ? fsHz : 100.0;
-        return computeSingularValues(signals, fs);
+        String[] labels = new String[signals.length];
+        for (int i = 0; i < labels.length; i++) {
+            labels[i] = "Ch" + (i + 1);
+        }
+        return computeSingularValues(signals, fs, labels);
     }
  
-    private static FddResult computeSingularValues(double[][] x, double fsHz) {
+    private static FddResult computeSingularValues(double[][] x, double fsHz, String[] channelLabels) {
         int ch = x.length;
         int n = x[0].length;
  
@@ -148,6 +154,7 @@ public final class FddGenerator {
  
         int lines = Math.min(ch, 4);
         double[][] svDb = new double[lines][bins];
+        double[][] modeShape = new double[bins][ch];
         double eps = 1e-12;
         for (int k = 0; k < bins; k++) {
             double[][] m = new double[ch][ch];
@@ -163,9 +170,29 @@ public final class FddGenerator {
                 double v = Math.max(eps, evals[i]);
                 svDb[i][k] = 10.0 * Math.log10(v);
             }
+
+            double[] v = principalEigenvector(m);
+            double max = 0;
+            for (int i = 0; i < v.length; i++) {
+                max = Math.max(max, Math.abs(v[i]));
+            }
+            if (!(max > 0)) {
+                max = 1.0;
+            }
+            for (int i = 0; i < ch; i++) {
+                modeShape[k][i] = Math.abs(v[i]) / max;
+            }
         }
- 
-        return new FddResult(freq, svDb);
+
+        String[] labels = channelLabels;
+        if (labels == null || labels.length != ch) {
+            labels = new String[ch];
+            for (int i = 0; i < ch; i++) {
+                labels[i] = "Ch" + (i + 1);
+            }
+        }
+
+        return new FddResult(freq, svDb, labels, modeShape);
     }
  
     private record ParsedRows(List<double[]> rows) {}
@@ -467,6 +494,99 @@ public final class FddGenerator {
             eval[n - 1 - i] = t;
         }
         return eval;
+    }
+
+    private static double[] principalEigenvector(double[][] a) {
+        int n = a.length;
+        double[] v = new double[n];
+        Arrays.fill(v, 1.0 / Math.sqrt(n));
+        double[] y = new double[n];
+        for (int iter = 0; iter < 30; iter++) {
+            Arrays.fill(y, 0.0);
+            for (int i = 0; i < n; i++) {
+                double s = 0;
+                for (int j = 0; j < n; j++) {
+                    s += a[i][j] * v[j];
+                }
+                y[i] = s;
+            }
+            double norm = 0;
+            for (int i = 0; i < n; i++) {
+                norm += y[i] * y[i];
+            }
+            norm = Math.sqrt(norm);
+            if (!(norm > 0) || !Double.isFinite(norm)) {
+                break;
+            }
+            for (int i = 0; i < n; i++) {
+                v[i] = y[i] / norm;
+            }
+        }
+        return v;
+    }
+
+    private static String[] inferChannelLabels(File csv, int ncolMax, int timeCol, int[] channels) {
+        try {
+            CsvModalParameters mp = CsvModalParametersGenerator.generate(csv, 2000);
+            if (mp == null || mp.fields() == null || mp.fields().isEmpty()) {
+                return defaultLabels(channels.length);
+            }
+            ArrayList<String> headers = new ArrayList<>();
+            for (CsvModalParameters.Field f : mp.fields()) {
+                headers.add(f.csvHeader());
+            }
+
+            if (headers.size() == ncolMax + 1 && looksLikeTime(headers.get(0))) {
+                headers = new ArrayList<>(headers.subList(1, headers.size()));
+            }
+
+            String[] labels = new String[channels.length];
+            for (int i = 0; i < channels.length; i++) {
+                int col = channels[i];
+                String name;
+                if (col >= 0 && col < headers.size()) {
+                    name = headers.get(col);
+                } else {
+                    name = "Ch" + (i + 1);
+                }
+                labels[i] = name == null || name.isBlank() ? ("Ch" + (i + 1)) : name.trim();
+            }
+            if (timeCol >= 0) {
+                boolean anyTime = false;
+                for (String s : labels) {
+                    if (looksLikeTime(s)) {
+                        anyTime = true;
+                        break;
+                    }
+                }
+                if (anyTime) {
+                    for (int i = 0; i < labels.length; i++) {
+                        if (looksLikeTime(labels[i])) {
+                            labels[i] = "Ch" + (i + 1);
+                        }
+                    }
+                }
+            }
+            return labels;
+        } catch (Exception ex) {
+            return defaultLabels(channels.length);
+        }
+    }
+
+    private static boolean looksLikeTime(String s) {
+        if (s == null) {
+            return false;
+        }
+        String t = s.trim().toLowerCase();
+        return t.contains("time") || t.contains("timestamp");
+    }
+
+    private static String[] defaultLabels(int n) {
+        String[] labels = new String[n];
+        for (int i = 0; i < n; i++) {
+            labels[i] = "Ch" + (i + 1);
+        }
+        return labels;
     }
 }
 

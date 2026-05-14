@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,6 +24,7 @@ public final class ProjectRepository {
 
     private static Path repositoryFile = defaultRepositoryFile();
     private static List<Project> cache = null;
+    private static final CopyOnWriteArrayList<Runnable> changeListeners = new CopyOnWriteArrayList<>();
 
     private ProjectRepository() {}
 
@@ -87,6 +89,7 @@ public final class ProjectRepository {
             cache.add(p);
             try {
                 persistLocked();
+                notifyChanged();
                 return p.getId();
             } catch (IOException e) {
                 cache.remove(cache.size() - 1);
@@ -96,6 +99,7 @@ public final class ProjectRepository {
     }
 
     public static void updateProject(Project updated) throws IOException {
+        boolean changed = false;
         synchronized (LOCK) {
             ensureLoaded();
             Project previous = null;
@@ -107,19 +111,44 @@ public final class ProjectRepository {
                     cache.set(i, updated);
                     try {
                         persistLocked();
-                        return;
+                        changed = true;
+                        break;
                     } catch (IOException e) {
                         cache.set(previousIndex, previous);
                         throw e;
                     }
                 }
             }
-            cache.add(updated);
+            if (!changed) {
+                cache.add(updated);
+                try {
+                    persistLocked();
+                    changed = true;
+                } catch (IOException e) {
+                    cache.remove(cache.size() - 1);
+                    throw e;
+                }
+            }
+        }
+        if (changed) {
+            notifyChanged();
+        }
+    }
+
+    public static Runnable addChangeListener(Runnable listener) {
+        if (listener == null) {
+            return () -> {};
+        }
+        changeListeners.add(listener);
+        return () -> changeListeners.remove(listener);
+    }
+
+    private static void notifyChanged() {
+        for (Runnable r : changeListeners) {
             try {
-                persistLocked();
-            } catch (IOException e) {
-                cache.remove(cache.size() - 1);
-                throw e;
+                r.run();
+            } catch (Exception ex) {
+                LOG.log(Level.WARNING, "ProjectRepository change listener failed", ex);
             }
         }
     }

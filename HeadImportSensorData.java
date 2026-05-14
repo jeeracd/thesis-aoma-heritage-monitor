@@ -18,6 +18,7 @@ public class HeadImportSensorData extends JFrame {
         tabsUI.setForeground(Color.BLACK);
 
         JPanel headPanel = new JPanel(null);
+        RoleMenuBar.install(this, RoleMenuBar.Role.HEAD);
 
         tabsUI.addTab("Projects", headPanel);
         tabsUI.addTab("View", new JPanel());
@@ -413,7 +414,7 @@ public class HeadImportSensorData extends JFrame {
         LGUHeadLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         LGUHeadLabel.setBounds(1080, 5, 280, 38);
 
-        layeredPane.add(LGUHeadLabel, JLayeredPane.PALETTE_LAYER);
+        headPanel.add(LGUHeadLabel);
 
         JPanel centerPanelDescription = new JPanel(new BorderLayout());
         centerPanelDescription.setBounds(10, 20, 1380, 40);
@@ -658,6 +659,8 @@ public class HeadImportSensorData extends JFrame {
                 return;
             }
 
+            AppSession.setLastUploadedCsv(selectedFile[0]);
+
             Object[] options = {
         "Proceed to Analysis",
         "Go to Dashboard"
@@ -676,7 +679,6 @@ public class HeadImportSensorData extends JFrame {
 
         if (choice == 0) {
             // Proceed to Analysis
-            AppSession.setLastUploadedCsv(selectedFile[0]);
             new HeadOMAAnalysisResult(); 
             this.dispose();
         }
@@ -701,7 +703,7 @@ public class HeadImportSensorData extends JFrame {
         footerPanel.add(footerLabel, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
-        add(layeredPane, BorderLayout.CENTER);
+        add(headPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         
         setVisible(true);

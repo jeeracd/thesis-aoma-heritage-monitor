@@ -5,6 +5,7 @@ public final class SpectrogramTableModelTest {
     public static void main(String[] args) throws Exception {
         testWindowRowCount();
         testFilteringBuildsIndex();
+        testTimeAndFrequencyFilters();
         testExportWritesCsv();
         testExportIncludesModalParameters();
         System.out.println("ALL TESTS PASSED");
@@ -31,6 +32,22 @@ public final class SpectrogramTableModelTest {
         for (int i = 0; i < n; i++) {
             double db = m.getDbAtRow(i);
             assertTrue(db >= -5.0 && db <= 15.0, "filtered rows must respect bounds");
+        }
+    }
+
+    private static void testTimeAndFrequencyFilters() {
+        SpectrogramData data = smallData();
+        SpectrogramTableModel m = new SpectrogramTableModel();
+        m.setSpectrogram(data);
+        m.setTimeFilterSec(0.0, 1.5);
+        m.setFrequencyFilterHz(0.0, 20.0);
+        int n = m.getRowCount();
+        assertTrue(n > 0 && n < 20, "time/freq filters should reduce rows");
+        for (int i = 0; i < n; i++) {
+            double t = m.getTimeSecAtRow(i);
+            double f = m.getFreqHzAtRow(i);
+            assertTrue(t >= 0.0 && t <= 1.5 + 1e-9, "time filter should hold");
+            assertTrue(f >= 0.0 && f <= 20.0 + 1e-9, "freq filter should hold");
         }
     }
 
