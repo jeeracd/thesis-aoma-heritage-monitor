@@ -6,6 +6,7 @@ public final class SpectrogramTableModelTest {
         testWindowRowCount();
         testFilteringBuildsIndex();
         testExportWritesCsv();
+        testExportIncludesModalParameters();
         System.out.println("ALL TESTS PASSED");
     }
 
@@ -43,8 +44,33 @@ public final class SpectrogramTableModelTest {
         Path out = dir.resolve("export.csv");
         SpectrogramCsvExport.writeRows(out.toFile(), m, rows);
         String txt = Files.readString(out);
-        assertTrue(txt.startsWith("time_sec,freq_hz,amplitude_db,flag"), "csv header expected");
+        assertTrue(txt.startsWith("modal_title,modal_encoding,modal_delimiter,time_sec,freq_hz,amplitude_db,flag"), "csv header expected");
         assertTrue(txt.split("\n").length >= 2, "csv should have data lines");
+    }
+ 
+    private static void testExportIncludesModalParameters() throws Exception {
+        SpectrogramData data = smallData();
+        SpectrogramTableModel m = new SpectrogramTableModel();
+        m.setSpectrogram(data);
+        int[] rows = new int[]{0};
+ 
+        CsvModalParameters mp = new CsvModalParameters(
+                "sample_data_sensor.csv",
+                java.nio.charset.StandardCharsets.UTF_8,
+                ',',
+                false,
+                4,
+                20,
+                java.util.List.of()
+        );
+ 
+        Path dir = Files.createTempDirectory("spec-table-mp-");
+        Path out = dir.resolve("export.csv");
+        SpectrogramCsvExport.writeRows(out.toFile(), m, rows, mp);
+        String txt = Files.readString(out);
+        String[] lines = txt.split("\n");
+        assertTrue(lines.length >= 2, "csv should have header and one row");
+        assertTrue(lines[1].startsWith("sample_data_sensor.csv,UTF-8,"), "row should include modal parameter values");
     }
 
     private static SpectrogramData smallData() {

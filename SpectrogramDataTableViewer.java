@@ -13,13 +13,17 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
     private final JTextField maxField = new JTextField(6);
     private final JTextField searchField = new JTextField(10);
     private final JCheckBox anomaliesOnly = new JCheckBox("Anomalies only");
+    private final JCheckBox selectAll = new JCheckBox("Select all");
     private final JSpinner decimalsSpinner = new JSpinner(new SpinnerNumberModel(3, 0, 9, 1));
     private final JComboBox<String> scaleCombo = new JComboBox<>(new String[]{"dB (log)", "Linear"});
     private final JButton exportSelectedBtn = new JButton("Export selected...");
     private final JButton exportWindowBtn = new JButton("Export window...");
+    private final JButton paramsBtn = new JButton("Parameters...");
     private final JButton resetWindowBtn = new JButton("Full view");
 
     private SpectrogramViewWindow currentWindow = new SpectrogramViewWindow(0, 0, 0, 0);
+    private volatile File sourceCsv;
+    private volatile boolean updatingSelectAll;
 
     public SpectrogramDataTableViewer() {
         setLayout(new BorderLayout());
@@ -33,6 +37,7 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
 
         configureTable();
         JScrollPane sp = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        sp.getViewport().setBackground(Color.WHITE);
         sp.setPreferredSize(new Dimension(850, 290));
         sp.setMaximumSize(new Dimension(Integer.MAX_VALUE, 320));
         add(sp, BorderLayout.CENTER);
@@ -45,8 +50,22 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
         model.setSpectrogram(data);
         currentWindow = SpectrogramViewWindow.full(data);
         model.setViewWindow(currentWindow);
+        table.clearSelection();
         applyFilters();
         updateWindowLabel();
+        updateSelectAllState();
+    }
+ 
+    public void setSourceCsv(File csv) {
+        this.sourceCsv = csv;
+    }
+ 
+    JCheckBox getSelectAllForTesting() {
+        return selectAll;
+    }
+ 
+    JTable getTableForTesting() {
+        return table;
     }
 
     @Override
@@ -56,12 +75,15 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
         }
         this.currentWindow = window;
         model.setViewWindow(window);
+        table.clearSelection();
         updateWindowLabel();
+        updateSelectAllState();
     }
 
     private JPanel buildControls() {
         JPanel p = new JPanel(new GridBagLayout());
         p.setOpaque(false);
+        p.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
         windowLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         windowLabel.setForeground(Color.DARK_GRAY);
@@ -78,28 +100,35 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
         JLabel decLbl = new JLabel("Decimals:");
         decLbl.setFont(new Font("Arial", Font.PLAIN, 12));
 
-        Insets in = new Insets(2, 6, 2, 6);
-        int x = 0;
+        minField.setMaximumSize(new Dimension(80, 26));
+        maxField.setMaximumSize(new Dimension(80, 26));
+        searchField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
+        decimalsSpinner.setMaximumSize(new Dimension(70, 26));
+        scaleCombo.setMaximumSize(new Dimension(110, 26));
+
+        Insets inTop = new Insets(2, 6, 2, 6);
+        Insets inRow = new Insets(2, 6, 2, 6);
 
         GridBagConstraints c0 = new GridBagConstraints();
         c0.gridx = 0;
         c0.gridy = 0;
-        c0.gridwidth = 9;
         c0.weightx = 1.0;
         c0.fill = GridBagConstraints.HORIZONTAL;
-        c0.insets = new Insets(4, 6, 2, 6);
+        c0.insets = inTop;
         p.add(windowLabel, c0);
 
         GridBagConstraints c1 = new GridBagConstraints();
-        c1.gridx = 9;
+        c1.gridx = 1;
         c1.gridy = 0;
         c1.weightx = 0;
-        c1.insets = new Insets(4, 6, 2, 6);
+        c1.anchor = GridBagConstraints.EAST;
+        c1.insets = inTop;
         p.add(resetWindowBtn, c1);
 
+        int x = 0;
         GridBagConstraints c = new GridBagConstraints();
         c.gridy = 1;
-        c.insets = in;
+        c.insets = inRow;
         c.anchor = GridBagConstraints.WEST;
 
         c.gridx = x++;
@@ -115,17 +144,31 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
         c.gridx = x++;
         p.add(searchLbl, c);
         c.gridx = x++;
+        c.weightx = 1.0;
+        c.fill = GridBagConstraints.HORIZONTAL;
         p.add(searchField, c);
-        c.gridx = x++;
-        p.add(decLbl, c);
-        c.gridx = x++;
-        p.add(decimalsSpinner, c);
-        c.gridx = x++;
-        p.add(scaleCombo, c);
-        c.gridx = x++;
-        p.add(exportSelectedBtn, c);
-        c.gridx = x++;
-        p.add(exportWindowBtn, c);
+
+        x = 0;
+        GridBagConstraints c2 = new GridBagConstraints();
+        c2.gridy = 2;
+        c2.insets = inRow;
+        c2.anchor = GridBagConstraints.WEST;
+
+        c2.gridx = x++;
+        p.add(decLbl, c2);
+        c2.gridx = x++;
+        p.add(decimalsSpinner, c2);
+        c2.gridx = x++;
+        p.add(scaleCombo, c2);
+        c2.gridx = x++;
+        p.add(selectAll, c2);
+        c2.gridx = x++;
+        c2.anchor = GridBagConstraints.EAST;
+        p.add(exportSelectedBtn, c2);
+        c2.gridx = x++;
+        p.add(exportWindowBtn, c2);
+        c2.gridx = x++;
+        p.add(paramsBtn, c2);
 
         return p;
     }
@@ -134,12 +177,14 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
         table.setAutoCreateRowSorter(true);
         table.setFillsViewportHeight(true);
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+        table.setBackground(Color.WHITE);
 
         table.getColumnModel().getColumn(0).setPreferredWidth(120);
         table.getColumnModel().getColumn(1).setPreferredWidth(130);
         table.getColumnModel().getColumn(2).setPreferredWidth(160);
         table.getColumnModel().getColumn(3).setPreferredWidth(110);
+        table.getColumnModel().getColumn(3).setMinWidth(110);
     }
 
     private void wireControls() {
@@ -162,6 +207,13 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
             }
         });
 
+        selectAll.addActionListener(e -> toggleSelectAll());
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                updateSelectAllState();
+            }
+        });
+
         resetWindowBtn.addActionListener(e -> {
             SpectrogramData d = model.getSpectrogram();
             if (d != null) {
@@ -171,6 +223,7 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
 
         exportSelectedBtn.addActionListener(e -> exportSelected());
         exportWindowBtn.addActionListener(e -> exportWindow());
+        paramsBtn.addActionListener(e -> generateAndShowParameters());
     }
 
     private void applyFilters() {
@@ -180,6 +233,42 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
         model.setAnomaliesOnly(anomaliesOnly.isSelected());
         model.setSearchText(searchField.getText());
         updateWindowLabel();
+        updateSelectAllState();
+    }
+ 
+    private void toggleSelectAll() {
+        if (updatingSelectAll) {
+            return;
+        }
+        updatingSelectAll = true;
+        try {
+            if (selectAll.isSelected()) {
+                int n = table.getRowCount();
+                if (n > 0) {
+                    table.setRowSelectionInterval(0, n - 1);
+                }
+            } else {
+                table.clearSelection();
+            }
+        } finally {
+            updatingSelectAll = false;
+            updateSelectAllState();
+        }
+    }
+ 
+    private void updateSelectAllState() {
+        if (updatingSelectAll) {
+            return;
+        }
+        int n = table.getRowCount();
+        int sel = table.getSelectedRowCount();
+        selectAll.setEnabled(n > 0);
+        updatingSelectAll = true;
+        try {
+            selectAll.setSelected(n > 0 && sel == n);
+        } finally {
+            updatingSelectAll = false;
+        }
     }
 
     private void exportSelected() {
@@ -220,12 +309,63 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
             Toast.show(w, "Export canceled", new Color(80, 80, 80), 1600);
             return;
         }
+        File csv = sourceCsv != null ? sourceCsv : AppSession.getLastUploadedCsv();
+        CsvModalParameters mp = null;
+        if (csv != null) {
+            try {
+                mp = CsvModalParametersGenerator.generate(csv, 2000);
+            } catch (Exception ex) {
+                Toast.show(w, "Exporting without modal parameters", new Color(80, 80, 80), 1800);
+                mp = null;
+            }
+        }
         try {
-            SpectrogramCsvExport.writeRows(target, model, modelRows);
+            SpectrogramCsvExport.writeRows(target, model, modelRows, mp);
             Toast.show(w, "Exported successfully", new Color(0, 128, 0), 1800);
         } catch (Exception ex) {
             Toast.show(w, "Export failed", new Color(160, 40, 40), 2200);
         }
+    }
+ 
+    private void generateAndShowParameters() {
+        Window w = SwingUtilities.getWindowAncestor(this);
+        Frame owner = w instanceof Frame f ? f : null;
+        File csv = sourceCsv != null ? sourceCsv : AppSession.getLastUploadedCsv();
+        CsvFileValidator.ValidationResult vr = CsvFileValidator.validate(csv);
+        if (!vr.valid()) {
+            Toast.show(w, vr.message(), new Color(160, 40, 40), 2400);
+            return;
+        }
+ 
+        paramsBtn.setEnabled(false);
+        Toast.show(w, "Generating parameters...", new Color(60, 60, 60), 1200);
+ 
+        SwingWorker<CsvModalParameters, Void> worker = new SwingWorker<>() {
+            @Override
+            protected CsvModalParameters doInBackground() throws Exception {
+                return CsvModalParametersGenerator.generate(csv);
+            }
+ 
+            @Override
+            protected void done() {
+                paramsBtn.setEnabled(true);
+                try {
+                    CsvModalParameters p = get();
+                    Toast.show(w, "Modal parameters generated", new Color(0, 128, 0), 1600);
+                    CsvModalParametersDialog dlg = new CsvModalParametersDialog(owner, csv, p);
+                    dlg.setVisible(true);
+                } catch (Exception ex) {
+                    Toast.show(w, "Failed to generate parameters", new Color(160, 40, 40), 2400);
+                    JOptionPane.showMessageDialog(
+                            SpectrogramDataTableViewer.this,
+                            ex.getMessage() == null ? "Unable to parse CSV." : ex.getMessage(),
+                            "CSV Parsing Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void updateWindowLabel() {

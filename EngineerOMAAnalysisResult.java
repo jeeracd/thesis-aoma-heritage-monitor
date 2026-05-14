@@ -636,6 +636,7 @@ public class EngineerOMAAnalysisResult extends JFrame {
         spectrogramPanel.setViewWindowListener(spectrogramViewer);
 
         File csv = AppSession.getLastUploadedCsv();
+        spectrogramViewer.setSourceCsv(csv);
         if (csv == null) {
             spectrogramPanel.setStatusText("No CSV loaded. Import sensor data to view spectrogram.");
         } else {
@@ -677,12 +678,37 @@ public class EngineerOMAAnalysisResult extends JFrame {
         JPanel naturalFrequencyPanel = new JPanel();
         naturalFrequencyPanel.setLayout(new BorderLayout());
         naturalFrequencyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        naturalFrequencyPanel.setPreferredSize(new Dimension(850,150));
-        naturalFrequencyPanel.setMaximumSize(new Dimension(850,150));
+        naturalFrequencyPanel.setPreferredSize(new Dimension(850,200));
+        naturalFrequencyPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE,200));
         naturalFrequencyPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         naturalFrequencyPanel.setBackground(Color.WHITE);
+ 
+        FddPlotViewer fddViewer = new FddPlotViewer();
+        fddViewer.setStatusText("Loading...");
+        naturalFrequencyPanel.add(fddViewer, BorderLayout.CENTER);
         graphPanel.add(naturalFrequencyPanel);
         graphPanel.add(Box.createVerticalStrut(15));
+ 
+        if (csv == null) {
+            fddViewer.setStatusText("No CSV loaded.");
+        } else {
+            SwingWorker<FddResult, Void> fddWorker = new SwingWorker<>() {
+                @Override
+                protected FddResult doInBackground() throws Exception {
+                    return FddGenerator.generateFromCsv(csv);
+                }
+ 
+                @Override
+                protected void done() {
+                    try {
+                        fddViewer.setResult(get());
+                    } catch (Exception ex) {
+                        fddViewer.setStatusText("Failed to compute FDD.");
+                    }
+                }
+            };
+            fddWorker.execute();
+        }
 
         JLabel dampingRatioLabel = new JLabel("Damping Ratios (%)");
         dampingRatioLabel.setFont(new Font("Arial", Font.BOLD, 16));
