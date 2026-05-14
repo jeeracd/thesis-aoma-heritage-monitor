@@ -35,6 +35,7 @@ public final class CadViewportPanel extends JPanel {
     private boolean showPoints = true;
     private boolean showLabels = true;
     private boolean showValidation = true;
+    private boolean showAnnotations = true;
     private float pointsAlpha = 1.0f;
     private float labelsAlpha = 1.0f;
 
@@ -171,6 +172,11 @@ public final class CadViewportPanel extends JPanel {
         this.showPoints = showPoints;
         this.showLabels = showLabels;
         this.showValidation = showValidation;
+        repaint();
+    }
+
+    public void setShowAnnotations(boolean showAnnotations) {
+        this.showAnnotations = showAnnotations;
         repaint();
     }
 
@@ -419,6 +425,9 @@ public final class CadViewportPanel extends JPanel {
     }
 
     private void drawAnnotations(Graphics2D g2) {
+        if (!showAnnotations) {
+            return;
+        }
         if (annotations.isEmpty()) {
             return;
         }

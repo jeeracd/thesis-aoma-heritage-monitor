@@ -1,12 +1,21 @@
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 
 public class HeadViewDetails extends JFrame {
     private final UUID projectId;
@@ -907,24 +916,23 @@ public class HeadViewDetails extends JFrame {
         monitoringSessionLbl.setBounds(leftX, y + gap, 200, 25);
         formPanel.add(monitoringSessionLbl);
 
-        JComboBox<String> sessionDropdown = new JComboBox<>(new String[]{
-            "---none---", 
-            "#20260224-OMA-005"
-        });
+        Map<String, Path> sessionPaths = new LinkedHashMap<>();
+        DefaultComboBoxModel<String> sessionComboModel = new DefaultComboBoxModel<>();
+        sessionComboModel.addElement("---none---");
+        List<Path> availableSessions = OmaResultsModel.listAvailableOutDirs();
+        for (Path p : availableSessions) {
+            String label = "#" + p.getFileName().toString();
+            if (!sessionPaths.containsKey(label)) {
+                sessionPaths.put(label, p);
+                sessionComboModel.addElement(label);
+            }
+        }
+
+        JComboBox<String> sessionDropdown = new JComboBox<>(sessionComboModel);
         sessionDropdown.setFont(fieldFont);
         sessionDropdown.setBounds(leftX + 210, y + gap, 200, 30);
         sessionDropdown.setEnabled(true);
         formPanel.add(sessionDropdown);
-
-        sessionDropdown.addActionListener(e -> {
-            String selected = (String) sessionDropdown.getSelectedItem();
-
-            if (selected.equals("---none---")) {
-                setSize(1225, 720); // responsible for the size of the window
-            } else {
-                setSize(1225, 1500);
-            }
-        });
 
         JLabel reportTypeLbl = new JLabel("Select Report Type:");
         reportTypeLbl.setFont(labelFont);
@@ -1193,15 +1201,14 @@ public class HeadViewDetails extends JFrame {
             "MODE", "FREQ (fn)", "DAMPING (ζ)", "DEVIATION (Baseline)"
         };
 
-        // TABLE DATA
-        Object[][] modalData = {
-            {"1", " Hz", " %", "% (Stable)"},
-            {"2", " Hz", " %", "% (Stable)"},
-            {"3", " Hz", " %", "% (Stable)"}
+        DefaultTableModel modalTableModel = new DefaultTableModel(modalColumns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
         };
 
-        //TABLE
-        JTable modalTable = new JTable(modalData, modalColumns);
+        JTable modalTable = new JTable(modalTableModel);
         modalTable.setFont(new Font("Arial", Font.PLAIN, 13));
         modalTable.setRowHeight(30);
         modalTable.setEnabled(false); 
@@ -1318,6 +1325,155 @@ public class HeadViewDetails extends JFrame {
         fullAuditBtn.setBackground(new Color(132,166,210)); 
         executiveSummaryBtn.setBackground(Color.WHITE); 
         });
+
+        DateTimeFormatter sessionTimeFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault());
+        Runnable applySessionSelection = () -> {
+            String selected = (String) sessionDropdown.getSelectedItem();
+            Path outDir = selected == null ? null : sessionPaths.get(selected);
+            boolean hasSession = outDir != null;
+
+            reportTypeLbl.setVisible(hasSession);
+            reportTypePanel.setVisible(hasSession);
+            reportContainer.setVisible(hasSession);
+            executiveSummaryBtn.setEnabled(hasSession);
+            fullAuditBtn.setEnabled(hasSession);
+
+            if (!hasSession) {
+                setSize(1225, 720);
+                datasetExecLbl.setText("DATASET ID:");
+                dateAssessmentExecLbl.setText("DATE:");
+                statusExecLbl2.setText("STATUS:");
+                actionExecLbl.setText("ACTION:");
+                descExecText.setText("Select a monitoring session to view the report.");
+                dotExec1.setText("•");
+                dotExec2.setText("•");
+                dotExec3.setText("•");
+                recoExecText.setText("");
+
+                datasetTechLbl.setText("DATASET ID:");
+                dateAssessmentTechLbl.setText("DATE:");
+                modalTableModel.setRowCount(0);
+                reliabilityText.setText("Select a monitoring session to view technical details.");
+                lessThanSymbolTech1.setText("> Mode 1 MPC/MPD:");
+                lessThanSymbolTech2.setText("> Mode 2 MPC/MPD:");
+                lessThanSymbolTech3.setText("> Mode 3 MPC/MPD:");
+                dotTech1.setText("• Computational Run Time:");
+                dotTech2.setText("• Memory Usage:");
+                dotTech3.setText("• Time Sync Offset:");
+                spectralDataText.setText("Artifacts: ");
+                return;
+            }
+
+            setSize(1225, 1500);
+            OmaResultsModel results = OmaResultsModel.loadFromDirOrEmpty(outDir);
+
+            String dateStr;
+            try {
+                long ms = Long.parseLong(outDir.getFileName().toString());
+                dateStr = sessionTimeFmt.format(Instant.ofEpochMilli(ms));
+            } catch (Exception ex) {
+                dateStr = sessionTimeFmt.format(Instant.ofEpochMilli(outDir.toFile().lastModified()));
+            }
+
+            dateAssessmentExecLbl.setText("DATE: " + dateStr);
+            datasetExecLbl.setText("DATASET ID: " + selected);
+            dateAssessmentTechLbl.setText("DATE: " + dateStr);
+            datasetTechLbl.setText("DATASET ID: " + selected);
+
+            OmaResultsModel.Severity overall = OmaResultsModel.Severity.OK;
+            for (OmaResultsModel.ModeRow r : results.modes()) {
+                if (r.severity() == OmaResultsModel.Severity.CRITICAL) {
+                    overall = OmaResultsModel.Severity.CRITICAL;
+                    break;
+                }
+                if (r.severity() == OmaResultsModel.Severity.WARNING) {
+                    overall = OmaResultsModel.Severity.WARNING;
+                }
+            }
+
+            String statusText;
+            String actionText;
+            String descText;
+            String recoText;
+            if (overall == OmaResultsModel.Severity.OK) {
+                statusText = "STATUS: SERVICEABLE";
+                actionText = "ACTION: NO IMMEDIATE INTERVENTION REQUIRED";
+                descText = "The automated OMA analysis indicates stable vibration characteristics within expected bounds.";
+                recoText = "Continue monitoring. Schedule a visual inspection only if the risk level increases.";
+            } else if (overall == OmaResultsModel.Severity.WARNING) {
+                statusText = "STATUS: REVIEW REQUIRED";
+                actionText = "ACTION: PERFORM NON-INVASIVE SITE CHECK";
+                descText = "One or more indicators are out-of-tolerance. A focused, non-invasive inspection is recommended to protect heritage fabric.";
+                recoText = "Coordinate with a structural engineer and heritage conservator before any intervention. Increase monitoring frequency.";
+            } else {
+                statusText = "STATUS: UNSAFE / URGENT REVIEW";
+                actionText = "ACTION: ESCALATE TO ENGINEERING REVIEW";
+                descText = "Critical out-of-tolerance indicators were detected. Treat as urgent until verified by a qualified professional.";
+                recoText = "Restrict access to affected areas if needed and initiate an urgent engineering + conservation review.";
+            }
+
+            statusExecLbl2.setText(statusText);
+            actionExecLbl.setText(actionText);
+            descExecText.setText(descText);
+
+            int issues = results.issuesCount();
+            if (issues == 0) {
+                dotExec1.setText("• No out-of-tolerance modal indicators detected.");
+            } else {
+                dotExec1.setText("• " + issues + " out-of-tolerance modal indicators detected (review recommended).");
+            }
+            dotExec2.setText("• Results are automatically generated; verify on-site before intervention.");
+            dotExec3.setText("• Heritage note: prioritize reversible and non-invasive checks first.");
+            recoExecText.setText(recoText);
+
+            modalTableModel.setRowCount(0);
+            if (results.modes().isEmpty()) {
+                modalTableModel.addRow(new Object[] {"-", "-", "-", "No modal_properties.csv found"});
+            } else {
+                int count = 0;
+                for (OmaResultsModel.ModeRow r : results.modes()) {
+                    if (count >= 10) {
+                        break;
+                    }
+                    String fn = String.format("%.3f Hz", r.frequencyHz());
+                    String xi = Double.isFinite(r.dampingRatio()) ? String.format("%.2f %%", r.dampingRatio() * 100.0) : "N/A";
+                    String dev = "N/A (no baseline configured)";
+                    modalTableModel.addRow(new Object[] {String.valueOf(r.modeIndex()), fn, xi, dev});
+                    count++;
+                }
+            }
+
+            reliabilityText.setText("MPC/MPD indicators summarize mode-shape consistency (higher MPC and lower |MPD| are better).");
+            if (results.modes().size() >= 1) {
+                OmaResultsModel.ModeRow r = results.modes().get(0);
+                lessThanSymbolTech1.setText(String.format("> Mode %d MPC: %.3f | MPD: %.3f", r.modeIndex(), r.mpc(), r.mpd()));
+            } else {
+                lessThanSymbolTech1.setText("> Mode 1 MPC/MPD: N/A");
+            }
+            if (results.modes().size() >= 2) {
+                OmaResultsModel.ModeRow r = results.modes().get(1);
+                lessThanSymbolTech2.setText(String.format("> Mode %d MPC: %.3f | MPD: %.3f", r.modeIndex(), r.mpc(), r.mpd()));
+            } else {
+                lessThanSymbolTech2.setText("> Mode 2 MPC/MPD: N/A");
+            }
+            if (results.modes().size() >= 3) {
+                OmaResultsModel.ModeRow r = results.modes().get(2);
+                lessThanSymbolTech3.setText(String.format("> Mode %d MPC: %.3f | MPD: %.3f", r.modeIndex(), r.mpc(), r.mpd()));
+            } else {
+                lessThanSymbolTech3.setText("> Mode 3 MPC/MPD: N/A");
+            }
+
+            dotTech1.setText("• Computational Run Time: N/A");
+            dotTech2.setText("• Memory Usage: N/A");
+            dotTech3.setText("• Time Sync Offset: N/A");
+            spectralDataText.setText("Artifacts: " + outDir.toString());
+        };
+
+        for (ActionListener al : sessionDropdown.getActionListeners()) {
+            sessionDropdown.removeActionListener(al);
+        }
+        sessionDropdown.addActionListener(e -> applySessionSelection.run());
+        applySessionSelection.run();
 
         JPanel footerPanel = new JPanel(new BorderLayout());
         footerPanel.setPreferredSize(new Dimension(1400, 45));
