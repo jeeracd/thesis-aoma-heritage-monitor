@@ -17,6 +17,14 @@ Each dockable panel includes:
 - Dock: return to the workspace
 - Hide: remove the panel from the workspace
 
+### Drag Undock / Snap Dock
+- Drag a dock panel header to undock (float) it.
+- Floating panels snap back and re-dock when moved near their docking edge (left/right of the main window).
+
+### Restoring Hidden Panels
+- Workspace ribbon: use the Show Panel / Data Panel / Images Panel checkboxes to restore visibility
+- Workspace ribbon: Hidden... opens a list of currently hidden panels for one-click restore
+
 The Workspace ribbon provides quick repositioning:
 - Show->Left / Show->Right
 - Data->Left / Data->Right
@@ -56,6 +64,11 @@ The Show panel provides hierarchical visibility toggles:
 
 ### Search
 Use the Search box to highlight/filter visible categories quickly.
+
+### Tickbox Interaction
+- Mouse click toggles any item immediately (no double-click required).
+- Keyboard: select an item with arrow keys and press Space to toggle.
+- Parent categories auto-sync based on their children (checked only when all children are checked).
 
 ### Presets
 Buttons apply one-click visibility presets:
@@ -99,3 +112,7 @@ Supported commands:
 - export dxf|csv|excel|pdf
 - reset view
 
+## Restoring Hidden Windows (App-wide)
+If a window was hidden (not closed), open:
+- View → Hidden Windows...
+and restore it from the list.

@@ -5,6 +5,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.tree.*;
 import java.awt.*;
@@ -35,6 +36,9 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
     private final OmaResultsTableModel tableModel = new OmaResultsTableModel();
     private final JTable table = new JTable(tableModel);
     private final TableRowSorter<OmaResultsTableModel> sorter = new TableRowSorter<>(tableModel);
+    private final DefaultTableModel macTableModel = new DefaultTableModel();
+    private final JTable macTable = new JTable(macTableModel);
+    private final JLabel macInfo = new JLabel("");
 
     private final JLabel statusLeft = new JLabel("Ready");
     private final JLabel statusCenter = new JLabel("");
@@ -51,9 +55,17 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
     private DockPosition showDockPos = DockPosition.LEFT;
     private DockPosition dataDockPos = DockPosition.RIGHT;
 
+    private JCheckBox showDockToggle;
+    private JCheckBox dataDockToggle;
+    private JCheckBox imagesDockToggle;
+
+    private JSplitPane leftCenterRightSplit;
+    private JSplitPane centerRightSplit;
+
     private boolean layerPoints = true;
     private boolean layerLabels = true;
     private boolean layerValidation = true;
+    private boolean layerAnnotations = true;
     private float alphaPoints = 1.0f;
     private float alphaLabels = 1.0f;
 
@@ -116,9 +128,9 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         JPanel statusBar = buildStatusBar();
         JPanel bottom = buildCommandAndStatus(statusBar);
 
-        showDock = new DockablePanel("show", "Show", buildShowPanel(), this::applyDockLayout);
-        dataDock = new DockablePanel("data", "Data", buildDataPanel(), this::applyDockLayout);
-        imagesDock = new DockablePanel("images", "PyOMA2 Images", buildImagesPanel(), this::applyDockLayout);
+        showDock = new DockablePanel("show", "Show", buildShowPanel(), this::applyDockLayout, this::onDockVisibilityChanged);
+        dataDock = new DockablePanel("data", "Data", buildDataPanel(), this::applyDockLayout, this::onDockVisibilityChanged);
+        imagesDock = new DockablePanel("images", "PyOMA2 Images", buildImagesPanel(), this::applyDockLayout, this::onDockVisibilityChanged);
 
         splitViewports.setLeftComponent(wrapViewport(viewportA, "Viewport A"));
         splitViewports.setRightComponent(wrapViewport(viewportB, "Viewport B"));
@@ -134,6 +146,8 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
 
         JSplitPane leftCenterRight = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         leftCenterRight.setResizeWeight(0.20);
+        leftCenterRightSplit = leftCenterRight;
+        centerRightSplit = centerRight;
 
         JPanel root = new JPanel(new BorderLayout());
         root.add(ribbon, BorderLayout.NORTH);
@@ -143,6 +157,8 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
 
         restoreLayout(leftCenterRight, centerRight);
         applyDockLayout(leftCenterRight, centerRight);
+        syncWorkspaceToggles();
+        syncShowTreeFromState();
 
         addWindowListener(new WindowAdapter() {
             @Override
@@ -256,6 +272,36 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         JToolBar tb = new JToolBar();
         tb.setFloatable(false);
 
+        showDockToggle = new JCheckBox("Show Panel");
+        showDockToggle.setSelected(true);
+        showDockToggle.setMnemonic('S');
+        showDockToggle.addActionListener(e -> {
+            if (showDock != null) {
+                showDock.setVisibleInWorkspace(showDockToggle.isSelected());
+                applyDockLayout();
+            }
+        });
+
+        dataDockToggle = new JCheckBox("Data Panel");
+        dataDockToggle.setSelected(true);
+        dataDockToggle.setMnemonic('D');
+        dataDockToggle.addActionListener(e -> {
+            if (dataDock != null) {
+                dataDock.setVisibleInWorkspace(dataDockToggle.isSelected());
+                applyDockLayout();
+            }
+        });
+
+        imagesDockToggle = new JCheckBox("Images Panel");
+        imagesDockToggle.setSelected(true);
+        imagesDockToggle.setMnemonic('I');
+        imagesDockToggle.addActionListener(e -> {
+            if (imagesDock != null) {
+                imagesDock.setVisibleInWorkspace(imagesDockToggle.isSelected());
+                applyDockLayout();
+            }
+        });
+
         JButton showLeft = new JButton("Show->Left");
         showLeft.addActionListener(e -> {
             showDockPos = DockPosition.LEFT;
@@ -280,20 +326,27 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
             applyDockLayout();
         });
 
-        JCheckBox showImages = new JCheckBox("Show Images");
-        showImages.setSelected(true);
-        showImages.addActionListener(e -> {
-            imagesDock.setVisibleInWorkspace(showImages.isSelected());
-            applyDockLayout();
-        });
+        JButton hiddenPanels = new JButton("Hidden...");
+        hiddenPanels.setMnemonic('H');
+        hiddenPanels.addActionListener(e -> showHiddenPanelsDialog());
 
+        JButton resetLayout = new JButton("Reset Layout");
+        resetLayout.setMnemonic('R');
+        resetLayout.addActionListener(e -> resetWorkspaceLayout());
+
+        tb.add(showDockToggle);
+        tb.add(dataDockToggle);
+        tb.add(imagesDockToggle);
+        tb.addSeparator();
+        tb.add(hiddenPanels);
+        tb.add(resetLayout);
+        tb.addSeparator();
         tb.add(showLeft);
         tb.add(showRight);
         tb.addSeparator();
         tb.add(dataLeft);
         tb.add(dataRight);
         tb.addSeparator();
-        tb.add(showImages);
         return wrapRibbon(tb);
     }
 
@@ -311,7 +364,7 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         DefaultMutableTreeNode oma = new DefaultMutableTreeNode(new LayerItem("cat_oma", "OMA Results", true, true));
         oma.add(new DefaultMutableTreeNode(new LayerItem("layer_validation", "Validation Flags", false, layerValidation)));
         DefaultMutableTreeNode overlays = new DefaultMutableTreeNode(new LayerItem("cat_overlays", "Overlays", true, true));
-        overlays.add(new DefaultMutableTreeNode(new LayerItem("layer_annotations", "Annotations", false, true)));
+        overlays.add(new DefaultMutableTreeNode(new LayerItem("layer_annotations", "Annotations", false, layerAnnotations)));
 
         root.add(natural);
         root.add(oma);
@@ -322,9 +375,142 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         tree.setShowsRootHandles(true);
         tree.setCellRenderer(new CheckBoxTreeRenderer());
         tree.setCellEditor(new CheckBoxTreeEditor(tree, (DefaultTreeCellRenderer) tree.getCellRenderer()));
-        tree.setEditable(true);
+        tree.setEditable(false);
 
         expandAll(tree);
+
+        DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
+        MouseAdapter toggleMouse = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+                if (path == null) {
+                    return;
+                }
+                Object n = path.getLastPathComponent();
+                if (!(n instanceof DefaultMutableTreeNode node)) {
+                    return;
+                }
+                if (!(node.getUserObject() instanceof LayerItem li)) {
+                    return;
+                }
+                boolean newVal = !li.isSelected();
+                li.setSelected(newVal);
+                if (li.isCategory()) {
+                    setChildrenSelected(node, newVal);
+                }
+                updateParentsFromChildren(node);
+                applyLayerFromTree();
+                treeModel.reload();
+                expandAll(tree);
+            }
+
+            private void setChildrenSelected(DefaultMutableTreeNode node, boolean selected) {
+                for (int i = 0; i < node.getChildCount(); i++) {
+                    DefaultMutableTreeNode c = (DefaultMutableTreeNode) node.getChildAt(i);
+                    Object uo = c.getUserObject();
+                    if (uo instanceof LayerItem li) {
+                        li.setSelected(selected);
+                    }
+                    if (c.getChildCount() > 0) {
+                        setChildrenSelected(c, selected);
+                    }
+                }
+            }
+
+            private void updateParentsFromChildren(DefaultMutableTreeNode node) {
+                TreeNode parent = node.getParent();
+                if (!(parent instanceof DefaultMutableTreeNode p)) {
+                    return;
+                }
+                Object uo = p.getUserObject();
+                if (uo instanceof LayerItem li && li.isCategory()) {
+                    boolean allSelected = true;
+                    boolean hasChild = false;
+                    for (int i = 0; i < p.getChildCount(); i++) {
+                        DefaultMutableTreeNode c = (DefaultMutableTreeNode) p.getChildAt(i);
+                        Object cuo = c.getUserObject();
+                        if (cuo instanceof LayerItem cli) {
+                            hasChild = true;
+                            if (!cli.isSelected()) {
+                                allSelected = false;
+                            }
+                        }
+                    }
+                    if (hasChild) {
+                        li.setSelected(allSelected);
+                    }
+                }
+                updateParentsFromChildren(p);
+            }
+        };
+        tree.addMouseListener(toggleMouse);
+
+        tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "toggle_check");
+        tree.getActionMap().put("toggle_check", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                TreePath path = tree.getSelectionPath();
+                if (path == null) {
+                    return;
+                }
+                Object n = path.getLastPathComponent();
+                if (!(n instanceof DefaultMutableTreeNode node)) {
+                    return;
+                }
+                if (!(node.getUserObject() instanceof LayerItem li)) {
+                    return;
+                }
+                boolean newVal = !li.isSelected();
+                li.setSelected(newVal);
+                if (li.isCategory()) {
+                    setChildrenSelected(node, newVal);
+                }
+                updateParentsFromChildren(node);
+                treeModel.reload();
+                expandAll(tree);
+                applyLayerFromTree();
+            }
+
+            private void setChildrenSelected(DefaultMutableTreeNode node, boolean selected) {
+                for (int i = 0; i < node.getChildCount(); i++) {
+                    DefaultMutableTreeNode c = (DefaultMutableTreeNode) node.getChildAt(i);
+                    Object uo = c.getUserObject();
+                    if (uo instanceof LayerItem li) {
+                        li.setSelected(selected);
+                    }
+                    if (c.getChildCount() > 0) {
+                        setChildrenSelected(c, selected);
+                    }
+                }
+            }
+
+            private void updateParentsFromChildren(DefaultMutableTreeNode node) {
+                TreeNode parent = node.getParent();
+                if (!(parent instanceof DefaultMutableTreeNode p)) {
+                    return;
+                }
+                Object uo = p.getUserObject();
+                if (uo instanceof LayerItem li && li.isCategory()) {
+                    boolean allSelected = true;
+                    boolean hasChild = false;
+                    for (int i = 0; i < p.getChildCount(); i++) {
+                        DefaultMutableTreeNode c = (DefaultMutableTreeNode) p.getChildAt(i);
+                        Object cuo = c.getUserObject();
+                        if (cuo instanceof LayerItem cli) {
+                            hasChild = true;
+                            if (!cli.isSelected()) {
+                                allSelected = false;
+                            }
+                        }
+                    }
+                    if (hasChild) {
+                        li.setSelected(allSelected);
+                    }
+                }
+                updateParentsFromChildren(p);
+            }
+        });
 
         JTextField search = new JTextField();
         search.getDocument().addDocumentListener(new DocumentListener() {
@@ -488,10 +674,80 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         top.add(filter, BorderLayout.CENTER);
         top.add(details, BorderLayout.EAST);
 
+        JPanel modes = new JPanel(new BorderLayout());
+        modes.add(top, BorderLayout.NORTH);
+        modes.add(new JScrollPane(table), BorderLayout.CENTER);
+
+        JPanel mac = buildMacPanel();
+        updateMacPanel();
+
+        JTabbedPane tabs = new JTabbedPane(JTabbedPane.TOP);
+        tabs.setFont(new Font("Arial", Font.BOLD, 12));
+        tabs.addTab("Modes", modes);
+        tabs.addTab("MAC", mac);
+
         JPanel body = new JPanel(new BorderLayout());
-        body.add(top, BorderLayout.NORTH);
-        body.add(new JScrollPane(table), BorderLayout.CENTER);
+        body.add(tabs, BorderLayout.CENTER);
         return body;
+    }
+
+    private JPanel buildMacPanel() {
+        macTable.setFillsViewportHeight(true);
+        macTable.setRowSelectionAllowed(true);
+        macTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        macTable.setFont(new Font("Consolas", Font.PLAIN, 12));
+        macTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+
+        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+        center.setHorizontalAlignment(SwingConstants.CENTER);
+        macTable.setDefaultRenderer(Object.class, center);
+
+        macInfo.setFont(new Font("Arial", Font.PLAIN, 12));
+
+        JPanel top = new JPanel(new BorderLayout(8, 8));
+        top.setBorder(new EmptyBorder(8, 8, 8, 8));
+        top.add(macInfo, BorderLayout.CENTER);
+
+        JScrollPane sp = new JScrollPane(macTable);
+        sp.setBorder(new EmptyBorder(0, 8, 8, 8));
+
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(top, BorderLayout.NORTH);
+        p.add(sp, BorderLayout.CENTER);
+        return p;
+    }
+
+    private void updateMacPanel() {
+        double[][] mac = model == null ? new double[0][0] : model.macMatrix();
+        if (mac.length == 0) {
+            macInfo.setText("MAC not available (need at least 2 modes).");
+            macTableModel.setRowCount(0);
+            macTableModel.setColumnCount(0);
+            return;
+        }
+
+        int n = mac.length;
+        String[] cols = new String[n + 1];
+        cols[0] = "Mode";
+        for (int i = 0; i < n; i++) {
+            cols[i + 1] = String.valueOf(i + 1);
+        }
+        macTableModel.setDataVector(new Object[0][0], cols);
+
+        for (int i = 0; i < n; i++) {
+            Object[] row = new Object[n + 1];
+            row[0] = String.valueOf(i + 1);
+            for (int j = 0; j < n; j++) {
+                double v = mac[i][j];
+                row[j + 1] = Double.isFinite(v) ? String.format("%.3f", v) : "N/A";
+            }
+            macTableModel.addRow(row);
+        }
+
+        for (int i = 0; i < n + 1; i++) {
+            macTable.getColumnModel().getColumn(i).setPreferredWidth(i == 0 ? 60 : 70);
+        }
+        macInfo.setText("MAC matrix (0–1). Diagonal should be ~1.00; off-diagonals near 0.00 indicate distinct modes.");
     }
 
     private JComponent buildImagesPanel() {
@@ -609,17 +865,10 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         JPanel centerHost = new JPanel(new BorderLayout());
         centerHost.add(splitViewports, BorderLayout.CENTER);
 
-        if (showDock.isFloating()) {
-            showDockPos = DockPosition.FLOAT;
-        }
-        if (dataDock.isFloating()) {
-            dataDockPos = DockPosition.FLOAT;
-        }
-
         java.util.List<JComponent> leftPanels = new java.util.ArrayList<>();
         java.util.List<JComponent> rightPanels = new java.util.ArrayList<>();
 
-        if (showDock.isVisibleInWorkspace() && showDockPos != DockPosition.FLOAT) {
+        if (showDock.isVisibleInWorkspace() && !showDock.isFloating()) {
             if (showDockPos == DockPosition.LEFT) {
                 leftPanels.add(showDock.getComponent());
             } else {
@@ -627,7 +876,7 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
             }
         }
 
-        if (dataDock.isVisibleInWorkspace() && dataDockPos != DockPosition.FLOAT) {
+        if (dataDock.isVisibleInWorkspace() && !dataDock.isFloating()) {
             if (dataDockPos == DockPosition.LEFT) {
                 leftPanels.add(dataDock.getComponent());
             } else {
@@ -651,6 +900,130 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         updateSplitEnabled();
         revalidate();
         repaint();
+    }
+
+    private void onDockVisibilityChanged(String id, Boolean visible) {
+        if (id == null || visible == null) {
+            return;
+        }
+        SwingUtilities.invokeLater(() -> {
+            if ("show".equals(id) && showDockToggle != null) {
+                showDockToggle.setSelected(visible);
+            } else if ("data".equals(id) && dataDockToggle != null) {
+                dataDockToggle.setSelected(visible);
+            } else if ("images".equals(id) && imagesDockToggle != null) {
+                imagesDockToggle.setSelected(visible);
+            }
+        });
+    }
+
+    private void syncWorkspaceToggles() {
+        if (showDockToggle != null && showDock != null) {
+            showDockToggle.setSelected(showDock.isVisibleInWorkspace());
+        }
+        if (dataDockToggle != null && dataDock != null) {
+            dataDockToggle.setSelected(dataDock.isVisibleInWorkspace());
+        }
+        if (imagesDockToggle != null && imagesDock != null) {
+            imagesDockToggle.setSelected(imagesDock.isVisibleInWorkspace());
+        }
+    }
+
+    private void showHiddenPanelsDialog() {
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        if (showDock != null && !showDock.isVisibleInWorkspace()) {
+            listModel.addElement("Show");
+        }
+        if (dataDock != null && !dataDock.isVisibleInWorkspace()) {
+            listModel.addElement("Data");
+        }
+        if (imagesDock != null && !imagesDock.isVisibleInWorkspace()) {
+            listModel.addElement("PyOMA2 Images");
+        }
+
+        JList<String> list = new JList<>(listModel);
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        JButton restore = new JButton("Restore");
+        restore.setMnemonic('R');
+        restore.addActionListener(e -> {
+            String sel = list.getSelectedValue();
+            if (sel == null) {
+                return;
+            }
+            if ("Show".equals(sel) && showDock != null) {
+                showDock.setVisibleInWorkspace(true);
+            } else if ("Data".equals(sel) && dataDock != null) {
+                dataDock.setVisibleInWorkspace(true);
+            } else if ("PyOMA2 Images".equals(sel) && imagesDock != null) {
+                imagesDock.setVisibleInWorkspace(true);
+            }
+            applyDockLayout();
+            syncWorkspaceToggles();
+            listModel.removeElement(sel);
+        });
+
+        JButton restoreAll = new JButton("Restore All");
+        restoreAll.setMnemonic('A');
+        restoreAll.addActionListener(e -> {
+            if (showDock != null) showDock.setVisibleInWorkspace(true);
+            if (dataDock != null) dataDock.setVisibleInWorkspace(true);
+            if (imagesDock != null) imagesDock.setVisibleInWorkspace(true);
+            applyDockLayout();
+            syncWorkspaceToggles();
+            listModel.clear();
+        });
+
+        JButton close = new JButton("Close");
+        close.setMnemonic('C');
+
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
+        buttons.add(restore);
+        buttons.add(restoreAll);
+        buttons.add(close);
+
+        JPanel body = new JPanel(new BorderLayout());
+        body.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        body.add(new JScrollPane(list), BorderLayout.CENTER);
+        body.add(buttons, BorderLayout.SOUTH);
+
+        JDialog dialog = new JDialog(this, "Hidden Panels", Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        dialog.setLayout(new BorderLayout());
+        dialog.add(body, BorderLayout.CENTER);
+        dialog.setSize(420, 320);
+        dialog.setLocationRelativeTo(this);
+        close.addActionListener(e -> dialog.dispose());
+        dialog.getRootPane().setDefaultButton(restore);
+        dialog.setVisible(true);
+    }
+
+    private void resetWorkspaceLayout() {
+        int confirm = JOptionPane.showConfirmDialog(this, "Reset workspace layout to default?", "Reset Layout", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+        try {
+            splitEnabled = true;
+            showDockPos = DockPosition.LEFT;
+            dataDockPos = DockPosition.RIGHT;
+            if (showDock != null) showDock.setVisibleInWorkspace(true);
+            if (dataDock != null) dataDock.setVisibleInWorkspace(true);
+            if (imagesDock != null) imagesDock.setVisibleInWorkspace(true);
+            syncWorkspaceToggles();
+            applyDockLayout();
+            if (leftCenterRightSplit != null) {
+                leftCenterRightSplit.setDividerLocation(320);
+            }
+            if (centerRightSplit != null) {
+                centerRightSplit.setDividerLocation(1020);
+            }
+            splitViewports.setDividerLocation(650);
+            updateSplitEnabled();
+            statusLeft.setText("Workspace layout reset");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage() == null ? "Failed to reset layout." : ex.getMessage(), "Reset Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private static JComponent stackVertical(java.util.List<JComponent> panels) {
@@ -727,6 +1100,7 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         viewportB.setModel(model);
         updateStatusRight();
         imagesDock.replaceContent(buildImagesPanel());
+        updateMacPanel();
     }
 
     private void applyPreset(String preset) {
@@ -734,22 +1108,28 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
             layerPoints = true;
             layerLabels = false;
             layerValidation = true;
+            layerAnnotations = true;
         } else if ("Advanced Diagnostics".equalsIgnoreCase(preset)) {
             layerPoints = true;
             layerLabels = true;
             layerValidation = true;
+            layerAnnotations = true;
         } else {
             layerPoints = true;
             layerLabels = true;
             layerValidation = true;
+            layerAnnotations = true;
         }
         applyLayerSettings();
+        syncShowTreeFromState();
         statusLeft.setText("Preset: " + preset);
     }
 
     private void applyLayerSettings() {
         viewportA.setLayerVisibility(layerPoints, layerLabels, layerValidation);
         viewportB.setLayerVisibility(layerPoints, layerLabels, layerValidation);
+        viewportA.setShowAnnotations(layerAnnotations);
+        viewportB.setShowAnnotations(layerAnnotations);
         viewportA.setLayerAlpha(alphaPoints, alphaLabels);
         viewportB.setLayerAlpha(alphaPoints, alphaLabels);
     }
@@ -1041,9 +1421,20 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         dataDockPos = parseDockPos(prefs.get("data_pos", DockPosition.RIGHT.name()), DockPosition.RIGHT);
         splitEnabled = prefs.getBoolean("split_enabled", true);
 
+        if (showDock != null) {
+            showDock.setVisibleInWorkspace(prefs.getBoolean("dock_show_visible", true));
+        }
+        if (dataDock != null) {
+            dataDock.setVisibleInWorkspace(prefs.getBoolean("dock_data_visible", true));
+        }
+        if (imagesDock != null) {
+            imagesDock.setVisibleInWorkspace(prefs.getBoolean("dock_images_visible", true));
+        }
+
         layerPoints = prefs.getBoolean("layer_points", true);
         layerLabels = prefs.getBoolean("layer_labels", true);
         layerValidation = prefs.getBoolean("layer_validation", true);
+        layerAnnotations = prefs.getBoolean("layer_annotations", true);
         alphaPoints = prefs.getInt("alpha_points", 100) / 100f;
         alphaLabels = prefs.getInt("alpha_labels", 100) / 100f;
 
@@ -1076,9 +1467,14 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         prefs.put("data_pos", dataDockPos.name());
         prefs.putBoolean("split_enabled", splitEnabled);
 
+        prefs.putBoolean("dock_show_visible", showDock != null && showDock.isVisibleInWorkspace());
+        prefs.putBoolean("dock_data_visible", dataDock != null && dataDock.isVisibleInWorkspace());
+        prefs.putBoolean("dock_images_visible", imagesDock != null && imagesDock.isVisibleInWorkspace());
+
         prefs.putBoolean("layer_points", layerPoints);
         prefs.putBoolean("layer_labels", layerLabels);
         prefs.putBoolean("layer_validation", layerValidation);
+        prefs.putBoolean("layer_annotations", layerAnnotations);
         prefs.putInt("alpha_points", Math.round(alphaPoints * 100));
         prefs.putInt("alpha_labels", Math.round(alphaLabels * 100));
 
@@ -1171,6 +1567,7 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
     private final class CheckBoxTreeEditor extends AbstractCellEditor implements TreeCellEditor {
         private final JTree tree;
         private final JCheckBox checkBox = new JCheckBox();
+        private DefaultMutableTreeNode editingNode;
 
         private CheckBoxTreeEditor(JTree tree, DefaultTreeCellRenderer renderer) {
             this.tree = tree;
@@ -1187,7 +1584,9 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
 
         @Override
         public Component getTreeCellEditorComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row) {
+            editingNode = null;
             if (value instanceof DefaultMutableTreeNode node && node.getUserObject() instanceof LayerItem li) {
+                editingNode = node;
                 checkBox.setText(li.name());
                 checkBox.setSelected(li.isSelected());
                 checkBox.setFont(new Font("Arial", li.isCategory() ? Font.BOLD : Font.PLAIN, 12));
@@ -1197,12 +1596,8 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
 
         @Override
         public boolean stopCellEditing() {
-            TreePath path = tree.getSelectionPath();
-            if (path == null) {
-                return super.stopCellEditing();
-            }
-            Object n = path.getLastPathComponent();
-            if (!(n instanceof DefaultMutableTreeNode node) || !(node.getUserObject() instanceof LayerItem li)) {
+            DefaultMutableTreeNode node = editingNode;
+            if (node == null || !(node.getUserObject() instanceof LayerItem li)) {
                 return super.stopCellEditing();
             }
             boolean newVal = checkBox.isSelected();
@@ -1210,9 +1605,11 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
             if (li.isCategory()) {
                 setChildrenSelected(node, newVal);
             }
+            updateParentsFromChildren(node);
             applyLayerFromTree();
-            ((DefaultTreeModel) tree.getModel()).nodeChanged(node);
-            tree.repaint();
+            DefaultTreeModel tm = (DefaultTreeModel) tree.getModel();
+            tm.reload();
+            expandAll(tree);
             return super.stopCellEditing();
         }
 
@@ -1227,6 +1624,32 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
                     setChildrenSelected(c, selected);
                 }
             }
+        }
+
+        private void updateParentsFromChildren(DefaultMutableTreeNode node) {
+            TreeNode parent = node.getParent();
+            if (!(parent instanceof DefaultMutableTreeNode p)) {
+                return;
+            }
+            Object uo = p.getUserObject();
+            if (uo instanceof LayerItem li && li.isCategory()) {
+                boolean allSelected = true;
+                boolean hasChild = false;
+                for (int i = 0; i < p.getChildCount(); i++) {
+                    DefaultMutableTreeNode c = (DefaultMutableTreeNode) p.getChildAt(i);
+                    Object cuo = c.getUserObject();
+                    if (cuo instanceof LayerItem cli) {
+                        hasChild = true;
+                        if (!cli.isSelected()) {
+                            allSelected = false;
+                        }
+                    }
+                }
+                if (hasChild) {
+                    li.setSelected(allSelected);
+                }
+            }
+            updateParentsFromChildren(p);
         }
     }
 
@@ -1243,10 +1666,84 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         Boolean p = findSelectedById(root, "layer_points");
         Boolean l = findSelectedById(root, "layer_labels");
         Boolean v = findSelectedById(root, "layer_validation");
+        Boolean a = findSelectedById(root, "layer_annotations");
         if (p != null) layerPoints = p;
         if (l != null) layerLabels = l;
         if (v != null) layerValidation = v;
+        if (a != null) layerAnnotations = a;
         applyLayerSettings();
+        validateShowTreeState();
+    }
+
+    private void validateShowTreeState() {
+        Container c = showDock == null ? null : showDock.getComponent();
+        if (c == null) {
+            return;
+        }
+        JTree tree = findFirstTree(c);
+        if (tree == null) {
+            return;
+        }
+        DefaultTreeModel tm = (DefaultTreeModel) tree.getModel();
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode) tm.getRoot();
+
+        boolean changed = false;
+        changed |= setSelectedById(root, "layer_points", layerPoints);
+        changed |= setSelectedById(root, "layer_labels", layerLabels);
+        changed |= setSelectedById(root, "layer_validation", layerValidation);
+        changed |= setSelectedById(root, "layer_annotations", layerAnnotations);
+        changed |= updateCategoriesFromChildren(root);
+        if (changed) {
+            tm.reload();
+            expandAll(tree);
+        }
+    }
+
+    private void syncShowTreeFromState() {
+        validateShowTreeState();
+    }
+
+    private static boolean setSelectedById(DefaultMutableTreeNode node, String id, boolean selected) {
+        Object uo = node.getUserObject();
+        boolean changed = false;
+        if (uo instanceof LayerItem li && id.equals(li.id())) {
+            if (li.isSelected() != selected) {
+                li.setSelected(selected);
+                changed = true;
+            }
+        }
+        for (int i = 0; i < node.getChildCount(); i++) {
+            changed |= setSelectedById((DefaultMutableTreeNode) node.getChildAt(i), id, selected);
+        }
+        return changed;
+    }
+
+    private static boolean updateCategoriesFromChildren(DefaultMutableTreeNode node) {
+        boolean changed = false;
+        for (int i = 0; i < node.getChildCount(); i++) {
+            changed |= updateCategoriesFromChildren((DefaultMutableTreeNode) node.getChildAt(i));
+        }
+        Object uo = node.getUserObject();
+        if (!(uo instanceof LayerItem li) || !li.isCategory()) {
+            return changed;
+        }
+        boolean allSelected = true;
+        boolean hasChild = false;
+        for (int i = 0; i < node.getChildCount(); i++) {
+            DefaultMutableTreeNode c = (DefaultMutableTreeNode) node.getChildAt(i);
+            Object cuo = c.getUserObject();
+            if (cuo instanceof LayerItem cli) {
+                hasChild = true;
+                if (!cli.isSelected()) {
+                    allSelected = false;
+                }
+            }
+        }
+        if (hasChild && li.isSelected() != allSelected) {
+            li.setSelected(allSelected);
+            changed = true;
+        }
+        return changed;
     }
 
     private static Boolean findSelectedById(DefaultMutableTreeNode node, String id) {
@@ -1285,20 +1782,26 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         return null;
     }
 
-    private static final class DockablePanel {
+    private final class DockablePanel {
         private final String id;
         private final String title;
         private JComponent content;
         private final Runnable dockChanged;
+        private final java.util.function.BiConsumer<String, Boolean> visibilityListener;
         private final JPanel wrapper = new JPanel(new BorderLayout());
         private boolean visibleInWorkspace = true;
         private JDialog floatDialog;
+        private Point dragStart;
+        private boolean dockInProgress;
+        private long lastSnapMillis;
+        private boolean suppressCloseHandler;
 
-        private DockablePanel(String id, String title, JComponent content, Runnable dockChanged) {
+        private DockablePanel(String id, String title, JComponent content, Runnable dockChanged, java.util.function.BiConsumer<String, Boolean> visibilityListener) {
             this.id = id;
             this.title = title;
             this.content = content;
             this.dockChanged = dockChanged;
+            this.visibilityListener = visibilityListener;
             rebuild();
         }
 
@@ -1317,6 +1820,9 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
                     floatDialog.dispose();
                     floatDialog = null;
                 }
+            }
+            if (visibilityListener != null) {
+                visibilityListener.accept(id, visibleInWorkspace);
             }
         }
 
@@ -1344,7 +1850,7 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
             floatBtn.addActionListener(e -> floatPanel());
             dockBtn.addActionListener(e -> dockPanel());
             closeBtn.addActionListener(e -> {
-                visibleInWorkspace = false;
+                setVisibleInWorkspace(false);
                 dockPanel();
                 dockChanged.run();
             });
@@ -1357,6 +1863,37 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
 
             header.add(t, BorderLayout.WEST);
             header.add(right, BorderLayout.EAST);
+
+            MouseAdapter drag = new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    dragStart = e.getPoint();
+                }
+
+                @Override
+                public void mouseDragged(MouseEvent e) {
+                    if (isFloating()) {
+                        return;
+                    }
+                    if (dragStart == null) {
+                        dragStart = e.getPoint();
+                        return;
+                    }
+                    int dx = Math.abs(e.getX() - dragStart.x);
+                    int dy = Math.abs(e.getY() - dragStart.y);
+                    if (dx + dy > 8) {
+                        floatPanel();
+                        dragStart = null;
+                    }
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    dragStart = null;
+                }
+            };
+            header.addMouseListener(drag);
+            header.addMouseMotionListener(drag);
             wrapper.add(header, BorderLayout.NORTH);
             wrapper.add(content, BorderLayout.CENTER);
         }
@@ -1374,10 +1911,21 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
             floatDialog.add(content, BorderLayout.CENTER);
             floatDialog.setSize(520, 520);
             floatDialog.setLocationRelativeTo(owner);
+            floatDialog.addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentMoved(ComponentEvent e) {
+                    maybeSnapDock(owner);
+                }
+            });
             floatDialog.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosed(WindowEvent e) {
+                    if (suppressCloseHandler) {
+                        suppressCloseHandler = false;
+                        return;
+                    }
                     floatDialog = null;
+                    dockPanel();
                     dockChanged.run();
                 }
             });
@@ -1385,8 +1933,93 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
             dockChanged.run();
         }
 
+
+        private void maybeSnapDock(Window owner) {
+            if (dockInProgress) {
+                return;
+            }
+            if (floatDialog == null || !floatDialog.isVisible()) {
+                return;
+            }
+            if (owner == null || !owner.isVisible()) {
+                return;
+            }
+            long now = System.currentTimeMillis();
+            if (now - lastSnapMillis < 350) {
+                return;
+            }
+
+            Rectangle o = owner.getBounds();
+            Rectangle d = floatDialog.getBounds();
+
+            DockPosition dockSide = desiredDockSide();
+            int snapPx = 24;
+            boolean near = false;
+            Point target = null;
+            if (dockSide == DockPosition.LEFT) {
+                int dist = Math.abs(d.x - o.x);
+                near = dist <= snapPx;
+                target = new Point(o.x + 12, o.y + 110);
+            } else if (dockSide == DockPosition.RIGHT) {
+                int dist = Math.abs((d.x + d.width) - (o.x + o.width));
+                near = dist <= snapPx;
+                target = new Point(o.x + o.width - d.width - 12, o.y + 110);
+            }
+
+            if (!near || target == null) {
+                return;
+            }
+            lastSnapMillis = now;
+            animateDockTo(target);
+        }
+
+        private DockPosition desiredDockSide() {
+            if ("show".equals(id)) {
+                return showDockPos;
+            }
+            if ("data".equals(id)) {
+                return dataDockPos;
+            }
+            return DockPosition.RIGHT;
+        }
+
+        private void animateDockTo(Point target) {
+            if (floatDialog == null) {
+                return;
+            }
+            dockInProgress = true;
+            Point start = floatDialog.getLocationOnScreen();
+            int steps = 10;
+            int ms = 150;
+            Timer timer = new Timer(ms / steps, null);
+            final int[] k = new int[] {0};
+            timer.addActionListener(ev -> {
+                k[0]++;
+                double t = k[0] / (double) steps;
+                int x = (int) Math.round(start.x + (target.x - start.x) * t);
+                int y = (int) Math.round(start.y + (target.y - start.y) * t);
+                try {
+                    if (floatDialog != null) {
+                        floatDialog.setLocation(x, y);
+                    }
+                } catch (Exception ex) {
+                }
+                if (k[0] >= steps) {
+                    ((Timer) ev.getSource()).stop();
+                    try {
+                        dockPanel();
+                        dockChanged.run();
+                    } finally {
+                        dockInProgress = false;
+                    }
+                }
+            });
+            timer.setRepeats(true);
+            timer.start();
+        }
         private void dockPanel() {
             if (floatDialog != null) {
+                suppressCloseHandler = true;
                 floatDialog.dispose();
                 floatDialog = null;
             }

@@ -34,11 +34,13 @@ public final class OmaResultsModel {
     private final Path outDir;
     private final List<ModeRow> modes;
     private final Properties summary;
+    private final double[][] macMatrix;
 
-    private OmaResultsModel(Path outDir, List<ModeRow> modes, Properties summary) {
+    private OmaResultsModel(Path outDir, List<ModeRow> modes, Properties summary, double[][] macMatrix) {
         this.outDir = outDir;
         this.modes = modes;
         this.summary = summary;
+        this.macMatrix = macMatrix;
     }
 
     public Path outDir() {
@@ -51,6 +53,10 @@ public final class OmaResultsModel {
 
     public Properties summary() {
         return summary;
+    }
+
+    public double[][] macMatrix() {
+        return macMatrix;
     }
 
     public int issuesCount() {
@@ -87,19 +93,47 @@ public final class OmaResultsModel {
         }
     }
 
+    public static List<Path> listAvailableOutDirs() {
+        Path base = Path.of(System.getProperty("user.home"), ".aoma-heritage-monitor", "pyoma2-results");
+        if (!Files.isDirectory(base)) {
+            return List.of();
+        }
+        try {
+            List<Path> dirs = Files.list(base)
+                    .filter(Files::isDirectory)
+                    .sorted((a, b) -> Long.compare(sortKey(b), sortKey(a)))
+                    .toList();
+            return List.copyOf(dirs);
+        } catch (IOException ex) {
+            return List.of();
+        }
+    }
+
+    private static long sortKey(Path p) {
+        try {
+            return Long.parseLong(p.getFileName().toString());
+        } catch (Exception ex) {
+            try {
+                return Files.getLastModifiedTime(p).toMillis();
+            } catch (Exception ex2) {
+                return 0L;
+            }
+        }
+    }
+
     public static OmaResultsModel loadLatestOrEmpty() {
         Optional<Path> p = findLatestOutDir();
-        return p.map(OmaResultsModel::loadFromDirOrEmpty).orElseGet(() -> new OmaResultsModel(null, List.of(), new Properties()));
+        return p.map(OmaResultsModel::loadFromDirOrEmpty).orElseGet(() -> new OmaResultsModel(null, List.of(), new Properties(), new double[0][0]));
     }
 
     public static OmaResultsModel loadFromDirOrEmpty(Path outDir) {
         if (outDir == null || !Files.isDirectory(outDir)) {
-            return new OmaResultsModel(null, List.of(), new Properties());
+            return new OmaResultsModel(null, List.of(), new Properties(), new double[0][0]);
         }
         try {
             return loadFromDir(outDir);
         } catch (Exception ex) {
-            return new OmaResultsModel(outDir, List.of(), new Properties());
+            return new OmaResultsModel(outDir, List.of(), new Properties(), new double[0][0]);
         }
     }
 
@@ -135,7 +169,8 @@ public final class OmaResultsModel {
         }
 
         rows.sort(Comparator.comparingInt(ModeRow::modeIndex));
-        return new OmaResultsModel(outDir, List.copyOf(rows), props);
+        double[][] mac = computeMac(rows);
+        return new OmaResultsModel(outDir, List.copyOf(rows), props, mac);
     }
 
     private static Properties loadPropertiesRaw(Path path) throws IOException {
@@ -244,5 +279,48 @@ public final class OmaResultsModel {
         } catch (Exception ex) {
             return 0;
         }
+    }
+
+    private static double[][] computeMac(List<ModeRow> modes) {
+        if (modes == null || modes.size() < 2) {
+            return new double[0][0];
+        }
+        int n = modes.size();
+        double[][] phi = new double[n][3];
+        for (int i = 0; i < n; i++) {
+            ModeRow r = modes.get(i);
+            phi[i][0] = r == null ? 0.0 : r.phiAccelX();
+            phi[i][1] = r == null ? 0.0 : r.phiAccelY();
+            phi[i][2] = r == null ? 0.0 : r.phiAccelZ();
+        }
+
+        double[][] out = new double[n][n];
+        for (int i = 0; i < n; i++) {
+            double nii = dot(phi[i], phi[i]);
+            for (int j = 0; j < n; j++) {
+                double njj = dot(phi[j], phi[j]);
+                double nij = dot(phi[i], phi[j]);
+                double denom = nii * njj;
+                if (denom <= 0 || !Double.isFinite(denom)) {
+                    out[i][j] = Double.NaN;
+                } else {
+                    double v = (nij * nij) / denom;
+                    out[i][j] = Double.isFinite(v) ? v : Double.NaN;
+                }
+            }
+        }
+        return out;
+    }
+
+    private static double dot(double[] a, double[] b) {
+        if (a == null || b == null) {
+            return 0.0;
+        }
+        int n = Math.min(a.length, b.length);
+        double s = 0.0;
+        for (int i = 0; i < n; i++) {
+            s += a[i] * b[i];
+        }
+        return s;
     }
 }

@@ -14,6 +14,7 @@ public final class RoleMenuBar {
         if (frame == null || role == null) {
             return;
         }
+        AppWindowManager.register(frame, role);
         frame.setJMenuBar(create(frame, role));
     }
 
@@ -216,6 +217,11 @@ public final class RoleMenuBar {
         menu.add(reportHistory);
         menu.addSeparator();
         menu.add(systemLogs);
+        menu.addSeparator();
+
+        JMenuItem hiddenWindows = new JMenuItem("Hidden Windows...");
+        hiddenWindows.addActionListener(e -> AppWindowManager.showHiddenWindowsDialog(frame));
+        menu.add(hiddenWindows);
     }
 
     private static void buildHelpMenu(JFrame frame, Role role, JMenu menu) {
