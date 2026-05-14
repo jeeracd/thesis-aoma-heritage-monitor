@@ -296,8 +296,7 @@ public class EngineerStartingPage extends JFrame {
                     "Sensor Setup Guide",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new EngineerSensorSetupGuide();
-            this.dispose();
+            RoleMenuBar.navigate(this, EngineerSensorSetupGuide::new);
         });
 
         JMenuItem userDocumentation = new JMenuItem("User Documentation");
@@ -308,8 +307,7 @@ public class EngineerStartingPage extends JFrame {
                     "User Documentation",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new EngineerUserDocumentation();
-            this.dispose();
+            RoleMenuBar.navigate(this, EngineerUserDocumentation::new);
         });
 
         JMenuItem aboutAOMA = new JMenuItem("About AOMA-Heritage Monitor");
@@ -320,8 +318,7 @@ public class EngineerStartingPage extends JFrame {
                     "About AOMA-Heritage Monitor",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new EngineerAboutAOMA();
-            this.dispose();
+            RoleMenuBar.navigate(this, EngineerAboutAOMA::new);
         });
 
         JMenuItem contactSupport = new JMenuItem("Contact Support");
@@ -332,8 +329,7 @@ public class EngineerStartingPage extends JFrame {
                     "Contact Support",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new EngineerContactSupport();
-            this.dispose();
+            RoleMenuBar.navigate(this, EngineerContactSupport::new);
         });
 
         helpMenu.add(sensorSetupGuide);

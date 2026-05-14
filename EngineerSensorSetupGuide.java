@@ -6,7 +6,7 @@ public class EngineerSensorSetupGuide extends JFrame {
 
     public EngineerSensorSetupGuide() {
         setTitle("AOMA-Heritage Monitor - Sensor Setup Guide");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1400, 850);
         setLocationRelativeTo(null);
 
@@ -484,7 +484,7 @@ public class EngineerSensorSetupGuide extends JFrame {
         footerPanel.add(footerLabel, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
-        add(engineerPanel, BorderLayout.CENTER);
+        add(layeredPane, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         
         setVisible(true);

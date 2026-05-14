@@ -6,7 +6,7 @@ public class HeadUserDocumentation extends JFrame {
 
     public HeadUserDocumentation() {
         setTitle("AOMA-Heritage Monitor - User Documentation");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1400, 850);
         setLocationRelativeTo(null);
 
@@ -660,7 +660,7 @@ public class HeadUserDocumentation extends JFrame {
         footerPanel.add(footerLabel, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
-        add(userDocumentationPanel, BorderLayout.CENTER);
+        add(layeredPane, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         
         setVisible(true);

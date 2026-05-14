@@ -300,9 +300,21 @@ public final class RoleMenuBar {
         menu.add(logout);
     }
 
-    private static void navigate(JFrame current, Runnable open) {
+    public static void navigate(JFrame current, Runnable open) {
         SwingUtilities.invokeLater(() -> {
-            open.run();
+            try {
+                open.run();
+            } catch (Exception ex) {
+                if (current != null) {
+                    JOptionPane.showMessageDialog(
+                            current,
+                            ex.getMessage() == null ? "Failed to open window." : ex.getMessage(),
+                            "Navigation Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+                return;
+            }
             if (current != null) {
                 current.dispose();
             }
