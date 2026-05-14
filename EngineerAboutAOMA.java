@@ -7,7 +7,7 @@ public class EngineerAboutAOMA extends JFrame {
     public EngineerAboutAOMA() {
 
         setTitle("AOMA-Heritage Monitor - About AOMA");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1400, 850);
         setLocationRelativeTo(null);
 
@@ -634,7 +634,7 @@ public class EngineerAboutAOMA extends JFrame {
 
         setLayout(new BorderLayout());
 
-        add(aboutAOMAPanel, BorderLayout.CENTER);
+        add(layeredPane, BorderLayout.CENTER);
 
         add(footerPanel, BorderLayout.SOUTH);
 

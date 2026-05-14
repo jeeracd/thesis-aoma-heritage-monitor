@@ -7,7 +7,7 @@ public class EngineerContactSupport extends JFrame {
     public EngineerContactSupport() {
 
         setTitle("AOMA-Heritage Monitor - Contact Support");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1400, 850);
         setLocationRelativeTo(null);
 
@@ -649,7 +649,7 @@ public class EngineerContactSupport extends JFrame {
 
         // FRAME LAYOUT
         setLayout(new BorderLayout());
-        add(contactSupportPanel, BorderLayout.CENTER);
+        add(layeredPane, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         setVisible(true);
     }

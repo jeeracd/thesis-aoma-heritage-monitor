@@ -306,8 +306,7 @@ public class HeadStartingPage extends JFrame {
                     "Sensor Setup Guide",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadSensorSetupGuide();
-            this.dispose();
+            RoleMenuBar.navigate(this, HeadSensorSetupGuide::new);
         });
 
         JMenuItem userDocumentation = new JMenuItem("User Documentation");
@@ -318,8 +317,7 @@ public class HeadStartingPage extends JFrame {
                     "User Documentation",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadUserDocumentation();
-            this.dispose();
+            RoleMenuBar.navigate(this, HeadUserDocumentation::new);
         });
 
         JMenuItem aboutAOMA = new JMenuItem("About AOMA-Heritage Monitor");
@@ -330,8 +328,7 @@ public class HeadStartingPage extends JFrame {
                     "About AOMA-Heritage Monitor",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadAboutAOMA();
-            this.dispose();
+            RoleMenuBar.navigate(this, HeadAboutAOMA::new);
         });
 
         JMenuItem contactSupport = new JMenuItem("Contact Support");
@@ -342,8 +339,7 @@ public class HeadStartingPage extends JFrame {
                     "Contact Support",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new HeadContactSupport();
-            this.dispose();
+            RoleMenuBar.navigate(this, HeadContactSupport::new);
         });
 
         helpMenu.add(sensorSetupGuide);

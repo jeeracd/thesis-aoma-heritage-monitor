@@ -7,7 +7,7 @@ public class OfficerUserDocumentation extends JFrame {
 
     public OfficerUserDocumentation() {
         setTitle("AOMA-Heritage Monitor - User Documentation");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1400, 850);
         setLocationRelativeTo(null);
 
@@ -603,7 +603,7 @@ public class OfficerUserDocumentation extends JFrame {
         footerPanel.add(footerLabel, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
-        add(userDocumentationPanel, BorderLayout.CENTER);
+        add(layeredPane, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         
         setVisible(true);

@@ -244,8 +244,7 @@ public class OfficerStartingPage extends JFrame {
                     "Sensor Setup Guide",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new OfficerSensorSetupGuide();
-            this.dispose();
+            RoleMenuBar.navigate(this, OfficerSensorSetupGuide::new);
         });
         
 
@@ -257,8 +256,7 @@ public class OfficerStartingPage extends JFrame {
                     "User Documentation",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new OfficerUserDocumentation();
-            this.dispose();
+            RoleMenuBar.navigate(this, OfficerUserDocumentation::new);
         });
 
 
@@ -270,8 +268,7 @@ public class OfficerStartingPage extends JFrame {
                     "About AOMA-Heritage Monitor",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new OfficerAboutAOMA();
-            this.dispose();
+            RoleMenuBar.navigate(this, OfficerAboutAOMA::new);
         });
         
         JMenuItem contactSupport = new JMenuItem("Contact Support");
@@ -282,8 +279,7 @@ public class OfficerStartingPage extends JFrame {
                     "Contact Support",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            new OfficerContactSupport();
-            this.dispose();
+            RoleMenuBar.navigate(this, OfficerContactSupport::new);
         });
         
 
