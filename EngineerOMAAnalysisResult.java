@@ -8,7 +8,7 @@ public class EngineerOMAAnalysisResult extends JFrame {
 
     public EngineerOMAAnalysisResult() {
         setTitle("AOMA-Heritage Monitor - OMA Analysis Result");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setSize(1400, 850);
         setLocationRelativeTo(null);
 
@@ -18,6 +18,7 @@ public class EngineerOMAAnalysisResult extends JFrame {
         tabsUI.setForeground(Color.BLACK);
 
         JPanel engineerPanel = new JPanel(null);
+        RoleMenuBar.install(this, RoleMenuBar.Role.ENGINEER);
 
         tabsUI.addTab("Projects", new JPanel());
         tabsUI.addTab("View", engineerPanel);
@@ -403,7 +404,7 @@ public class EngineerOMAAnalysisResult extends JFrame {
         LGULabel.setHorizontalAlignment(SwingConstants.RIGHT);
         LGULabel.setBounds(1080, 5, 280, 38);
 
-        layeredPane.add(LGULabel, JLayeredPane.PALETTE_LAYER);
+        engineerPanel.add(LGULabel);
 
         JPanel centerPanelDescription = new JPanel(new BorderLayout());
         centerPanelDescription.setBounds(10, 20, 1380, 40);
@@ -476,69 +477,8 @@ public class EngineerOMAAnalysisResult extends JFrame {
         splitPane.setEnabled(false);
         contentWrapper.add(splitPane, BorderLayout.CENTER);
 
-        //LEFT PANEL 
-
-        JPanel leftPanel = new JPanel();
-        leftPanel.setLayout(new BorderLayout());
-        leftPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-
-        JLabel buildingTitle = new JLabel("Building Profile Information");
-        buildingTitle.setFont(new Font("Arial", Font.BOLD, 14));
-        buildingTitle.setBorder(BorderFactory.createCompoundBorder(
-        BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY),
-        BorderFactory.createEmptyBorder(8, 10, 8, 10)));
-        buildingTitle.setOpaque(true);
-        buildingTitle.setBackground(new Color(230,230,230));
-
-        // smol button for editing structural details
-        JButton editStructureBtn = new JButton("...");
-        editStructureBtn.setFocusPainted(true);
-        editStructureBtn.setMargin(new Insets(2,8,2,8));
-        editStructureBtn.setFont(new Font("Arial", Font.BOLD, 15));
-
-        editStructureBtn.addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Directing to Edit Structural Details page.",
-                    "Edit Structural Details",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-            new EngineerStructuralDetails();
-            this.dispose();
-        });
-        
-        JPanel buildingHeaderPanel = new JPanel(new BorderLayout());
-        buildingHeaderPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0,Color.GRAY));
-        buildingHeaderPanel.setBackground(new Color(230,230,230));
-        leftPanel.add(buildingHeaderPanel, BorderLayout.NORTH);
-
-        buildingTitle.setBorder(BorderFactory.createEmptyBorder(8,10,8,10));
-
-        buildingHeaderPanel.add(buildingTitle, BorderLayout.WEST);
-        buildingHeaderPanel.add(editStructureBtn, BorderLayout.EAST);
-
-        //DATABASE to ah
-        JPanel buildingInfoPanel = new JPanel();
-        buildingInfoPanel.setLayout(new GridBagLayout());
-        buildingInfoPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        addInfoField(buildingInfoPanel, "Project Name:", "test1");
-        addInfoField(buildingInfoPanel, "Building Name:", "test1");
-        addInfoField(buildingInfoPanel, "Year Constructed:", "test1");
-        addInfoField(buildingInfoPanel, "Material Used Type:", "test1");
-        addInfoField(buildingInfoPanel, "Conservation Status:", "test1");
-        addInfoField(buildingInfoPanel, "Function:", "test1");
-        addInfoField(buildingInfoPanel, "Address:", "test1");
-
-        addInfoArea(buildingInfoPanel, "Description:","test1");
-
-        addBottomSpacer(buildingInfoPanel);
-        
-        JScrollPane leftScroll = new JScrollPane(buildingInfoPanel);
-        leftScroll.setBorder(null);
-        leftPanel.add(leftScroll, BorderLayout.CENTER);
-
-        splitPane.setLeftComponent(leftPanel);
+        BuildingProfileInformationPanel buildingProfilePanel = new BuildingProfileInformationPanel(this);
+        splitPane.setLeftComponent(buildingProfilePanel);
 
         //RIGHT PANEL 
         JPanel rightPanel = new JPanel(new BorderLayout());
@@ -636,6 +576,162 @@ public class EngineerOMAAnalysisResult extends JFrame {
         spectrogramPanel.setViewWindowListener(spectrogramViewer);
 
         File csv = AppSession.getLastUploadedCsv();
+        spectrogramViewer.setSourceCsv(csv);
+
+        JLabel pyoma2Label = new JLabel("PyOMA2 OMA Results", SwingConstants.CENTER);
+        pyoma2Label.setFont(new Font("Arial", Font.BOLD, 16));
+        pyoma2Label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        vibrationPanel.add(pyoma2Label);
+        vibrationPanel.add(Box.createVerticalStrut(5));
+
+        PyOma2ResultsPanel pyOma2Panel = new PyOma2ResultsPanel(this);
+        pyOma2Panel.setSourceCsv(csv);
+        pyOma2Panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 520));
+        vibrationPanel.add(pyOma2Panel);
+        vibrationPanel.add(Box.createVerticalStrut(20));
+
+        JLabel refreshStatus = new JLabel("");
+        refreshStatus.setFont(UiControlMetrics.CONTROL_FONT);
+        refreshStatus.setForeground(Color.DARK_GRAY);
+        JCheckBox autoRefresh = new JCheckBox("Auto refresh");
+        autoRefresh.setOpaque(false);
+        autoRefresh.setMnemonic('U');
+        JButton refreshNow = new JButton("Refresh");
+        refreshNow.setMnemonic('R');
+ 
+        JPanel refreshPanel = new JPanel(new BorderLayout(UiControlMetrics.HGAP, 0));
+        refreshPanel.setOpaque(false);
+        UiControlMetrics.setRowMaxHeight(refreshPanel);
+ 
+        JPanel refreshLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, UiControlMetrics.HGAP, UiControlMetrics.VGAP));
+        refreshLeft.setOpaque(false);
+        refreshLeft.add(refreshStatus);
+ 
+        JPanel refreshRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, UiControlMetrics.HGAP, UiControlMetrics.VGAP));
+        refreshRight.setOpaque(false);
+        refreshRight.add(autoRefresh);
+        refreshRight.add(refreshNow);
+ 
+        refreshPanel.add(refreshLeft, BorderLayout.CENTER);
+        refreshPanel.add(refreshRight, BorderLayout.EAST);
+ 
+        UiControlMetrics.applyControlFont(refreshStatus, autoRefresh, refreshNow);
+        UiControlMetrics.setPreferredHeight(autoRefresh, UiControlMetrics.CONTROL_HEIGHT);
+        UiControlMetrics.setPreferredHeight(refreshNow, UiControlMetrics.CONTROL_HEIGHT);
+
+        vibrationPanel.add(refreshPanel);
+        vibrationPanel.add(Box.createVerticalStrut(8));
+
+        long[] lastModified = new long[]{csv == null ? -1L : csv.lastModified()};
+        final FddPlotViewer[] fddViewerRef = new FddPlotViewer[1];
+        final FddDampingPanel[] dampingPanelRef = new FddDampingPanel[1];
+        final FddModeShapePanel[] modePanelRef = new FddModeShapePanel[1];
+        final OmaInterpretationPanel[] interpretationPanelRef = new OmaInterpretationPanel[1];
+        Runnable refreshAction = () -> {
+            if (csv == null) {
+                return;
+            }
+            spectrogramPanel.setStatusText("Loading spectrogram...");
+            if (fddViewerRef[0] != null) {
+                fddViewerRef[0].setStatusText("Loading...");
+            }
+            SwingWorker<SpectrogramData, Void> w = new SwingWorker<>() {
+                @Override
+                protected SpectrogramData doInBackground() throws Exception {
+                    return SpectrogramGenerator.generateDataFromCsv(csv);
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        SpectrogramData data = get();
+                        BufferedImage img = SpectrogramGenerator.renderImage(data);
+                        spectrogramPanel.setSpectrogram(data, img);
+                        spectrogramViewer.setSpectrogram(data);
+                        refreshStatus.setText("Updated: " + java.time.LocalTime.now().withNano(0));
+                        if (fddViewerRef[0] != null) {
+                            SwingWorker<FddResult, Void> fddWorker = new SwingWorker<>() {
+                                @Override
+                                protected FddResult doInBackground() throws Exception {
+                                    return FddGenerator.generateFromCsv(csv);
+                                }
+
+                                @Override
+                                protected void done() {
+                                    try {
+                                        FddResult r = get();
+                                        fddViewerRef[0].setResult(r);
+                                        if (dampingPanelRef[0] != null) {
+                                            dampingPanelRef[0].setPeaks(fddViewerRef[0].getPeaks());
+                                        }
+                                        if (modePanelRef[0] != null) {
+                                            modePanelRef[0].clear();
+                                        }
+                                        if (interpretationPanelRef[0] != null) {
+                                            interpretationPanelRef[0].setPeaksCount(fddViewerRef[0].getPeaks().size());
+                                            interpretationPanelRef[0].setSelectedPeak(null);
+                                        }
+                                    } catch (Exception ex) {
+                                        fddViewerRef[0].setStatusText("Failed to compute FDD.");
+                                        if (dampingPanelRef[0] != null) {
+                                            dampingPanelRef[0].setPeaks(java.util.List.of());
+                                        }
+                                        if (modePanelRef[0] != null) {
+                                            modePanelRef[0].clear();
+                                        }
+                                        if (interpretationPanelRef[0] != null) {
+                                            interpretationPanelRef[0].setPeaksCount(0);
+                                            interpretationPanelRef[0].setSelectedPeak(null);
+                                        }
+                                    }
+                                }
+                            };
+                            fddWorker.execute();
+                        }
+                    } catch (Exception ex) {
+                        spectrogramPanel.setImage(null);
+                        spectrogramPanel.setStatusText("Failed to render spectrogram.");
+                        refreshStatus.setText("Update failed");
+                    }
+                }
+            };
+            w.execute();
+        };
+
+        refreshNow.addActionListener(e -> refreshAction.run());
+        autoRefresh.setEnabled(csv != null);
+        refreshNow.setEnabled(csv != null);
+        javax.swing.Timer refreshTimer = new javax.swing.Timer(2000, e -> {
+            if (!autoRefresh.isSelected()) {
+                return;
+            }
+            if (csv == null) {
+                return;
+            }
+            long lm = csv.lastModified();
+            if (lm > 0 && lm != lastModified[0]) {
+                lastModified[0] = lm;
+                refreshAction.run();
+                Toast.show(this, "CSV changed: refreshed", new Color(0, 128, 0), 1400);
+            }
+        });
+        refreshTimer.start();
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent e) {
+                refreshTimer.stop();
+            }
+
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if (!buildingProfilePanel.confirmDiscardIfNeeded()) {
+                    return;
+                }
+                refreshTimer.stop();
+                dispose();
+            }
+        });
+
         if (csv == null) {
             spectrogramPanel.setStatusText("No CSV loaded. Import sensor data to view spectrogram.");
         } else {
@@ -652,9 +748,11 @@ public class EngineerOMAAnalysisResult extends JFrame {
                         BufferedImage img = SpectrogramGenerator.renderImage(data);
                         spectrogramPanel.setSpectrogram(data, img);
                             spectrogramViewer.setSpectrogram(data);
+                        refreshStatus.setText("Updated: " + java.time.LocalTime.now().withNano(0));
                     } catch (Exception ex) {
                         spectrogramPanel.setImage(null);
                         spectrogramPanel.setStatusText("Failed to render spectrogram.");
+                        refreshStatus.setText("Update failed");
                     }
                 }
             };
@@ -677,12 +775,77 @@ public class EngineerOMAAnalysisResult extends JFrame {
         JPanel naturalFrequencyPanel = new JPanel();
         naturalFrequencyPanel.setLayout(new BorderLayout());
         naturalFrequencyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        naturalFrequencyPanel.setPreferredSize(new Dimension(850,150));
-        naturalFrequencyPanel.setMaximumSize(new Dimension(850,150));
+        naturalFrequencyPanel.setPreferredSize(new Dimension(850,200));
+        naturalFrequencyPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE,200));
         naturalFrequencyPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         naturalFrequencyPanel.setBackground(Color.WHITE);
+ 
+        FddPlotViewer fddViewer = new FddPlotViewer();
+        fddViewerRef[0] = fddViewer;
+        fddViewer.setStatusText("Loading...");
+        naturalFrequencyPanel.add(fddViewer, BorderLayout.CENTER);
         graphPanel.add(naturalFrequencyPanel);
         graphPanel.add(Box.createVerticalStrut(15));
+ 
+        if (csv == null) {
+            fddViewer.setStatusText("No CSV loaded.");
+        } else {
+            SwingWorker<FddResult, Void> fddWorker = new SwingWorker<>() {
+                @Override
+                protected FddResult doInBackground() throws Exception {
+                    return FddGenerator.generateFromCsv(csv);
+                }
+ 
+                @Override
+                protected void done() {
+                    try {
+                        FddResult r = get();
+                        fddViewer.setResult(r);
+                        if (dampingPanelRef[0] != null) {
+                            dampingPanelRef[0].setPeaks(fddViewer.getPeaks());
+                        }
+                        if (modePanelRef[0] != null) {
+                            modePanelRef[0].clear();
+                        }
+                        if (interpretationPanelRef[0] != null) {
+                            interpretationPanelRef[0].setPeaksCount(fddViewer.getPeaks().size());
+                            interpretationPanelRef[0].setSelectedPeak(null);
+                        }
+                    } catch (Exception ex) {
+                        fddViewer.setStatusText("Failed to compute FDD.");
+                        if (dampingPanelRef[0] != null) {
+                            dampingPanelRef[0].setPeaks(java.util.List.of());
+                        }
+                        if (modePanelRef[0] != null) {
+                            modePanelRef[0].clear();
+                        }
+                        if (interpretationPanelRef[0] != null) {
+                            interpretationPanelRef[0].setPeaksCount(0);
+                            interpretationPanelRef[0].setSelectedPeak(null);
+                        }
+                    }
+                }
+            };
+            fddWorker.execute();
+        }
+
+        fddViewer.setPeakSelectionListener(peak -> {
+            if (peak == null) {
+                return;
+            }
+            if (dampingPanelRef[0] != null) {
+                dampingPanelRef[0].selectPeakByBinIndex(peak.binIndex());
+            }
+            if (interpretationPanelRef[0] != null) {
+                interpretationPanelRef[0].setSelectedPeak(peak);
+            }
+            if (modePanelRef[0] != null) {
+                FddResult r = fddViewer.getResult();
+                if (r != null && r.modeShape() != null && r.channelLabels() != null && peak.binIndex() >= 0 && peak.binIndex() < r.modeShape().length) {
+                    modePanelRef[0].setModeShape(peak.frequencyHz(), r.channelLabels(), r.modeShape()[peak.binIndex()]);
+                }
+            }
+        });
 
         JLabel dampingRatioLabel = new JLabel("Damping Ratios (%)");
         dampingRatioLabel.setFont(new Font("Arial", Font.BOLD, 16));
@@ -693,10 +856,14 @@ public class EngineerOMAAnalysisResult extends JFrame {
         JPanel dampingRatioPanel = new JPanel();
         dampingRatioPanel.setLayout(new BorderLayout());
         dampingRatioPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        dampingRatioPanel.setPreferredSize(new Dimension(850,150));
-        dampingRatioPanel.setMaximumSize(new Dimension(850,150));
+        dampingRatioPanel.setPreferredSize(new Dimension(850,200));
+        dampingRatioPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE,200));
         dampingRatioPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         dampingRatioPanel.setBackground(Color.WHITE);
+
+        FddDampingPanel dampingPanel = new FddDampingPanel();
+        dampingPanelRef[0] = dampingPanel;
+        dampingRatioPanel.add(dampingPanel, BorderLayout.CENTER);
         graphPanel.add(dampingRatioPanel);
         graphPanel.add(Box.createVerticalStrut(15));
 
@@ -709,73 +876,40 @@ public class EngineerOMAAnalysisResult extends JFrame {
         JPanel modeShapePanel = new JPanel();
         modeShapePanel.setLayout(new BorderLayout());
         modeShapePanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        modeShapePanel.setPreferredSize(new Dimension(850,150));
-        modeShapePanel.setMaximumSize(new Dimension(850,150));
+        modeShapePanel.setPreferredSize(new Dimension(850,220));
+        modeShapePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE,220));
         modeShapePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         modeShapePanel.setBackground(Color.WHITE);
+
+        FddModeShapePanel modePanel = new FddModeShapePanel();
+        modePanelRef[0] = modePanel;
+        modeShapePanel.add(modePanel, BorderLayout.CENTER);
+
+        dampingPanel.setPeakSelectionListener(peak -> {
+            if (peak == null) {
+                return;
+            }
+            fddViewer.selectPeakBinIndex(peak.binIndex());
+            if (interpretationPanelRef[0] != null) {
+                interpretationPanelRef[0].setSelectedPeak(peak);
+            }
+            FddResult r = fddViewer.getResult();
+            if (r != null && r.modeShape() != null && r.channelLabels() != null && peak.binIndex() >= 0 && peak.binIndex() < r.modeShape().length) {
+                modePanel.setModeShape(peak.frequencyHz(), r.channelLabels(), r.modeShape()[peak.binIndex()]);
+            }
+        });
+
         graphPanel.add(modeShapePanel);
-        //adjust the height of buttom
-        //graphPanel.add(Box.createVerticalStrut(400));
-        JPanel resultPanel = new JPanel();
-        resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));
-        resultPanel.setBackground(new Color(245,245,245));
-        resultPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        resultPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        resultPanel.setMaximumSize(new Dimension(850, 200));
+        OmaInterpretationPanel interpretationPanel = new OmaInterpretationPanel();
+        interpretationPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        interpretationPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 220));
+        interpretationPanelRef[0] = interpretationPanel;
+        if (fddViewer.getPeaks() != null) {
+            interpretationPanel.setPeaksCount(fddViewer.getPeaks().size());
+        }
 
-        // --- Risk Level Row ---
-        JPanel riskPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        riskPanel.setOpaque(false);
-
-        JLabel riskDot = new JLabel("●");
-        riskDot.setForeground(new Color(0,170,0));
-        riskDot.setFont(new Font("Arial", Font.BOLD, 20));
-
-        JLabel riskText = new JLabel("Risk Level:");
-        riskText.setFont(new Font("Arial", Font.BOLD, 16));
-
-        JLabel riskStatus = new JLabel(" Normal ");
-        riskStatus.setOpaque(true);
-        riskStatus.setBackground(new Color(0,170,0));
-        riskStatus.setForeground(Color.WHITE);
-        riskStatus.setFont(new Font("Arial", Font.BOLD, 12));
-
-        riskPanel.add(riskDot);
-        riskPanel.add(riskText);
-        riskPanel.add(riskStatus);
-
-        //Status
-        JLabel statusLabel = new JLabel("STATUS: SAFE / SERVICEABLE");
-        statusLabel.setFont(new Font("Arial", Font.BOLD, 16));
-
-        //Action
-        JLabel actionLabel = new JLabel("ACTION: NO IMMEDIATE INTERVENTION REQUIRED");
-        actionLabel.setFont(new Font("Arial", Font.BOLD, 16));
-
-        //Description
-        JTextArea descriptionArea = new JTextArea(
-            "(The Automated OMA System has completed a routine structural health scan. " +
-            "The building's vibrational response is stable.)"
-        );
-        descriptionArea.setFont(new Font("Arial", Font.BOLD | Font.ITALIC, 13));
-        descriptionArea.setLineWrap(true);
-        descriptionArea.setWrapStyleWord(true);
-        descriptionArea.setEditable(false);
-        descriptionArea.setOpaque(false);
-        descriptionArea.setBorder(null);
-
-        // Add components
-        resultPanel.add(riskPanel);
-        resultPanel.add(Box.createVerticalStrut(10));
-        resultPanel.add(statusLabel);
-        resultPanel.add(Box.createVerticalStrut(5));
-        resultPanel.add(actionLabel);
-        resultPanel.add(Box.createVerticalStrut(10));
-        resultPanel.add(descriptionArea);
-
-        // Add to graphPanel
         graphPanel.add(Box.createVerticalStrut(15));
-        graphPanel.add(resultPanel);
+        graphPanel.add(interpretationPanel);
 
         JPanel footerPanel = new JPanel(new BorderLayout());
         footerPanel.setPreferredSize(new java.awt.Dimension(1400, 45));
@@ -790,7 +924,7 @@ public class EngineerOMAAnalysisResult extends JFrame {
         footerPanel.add(footerLabel, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
-        add(layeredPane, BorderLayout.CENTER);
+        add(engineerPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         
         setVisible(true);

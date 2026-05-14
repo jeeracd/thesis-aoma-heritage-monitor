@@ -11,15 +11,23 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
     private final JLabel windowLabel = new JLabel("");
     private final JTextField minField = new JTextField(6);
     private final JTextField maxField = new JTextField(6);
+    private final JTextField minTimeField = new JTextField(6);
+    private final JTextField maxTimeField = new JTextField(6);
+    private final JTextField minFreqField = new JTextField(6);
+    private final JTextField maxFreqField = new JTextField(6);
     private final JTextField searchField = new JTextField(10);
     private final JCheckBox anomaliesOnly = new JCheckBox("Anomalies only");
+    private final JCheckBox selectAll = new JCheckBox("Select all");
     private final JSpinner decimalsSpinner = new JSpinner(new SpinnerNumberModel(3, 0, 9, 1));
     private final JComboBox<String> scaleCombo = new JComboBox<>(new String[]{"dB (log)", "Linear"});
     private final JButton exportSelectedBtn = new JButton("Export selected...");
     private final JButton exportWindowBtn = new JButton("Export window...");
+    private final JButton paramsBtn = new JButton("Parameters...");
     private final JButton resetWindowBtn = new JButton("Full view");
 
     private SpectrogramViewWindow currentWindow = new SpectrogramViewWindow(0, 0, 0, 0);
+    private volatile File sourceCsv;
+    private volatile boolean updatingSelectAll;
 
     public SpectrogramDataTableViewer() {
         setLayout(new BorderLayout());
@@ -33,6 +41,7 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
 
         configureTable();
         JScrollPane sp = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        sp.getViewport().setBackground(Color.WHITE);
         sp.setPreferredSize(new Dimension(850, 290));
         sp.setMaximumSize(new Dimension(Integer.MAX_VALUE, 320));
         add(sp, BorderLayout.CENTER);
@@ -45,8 +54,22 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
         model.setSpectrogram(data);
         currentWindow = SpectrogramViewWindow.full(data);
         model.setViewWindow(currentWindow);
+        table.clearSelection();
         applyFilters();
         updateWindowLabel();
+        updateSelectAllState();
+    }
+ 
+    public void setSourceCsv(File csv) {
+        this.sourceCsv = csv;
+    }
+ 
+    JCheckBox getSelectAllForTesting() {
+        return selectAll;
+    }
+ 
+    JTable getTableForTesting() {
+        return table;
     }
 
     @Override
@@ -56,90 +79,154 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
         }
         this.currentWindow = window;
         model.setViewWindow(window);
+        table.clearSelection();
         updateWindowLabel();
+        updateSelectAllState();
     }
 
     private JPanel buildControls() {
-        JPanel p = new JPanel(new GridBagLayout());
-        p.setOpaque(false);
+        JPanel outer = new JPanel();
+        outer.setOpaque(false);
+        outer.setLayout(new BoxLayout(outer, BoxLayout.Y_AXIS));
+        outer.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
-        windowLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        windowLabel.setFont(UiControlMetrics.CONTROL_FONT);
         windowLabel.setForeground(Color.DARK_GRAY);
 
-        JLabel filterLbl = new JLabel("dB filter:");
-        filterLbl.setFont(new Font("Arial", Font.PLAIN, 12));
+        anomaliesOnly.setMnemonic('A');
+        selectAll.setMnemonic('L');
+        resetWindowBtn.setMnemonic('V');
+        exportSelectedBtn.setMnemonic('E');
+        exportWindowBtn.setMnemonic('W');
+        paramsBtn.setMnemonic('P');
 
-        JLabel toLbl = new JLabel("to");
-        toLbl.setFont(new Font("Arial", Font.PLAIN, 12));
+        resetWindowBtn.setPreferredSize(new Dimension(110, UiControlMetrics.CONTROL_HEIGHT));
 
+        JLabel dbLbl = new JLabel("dB filter:");
+        dbLbl.setFont(UiControlMetrics.CONTROL_FONT);
+        JLabel timeLbl = new JLabel("Time (s):");
+        timeLbl.setFont(UiControlMetrics.CONTROL_FONT);
+        JLabel freqLbl = new JLabel("Freq (Hz):");
+        freqLbl.setFont(UiControlMetrics.CONTROL_FONT);
         JLabel searchLbl = new JLabel("Search flag:");
-        searchLbl.setFont(new Font("Arial", Font.PLAIN, 12));
-
+        searchLbl.setFont(UiControlMetrics.CONTROL_FONT);
         JLabel decLbl = new JLabel("Decimals:");
-        decLbl.setFont(new Font("Arial", Font.PLAIN, 12));
+        decLbl.setFont(UiControlMetrics.CONTROL_FONT);
 
-        Insets in = new Insets(2, 6, 2, 6);
-        int x = 0;
+        JLabel toDbLbl = new JLabel("to");
+        toDbLbl.setFont(UiControlMetrics.CONTROL_FONT);
+        JLabel toTimeLbl = new JLabel("to");
+        toTimeLbl.setFont(UiControlMetrics.CONTROL_FONT);
+        JLabel toFreqLbl = new JLabel("to");
+        toFreqLbl.setFont(UiControlMetrics.CONTROL_FONT);
 
-        GridBagConstraints c0 = new GridBagConstraints();
-        c0.gridx = 0;
-        c0.gridy = 0;
-        c0.gridwidth = 9;
-        c0.weightx = 1.0;
-        c0.fill = GridBagConstraints.HORIZONTAL;
-        c0.insets = new Insets(4, 6, 2, 6);
-        p.add(windowLabel, c0);
+        dbLbl.setLabelFor(minField);
+        timeLbl.setLabelFor(minTimeField);
+        freqLbl.setLabelFor(minFreqField);
+        searchLbl.setLabelFor(searchField);
+        decLbl.setLabelFor(decimalsSpinner);
 
-        GridBagConstraints c1 = new GridBagConstraints();
-        c1.gridx = 9;
-        c1.gridy = 0;
-        c1.weightx = 0;
-        c1.insets = new Insets(4, 6, 2, 6);
-        p.add(resetWindowBtn, c1);
+        Dimension small = new Dimension(72, UiControlMetrics.CONTROL_HEIGHT);
+        Dimension med = new Dimension(90, UiControlMetrics.CONTROL_HEIGHT);
+        minField.setPreferredSize(small);
+        maxField.setPreferredSize(small);
+        minTimeField.setPreferredSize(small);
+        maxTimeField.setPreferredSize(small);
+        minFreqField.setPreferredSize(med);
+        maxFreqField.setPreferredSize(med);
+        searchField.setPreferredSize(new Dimension(220, UiControlMetrics.CONTROL_HEIGHT));
+        decimalsSpinner.setPreferredSize(new Dimension(70, UiControlMetrics.CONTROL_HEIGHT));
+        scaleCombo.setPreferredSize(new Dimension(110, UiControlMetrics.CONTROL_HEIGHT));
 
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridy = 1;
-        c.insets = in;
-        c.anchor = GridBagConstraints.WEST;
+        JPanel header = new JPanel(new BorderLayout(UiControlMetrics.HGAP, 0));
+        header.setOpaque(false);
+        UiControlMetrics.setRowMaxHeight(header);
+        header.add(windowLabel, BorderLayout.CENTER);
+        header.add(resetWindowBtn, BorderLayout.EAST);
+        outer.add(header);
 
-        c.gridx = x++;
-        p.add(filterLbl, c);
-        c.gridx = x++;
-        p.add(minField, c);
-        c.gridx = x++;
-        p.add(toLbl, c);
-        c.gridx = x++;
-        p.add(maxField, c);
-        c.gridx = x++;
-        p.add(anomaliesOnly, c);
-        c.gridx = x++;
-        p.add(searchLbl, c);
-        c.gridx = x++;
-        p.add(searchField, c);
-        c.gridx = x++;
-        p.add(decLbl, c);
-        c.gridx = x++;
-        p.add(decimalsSpinner, c);
-        c.gridx = x++;
-        p.add(scaleCombo, c);
-        c.gridx = x++;
-        p.add(exportSelectedBtn, c);
-        c.gridx = x++;
-        p.add(exportWindowBtn, c);
+        JPanel row1 = new JPanel(new FlowLayout(FlowLayout.LEFT, UiControlMetrics.HGAP, UiControlMetrics.VGAP));
+        row1.setOpaque(false);
+        UiControlMetrics.setRowMaxHeight(row1);
+        row1.add(dbLbl);
+        row1.add(minField);
+        row1.add(toDbLbl);
+        row1.add(maxField);
+        row1.add(anomaliesOnly);
+        outer.add(row1);
 
-        return p;
+        JPanel row2 = new JPanel(new FlowLayout(FlowLayout.LEFT, UiControlMetrics.HGAP, UiControlMetrics.VGAP));
+        row2.setOpaque(false);
+        UiControlMetrics.setRowMaxHeight(row2);
+        row2.add(timeLbl);
+        row2.add(minTimeField);
+        row2.add(toTimeLbl);
+        row2.add(maxTimeField);
+        row2.add(Box.createHorizontalStrut(12));
+        row2.add(freqLbl);
+        row2.add(minFreqField);
+        row2.add(toFreqLbl);
+        row2.add(maxFreqField);
+        outer.add(row2);
+
+        JPanel row3 = new JPanel(new FlowLayout(FlowLayout.LEFT, UiControlMetrics.HGAP, UiControlMetrics.VGAP));
+        row3.setOpaque(false);
+        UiControlMetrics.setRowMaxHeight(row3);
+        row3.add(searchLbl);
+        row3.add(searchField);
+        row3.add(decLbl);
+        row3.add(decimalsSpinner);
+        row3.add(scaleCombo);
+        row3.add(selectAll);
+        outer.add(row3);
+
+        JPanel row4 = new JPanel(new FlowLayout(FlowLayout.RIGHT, UiControlMetrics.HGAP, UiControlMetrics.VGAP));
+        row4.setOpaque(false);
+        UiControlMetrics.setRowMaxHeight(row4);
+        row4.add(exportSelectedBtn);
+        row4.add(exportWindowBtn);
+        row4.add(paramsBtn);
+        outer.add(row4);
+
+        UiControlMetrics.applyControlFont(
+                windowLabel,
+                anomaliesOnly,
+                selectAll,
+                resetWindowBtn,
+                exportSelectedBtn,
+                exportWindowBtn,
+                paramsBtn,
+                minField,
+                maxField,
+                minTimeField,
+                maxTimeField,
+                minFreqField,
+                maxFreqField,
+                searchField,
+                decimalsSpinner,
+                scaleCombo
+        );
+        UiControlMetrics.setPreferredHeight(anomaliesOnly, UiControlMetrics.CONTROL_HEIGHT);
+        UiControlMetrics.setPreferredHeight(selectAll, UiControlMetrics.CONTROL_HEIGHT);
+        UiControlMetrics.setPreferredHeight(exportSelectedBtn, UiControlMetrics.CONTROL_HEIGHT);
+        UiControlMetrics.setPreferredHeight(exportWindowBtn, UiControlMetrics.CONTROL_HEIGHT);
+        UiControlMetrics.setPreferredHeight(paramsBtn, UiControlMetrics.CONTROL_HEIGHT);
+
+        return outer;
     }
 
     private void configureTable() {
         table.setAutoCreateRowSorter(true);
         table.setFillsViewportHeight(true);
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+        table.setBackground(Color.WHITE);
 
         table.getColumnModel().getColumn(0).setPreferredWidth(120);
         table.getColumnModel().getColumn(1).setPreferredWidth(130);
         table.getColumnModel().getColumn(2).setPreferredWidth(160);
         table.getColumnModel().getColumn(3).setPreferredWidth(110);
+        table.getColumnModel().getColumn(3).setMinWidth(110);
     }
 
     private void wireControls() {
@@ -150,6 +237,10 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
         };
         minField.getDocument().addDocumentListener(dl);
         maxField.getDocument().addDocumentListener(dl);
+        minTimeField.getDocument().addDocumentListener(dl);
+        maxTimeField.getDocument().addDocumentListener(dl);
+        minFreqField.getDocument().addDocumentListener(dl);
+        maxFreqField.getDocument().addDocumentListener(dl);
         searchField.getDocument().addDocumentListener(dl);
 
         anomaliesOnly.addActionListener(e -> applyFilters());
@@ -162,6 +253,13 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
             }
         });
 
+        selectAll.addActionListener(e -> toggleSelectAll());
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                updateSelectAllState();
+            }
+        });
+
         resetWindowBtn.addActionListener(e -> {
             SpectrogramData d = model.getSpectrogram();
             if (d != null) {
@@ -171,15 +269,58 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
 
         exportSelectedBtn.addActionListener(e -> exportSelected());
         exportWindowBtn.addActionListener(e -> exportWindow());
+        paramsBtn.addActionListener(e -> generateAndShowParameters());
     }
 
     private void applyFilters() {
         Double min = parseDoubleOrNull(minField.getText());
         Double max = parseDoubleOrNull(maxField.getText());
+        Double tMin = parseDoubleOrNull(minTimeField.getText());
+        Double tMax = parseDoubleOrNull(maxTimeField.getText());
+        Double fMin = parseDoubleOrNull(minFreqField.getText());
+        Double fMax = parseDoubleOrNull(maxFreqField.getText());
         model.setValueFilter(min, max);
+        model.setTimeFilterSec(tMin, tMax);
+        model.setFrequencyFilterHz(fMin, fMax);
         model.setAnomaliesOnly(anomaliesOnly.isSelected());
         model.setSearchText(searchField.getText());
         updateWindowLabel();
+        updateSelectAllState();
+    }
+ 
+    private void toggleSelectAll() {
+        if (updatingSelectAll) {
+            return;
+        }
+        updatingSelectAll = true;
+        try {
+            if (selectAll.isSelected()) {
+                int n = table.getRowCount();
+                if (n > 0) {
+                    table.setRowSelectionInterval(0, n - 1);
+                }
+            } else {
+                table.clearSelection();
+            }
+        } finally {
+            updatingSelectAll = false;
+            updateSelectAllState();
+        }
+    }
+ 
+    private void updateSelectAllState() {
+        if (updatingSelectAll) {
+            return;
+        }
+        int n = table.getRowCount();
+        int sel = table.getSelectedRowCount();
+        selectAll.setEnabled(n > 0);
+        updatingSelectAll = true;
+        try {
+            selectAll.setSelected(n > 0 && sel == n);
+        } finally {
+            updatingSelectAll = false;
+        }
     }
 
     private void exportSelected() {
@@ -215,17 +356,97 @@ public final class SpectrogramDataTableViewer extends JPanel implements Spectrog
     private void exportRows(int[] modelRows) {
         Window w = SwingUtilities.getWindowAncestor(this);
         Frame owner = w instanceof Frame f ? f : null;
-        File target = NativeFilePicker.pickSaveCsvFile(owner, "Export Spectral Data", "spectrogram_data.csv");
+        String[] options = new String[]{"CSV", "Excel (XML)", "PDF"};
+        int choice = JOptionPane.showOptionDialog(
+                this,
+                "Export format:",
+                "Export",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+        if (choice < 0) {
+            Toast.show(w, "Export canceled", new Color(80, 80, 80), 1600);
+            return;
+        }
+
+        File target;
+        if (choice == 0) {
+            target = NativeFilePicker.pickSaveFile(owner, "Export Spectral Data (CSV)", "spectrogram_data.csv", ".csv");
+        } else if (choice == 1) {
+            target = NativeFilePicker.pickSaveFile(owner, "Export Spectral Data (Excel XML)", "spectrogram_data.xml", ".xml");
+        } else {
+            target = NativeFilePicker.pickSaveFile(owner, "Export Spectral Data (PDF)", "spectrogram_data.pdf", ".pdf");
+        }
         if (target == null) {
             Toast.show(w, "Export canceled", new Color(80, 80, 80), 1600);
             return;
         }
+        File csv = sourceCsv != null ? sourceCsv : AppSession.getLastUploadedCsv();
+        CsvModalParameters mp = null;
+        if (csv != null) {
+            try {
+                mp = CsvModalParametersGenerator.generate(csv, 2000);
+            } catch (Exception ex) {
+                Toast.show(w, "Exporting without modal parameters", new Color(80, 80, 80), 1800);
+                mp = null;
+            }
+        }
         try {
-            SpectrogramCsvExport.writeRows(target, model, modelRows);
+            if (choice == 0) {
+                SpectrogramCsvExport.writeRows(target, model, modelRows, mp);
+            } else if (choice == 1) {
+                SpectrogramExcelExport.writeRows(target, model, modelRows, mp);
+            } else {
+                SpectrogramPdfExport.writeRows(target, model, modelRows, mp);
+            }
             Toast.show(w, "Exported successfully", new Color(0, 128, 0), 1800);
         } catch (Exception ex) {
             Toast.show(w, "Export failed", new Color(160, 40, 40), 2200);
         }
+    }
+ 
+    private void generateAndShowParameters() {
+        Window w = SwingUtilities.getWindowAncestor(this);
+        Frame owner = w instanceof Frame f ? f : null;
+        File csv = sourceCsv != null ? sourceCsv : AppSession.getLastUploadedCsv();
+        CsvFileValidator.ValidationResult vr = CsvFileValidator.validate(csv);
+        if (!vr.valid()) {
+            Toast.show(w, vr.message(), new Color(160, 40, 40), 2400);
+            return;
+        }
+ 
+        paramsBtn.setEnabled(false);
+        Toast.show(w, "Generating parameters...", new Color(60, 60, 60), 1200);
+ 
+        SwingWorker<CsvModalParameters, Void> worker = new SwingWorker<>() {
+            @Override
+            protected CsvModalParameters doInBackground() throws Exception {
+                return CsvModalParametersGenerator.generate(csv);
+            }
+ 
+            @Override
+            protected void done() {
+                paramsBtn.setEnabled(true);
+                try {
+                    CsvModalParameters p = get();
+                    Toast.show(w, "Modal parameters generated", new Color(0, 128, 0), 1600);
+                    CsvModalParametersDialog dlg = new CsvModalParametersDialog(owner, csv, p);
+                    dlg.setVisible(true);
+                } catch (Exception ex) {
+                    Toast.show(w, "Failed to generate parameters", new Color(160, 40, 40), 2400);
+                    JOptionPane.showMessageDialog(
+                            SpectrogramDataTableViewer.this,
+                            ex.getMessage() == null ? "Unable to parse CSV." : ex.getMessage(),
+                            "CSV Parsing Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void updateWindowLabel() {

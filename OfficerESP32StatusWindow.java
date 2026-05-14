@@ -28,6 +28,7 @@ public class OfficerESP32StatusWindow extends JFrame {
         tabsUI.setForeground(Color.BLACK);
 
         JPanel headPanel = new JPanel(null);
+        RoleMenuBar.install(this, RoleMenuBar.Role.OFFICER);
 
         tabsUI.addTab("Projects", new JPanel());
         tabsUI.addTab("View", headPanel);
@@ -364,7 +365,7 @@ public class OfficerESP32StatusWindow extends JFrame {
         LGULabel.setHorizontalAlignment(SwingConstants.RIGHT);
         LGULabel.setBounds(1080, 5, 280, 38);
 
-        layeredPane.add(LGULabel, JLayeredPane.PALETTE_LAYER);
+        headPanel.add(LGULabel);
 
         JPanel centerPanelDescription = new JPanel(new BorderLayout());
         centerPanelDescription.setBounds(10, 20, 1380, 40);
@@ -616,7 +617,7 @@ public class OfficerESP32StatusWindow extends JFrame {
         footerPanel.add(footerLabel, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
-        add(layeredPane, BorderLayout.CENTER);
+        add(headPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         
         setVisible(true);

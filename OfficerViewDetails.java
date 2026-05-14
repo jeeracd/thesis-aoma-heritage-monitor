@@ -21,6 +21,7 @@ public class OfficerViewDetails extends JFrame {
         tabsUI.setForeground(Color.BLACK);
 
         JPanel officerPanel = new JPanel(null);
+        RoleMenuBar.install(this, RoleMenuBar.Role.OFFICER);
 
         tabsUI.addTab("Projects", new JPanel());
         tabsUI.addTab("View", officerPanel);
@@ -354,7 +355,7 @@ public class OfficerViewDetails extends JFrame {
         LGULabel.setHorizontalAlignment(SwingConstants.RIGHT);
         LGULabel.setBounds(925, 5, 280, 38);
 
-        layeredPane.add(LGULabel, JLayeredPane.PALETTE_LAYER);
+        officerPanel.add(LGULabel);
 
         JPanel centerPanelDescription = new JPanel(new BorderLayout());
         centerPanelDescription.setBounds(10, 20, 1200, 40);
@@ -557,6 +558,12 @@ public class OfficerViewDetails extends JFrame {
         calendarBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         calendarBtn.setPreferredSize(new Dimension(36, 30));
         calendarBtn.setToolTipText("Select date");
+        calendarBtn.addActionListener(e -> {
+            if (!calendarBtn.isEnabled()) {
+                return;
+            }
+            CalendarDatePicker.show(this, dateField);
+        });
 
         datePanel.add(calendarBtn, BorderLayout.EAST);
         formPanel.add(datePanel);
@@ -1037,7 +1044,7 @@ public class OfficerViewDetails extends JFrame {
         footerPanel.add(statusLbl, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
-        add(layeredPane, BorderLayout.CENTER);
+        add(officerPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
 
         setVisible(true);

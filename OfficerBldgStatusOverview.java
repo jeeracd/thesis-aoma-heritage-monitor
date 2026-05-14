@@ -22,64 +22,23 @@ public class OfficerBldgStatusOverview extends JFrame {
         setSize(1400, 850);
         setLocationRelativeTo(null);
 
-        JTabbedPane tabsUI = new JTabbedPane(JTabbedPane.TOP);
-        tabsUI.setFont(new Font("Arial", Font.BOLD, 17));
-        tabsUI.setBackground(Color.LIGHT_GRAY);
-        tabsUI.setForeground(Color.BLACK);
-
         JPanel officerPanel = new JPanel(null);
 
-        tabsUI.addTab("Projects", new JPanel());
-        tabsUI.addTab("View", officerPanel);
-        tabsUI.addTab("Help", new JPanel());
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.setBackground(Color.LIGHT_GRAY);
+        menuBar.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
 
-        tabsUI.setSelectedIndex(1); //set default tab
+        JMenu projectsMenu = new JMenu("Projects");
+        projectsMenu.setFont(new Font("Arial", Font.BOLD, 15));
+        JMenu viewMenu = new JMenu("View");
+        viewMenu.setFont(new Font("Arial", Font.BOLD, 15));
+        JMenu helpMenu = new JMenu("Help");
+        helpMenu.setFont(new Font("Arial", Font.BOLD, 15));
 
-        tabsUI.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
-    @Override
-        protected void paintTabBackground(
-                Graphics g,
-                int tabPlacement,
-                int tabIndex,
-                int x, int y, int w, int h,
-                boolean isSelected
-        ) {
-            if (isSelected) {
-                g.setColor(new Color(0, 102, 204)); 
-                g.fillRect(x, y, w, h);
-            }
-        }
-
-        @Override
-        protected void paintText(
-                Graphics g,
-                int tabPlacement,
-                Font font,
-                FontMetrics metrics,
-                int tabIndex,
-                String title,
-                Rectangle textRect,
-                boolean isSelected
-        ) {
-            g.setFont(font);
-            g.setColor(isSelected ? Color.WHITE : Color.BLACK);
-            g.drawString(title, textRect.x, textRect.y + metrics.getAscent());
-        }
-
-        @Override
-        protected Insets getTabInsets(int tabPlacement, int tabIndex) {
-            return new Insets(6, 20, 6, 20);
-        }
-
-        @Override
-        protected Insets getTabAreaInsets(int tabPlacement) {
-            return new Insets(5, 10, 5, 0);
-        }
-    });
-
-        //projects menu
-        //projects menu
-        JPopupMenu projectsMenu = new JPopupMenu();
+        menuBar.add(projectsMenu);
+        menuBar.add(viewMenu);
+        menuBar.add(helpMenu);
+        setJMenuBar(menuBar);
 
         JMenuItem newProject = new JMenuItem("New Project");
         JMenuItem openProject = new JMenuItem("Open Project");
@@ -113,32 +72,7 @@ public class OfficerBldgStatusOverview extends JFrame {
         projectsMenu.addSeparator();
         projectsMenu.add(exit);
 
-        JButton projectsDropdownBtn = new JButton("▼");
-        projectsDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14));
-        projectsDropdownBtn.setFocusPainted(false);
-        projectsDropdownBtn.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
-        projectsDropdownBtn.setBackground(Color.LIGHT_GRAY);
-        projectsDropdownBtn.setForeground(Color.BLACK);
-        projectsDropdownBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        projectsDropdownBtn.setBounds(92,11,28,22);
-
-        projectsDropdownBtn.addActionListener(e ->
-        projectsMenu.show(projectsDropdownBtn,0,projectsDropdownBtn.getHeight())
-        );
-
-        //project dropdown button position
-        JLayeredPane layeredPane = new JLayeredPane();
-        layeredPane.setLayout(null);
-        layeredPane.setPreferredSize(new java.awt.Dimension(1300, 850));
-
-        layeredPane.add(projectsDropdownBtn, JLayeredPane.PALETTE_LAYER); 
-
-        tabsUI.setBounds(0, 0, 1395, 770);
-        layeredPane.add(tabsUI, JLayeredPane.DEFAULT_LAYER);
-
         //VIEW MENU 
-        JPopupMenu viewMenu = new JPopupMenu();
 
         JMenuItem dashboardView = new JMenuItem("Dashboard View");
         dashboardView.addActionListener(e -> {
@@ -217,40 +151,7 @@ public class OfficerBldgStatusOverview extends JFrame {
         viewMenu.addSeparator();
         viewMenu.add(systemLogs);
 
-        JButton viewMenuDropdownBtn = new JButton("▼");
-        viewMenuDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14)); // bigger arrow
-        viewMenuDropdownBtn.setMargin(new Insets(0, 0, 0, 0));
-        viewMenuDropdownBtn.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
-
-        viewMenuDropdownBtn.setFocusPainted(false);
-        viewMenuDropdownBtn.setContentAreaFilled(false);   
-        viewMenuDropdownBtn.setBorderPainted(false);       
-        viewMenuDropdownBtn.setOpaque(false);            
-
-        viewMenuDropdownBtn.setForeground(Color.BLACK);
-        viewMenuDropdownBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        viewMenuDropdownBtn.addActionListener(e ->
-            viewMenu.show(viewMenuDropdownBtn, 0, viewMenuDropdownBtn.getHeight())
-        );
-
-        SwingUtilities.invokeLater(() -> {
-        Rectangle viewTabBounds = tabsUI.getBoundsAt(1);
-
-        int arrowSize = 22;
-
-        viewMenuDropdownBtn.setBounds(
-            viewTabBounds.x + viewTabBounds.width - arrowSize - 4,
-            viewTabBounds.y + (viewTabBounds.height - arrowSize) / 2,
-            arrowSize,
-            arrowSize
-        );
-
-        layeredPane.add(viewMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
-    });
-
         //help menu 
-        JPopupMenu helpMenu = new JPopupMenu();
 
         JMenuItem sensorSetupGuide = new JMenuItem("Sensor Setup Guide");
         sensorSetupGuide.addActionListener(e -> {
@@ -309,65 +210,12 @@ public class OfficerBldgStatusOverview extends JFrame {
         helpMenu.add(aboutAOMA);
         helpMenu.add(contactSupport);
 
-        JButton helpMenuDropdownBtn = new JButton("▼");
-        helpMenuDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14)); 
-        helpMenuDropdownBtn.setMargin(new Insets(0, 0, 0, 0));
-        helpMenuDropdownBtn.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
-        helpMenuDropdownBtn.setFocusPainted(false);
-        helpMenuDropdownBtn.setContentAreaFilled(false);   
-        helpMenuDropdownBtn.setBorderPainted(false);       
-        helpMenuDropdownBtn.setOpaque(false);              
-        helpMenuDropdownBtn.setForeground(Color.BLACK);
-        helpMenuDropdownBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        helpMenuDropdownBtn.addActionListener(e ->
-            helpMenu.show(helpMenuDropdownBtn, 0, helpMenuDropdownBtn.getHeight())
-        ); 
-
-        SwingUtilities.invokeLater(() -> {
-        Rectangle helpTabBounds = tabsUI.getBoundsAt(2);    
-        int arrowSize = 22;
-        helpMenuDropdownBtn.setBounds(
-            helpTabBounds.x + helpTabBounds.width - arrowSize - 4,
-            helpTabBounds.y + (helpTabBounds.height - arrowSize) / 2,
-            arrowSize,
-            arrowSize
-        );
-        layeredPane.add(helpMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
-    }); 
-
-        //para hindi ma-select yung view/help kapag clinick yung dropdown or text 
-        tabsUI.addChangeListener(e -> {
-        int selectedIndex = tabsUI.getSelectedIndex();
-
-        Rectangle bounds = tabsUI.getBoundsAt(selectedIndex);
-
-        if (selectedIndex == 0) { // Projects clicked
-            projectsMenu.show(
-                    tabsUI,
-                    bounds.x,
-                    bounds.y + bounds.height
-            );
-        }
-
-        if (selectedIndex == 2) { // Help clicked
-            helpMenu.show(
-                    tabsUI,
-                    bounds.x,
-                    bounds.y + bounds.height
-            );
-        }
-
-        // Always go back to View tab
-        SwingUtilities.invokeLater(() -> tabsUI.setSelectedIndex(1));
-    });
-
         JLabel LGULabel = new JLabel("LGU OFFICER ACCOUNT");
         LGULabel.setFont(new Font("Arial", Font.BOLD, 14));
         LGULabel.setHorizontalAlignment(SwingConstants.RIGHT);
         LGULabel.setBounds(1080, 5, 280, 38);
 
-        layeredPane.add(LGULabel, JLayeredPane.PALETTE_LAYER);
+        officerPanel.add(LGULabel);
 
         JPanel centerPanelDescription = new JPanel(new BorderLayout());
         centerPanelDescription.setBounds(10, 20, 1380, 40);
@@ -619,7 +467,7 @@ public class OfficerBldgStatusOverview extends JFrame {
         footerPanel.add(footerLabel, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
-        add(layeredPane, BorderLayout.CENTER);
+        add(officerPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         
         setVisible(true);

@@ -11,6 +11,10 @@ public final class SpectrogramTableModel extends AbstractTableModel {
     private int decimals = 3;
     private Double minValue;
     private Double maxValue;
+    private Double minTimeSec;
+    private Double maxTimeSec;
+    private Double minFreqHz;
+    private Double maxFreqHz;
     private boolean anomaliesOnly;
     private String searchText = "";
 
@@ -45,6 +49,18 @@ public final class SpectrogramTableModel extends AbstractTableModel {
     public void setValueFilter(Double minValue, Double maxValue) {
         this.minValue = minValue;
         this.maxValue = maxValue;
+        rebuild();
+    }
+
+    public void setTimeFilterSec(Double minTimeSec, Double maxTimeSec) {
+        this.minTimeSec = minTimeSec;
+        this.maxTimeSec = maxTimeSec;
+        rebuild();
+    }
+
+    public void setFrequencyFilterHz(Double minFreqHz, Double maxFreqHz) {
+        this.minFreqHz = minFreqHz;
+        this.maxFreqHz = maxFreqHz;
         rebuild();
     }
 
@@ -170,7 +186,10 @@ public final class SpectrogramTableModel extends AbstractTableModel {
         binEnd = Math.max(binStart + 1, freqToBin(fe, bins, maxF) + 1);
         binEnd = Math.min(binEnd, bins);
 
-        boolean needsIndex = minValue != null || maxValue != null || anomaliesOnly || !searchText.isEmpty();
+        boolean needsIndex = minValue != null || maxValue != null
+                || minTimeSec != null || maxTimeSec != null
+                || minFreqHz != null || maxFreqHz != null
+                || anomaliesOnly || !searchText.isEmpty();
         if (!needsIndex) {
             indexMap = null;
             fireTableDataChanged();
@@ -180,16 +199,18 @@ public final class SpectrogramTableModel extends AbstractTableModel {
         ArrayList<Long> idx = new ArrayList<>();
         for (int k = binStart; k < binEnd; k++) {
             for (int f = frameStart; f < frameEnd; f++) {
+                double tSec = frames <= 1 ? 0 : (f / (double) (frames - 1)) * fullT;
+                double fHz = bins <= 1 ? 0 : (k / (double) (bins - 1)) * maxF;
                 double v = data.db()[k][f];
                 if (!Double.isFinite(v)) {
                     String flag = flagFor(v, data);
-                    if (accept(v, flag)) {
+                    if (accept(tSec, fHz, v, flag)) {
                         idx.add(idxPacked(k, f));
                     }
                     continue;
                 }
                 String flag = flagFor(v, data);
-                if (accept(v, flag)) {
+                if (accept(tSec, fHz, v, flag)) {
                     idx.add(idxPacked(k, f));
                 }
             }
@@ -201,8 +222,20 @@ public final class SpectrogramTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
-    private boolean accept(double db, String flag) {
+    private boolean accept(double timeSec, double freqHz, double db, String flag) {
         if (anomaliesOnly && "OK".equals(flag)) {
+            return false;
+        }
+        if (minTimeSec != null && timeSec < minTimeSec) {
+            return false;
+        }
+        if (maxTimeSec != null && timeSec > maxTimeSec) {
+            return false;
+        }
+        if (minFreqHz != null && freqHz < minFreqHz) {
+            return false;
+        }
+        if (maxFreqHz != null && freqHz > maxFreqHz) {
             return false;
         }
         if (minValue != null && db < minValue) {

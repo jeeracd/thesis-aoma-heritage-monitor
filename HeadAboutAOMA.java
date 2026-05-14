@@ -17,6 +17,7 @@ public class HeadAboutAOMA extends JFrame {
         tabsUI.setForeground(Color.BLACK);
 
         JPanel aboutAOMAPanel = new JPanel(null);
+        RoleMenuBar.install(this, RoleMenuBar.Role.HEAD);
 
         tabsUI.addTab("Projects", new JPanel());
         tabsUI.addTab("View", new JPanel());
@@ -528,10 +529,7 @@ public class HeadAboutAOMA extends JFrame {
 
         LGUHeadLabel.setBounds(1080, 5, 280, 38);
 
-        layeredPane.add(
-                LGUHeadLabel,
-                JLayeredPane.PALETTE_LAYER
-        );
+        aboutAOMAPanel.add(LGUHeadLabel);
 
         JPanel centerPanelDescription =
                 new JPanel(new BorderLayout());
@@ -775,7 +773,7 @@ public class HeadAboutAOMA extends JFrame {
 
         setLayout(new BorderLayout());
 
-        add(layeredPane, BorderLayout.CENTER);
+        add(aboutAOMAPanel, BorderLayout.CENTER);
 
         add(footerPanel, BorderLayout.SOUTH);
 

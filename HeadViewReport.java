@@ -18,6 +18,7 @@ public class HeadViewReport extends JFrame {
         tabsUI.setForeground(Color.BLACK);
 
         JPanel headPanel = new JPanel(null);
+        RoleMenuBar.install(this, RoleMenuBar.Role.HEAD);
 
         tabsUI.addTab("Projects", new JPanel());
         tabsUI.addTab("View", headPanel);
@@ -412,7 +413,7 @@ public class HeadViewReport extends JFrame {
         LGUHeadLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         LGUHeadLabel.setBounds(1080, 5, 280, 38);
 
-        layeredPane.add(LGUHeadLabel, JLayeredPane.PALETTE_LAYER);
+        headPanel.add(LGUHeadLabel);
 
         JPanel centerPanelDescription = new JPanel(new BorderLayout());
         centerPanelDescription.setBounds(10, 20, 1380, 40);
@@ -820,7 +821,7 @@ public class HeadViewReport extends JFrame {
         footerPanel.add(footerLabel, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
-        add(layeredPane, BorderLayout.CENTER);
+        add(headPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         
         setVisible(true);

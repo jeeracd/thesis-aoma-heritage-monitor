@@ -10,6 +10,7 @@ public class EngineerDashboardUserSettings extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
         setLocationRelativeTo(null);
+        RoleMenuBar.install(this, RoleMenuBar.Role.ENGINEER);
 
         setLayout(new BorderLayout());
         add(createMainPanel(), BorderLayout.CENTER);
