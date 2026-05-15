@@ -24,9 +24,12 @@ public class EngineerConfigureSensorWindow extends JFrame {
     private CardLayout listStateLayout;
     private JPanel listStatePanel;
     private Runnable removeRepoListener;
+    private SensorDataManager sensorManager;
+    private SensorDataManager.ChangeListener sensorListener;
 
     public EngineerConfigureSensorWindow() {
         instance = this;
+        sensorManager = SensorDataManager.getInstance();
         
         setTitle("AOMA-Heritage Monitor - Configure Sensor");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -639,6 +642,7 @@ public class EngineerConfigureSensorWindow extends JFrame {
         tableHeaderPanel = horizontalSecondPanel;
         centerContentWrapper.add(tableHeaderPanel);
         centerContentWrapper.add(Box.createVerticalStrut(3));
+        assert tableHeaderPanel.getComponentCount() == 5;
 
         projectsContainer = new JPanel();
         projectsContainer.setLayout(new BoxLayout(projectsContainer, BoxLayout.Y_AXIS));
@@ -683,22 +687,18 @@ public class EngineerConfigureSensorWindow extends JFrame {
 
         loadBuildingsAsync();
 
-        removeRepoListener = ProjectRepository.addChangeListener(
-                () -> SwingUtilities.invokeLater(this::loadBuildingsAsync)
-        );
+        removeRepoListener = ProjectRepository.addChangeListener(() -> SwingUtilities.invokeLater(this::loadBuildingsAsync));
+        sensorListener = () -> SwingUtilities.invokeLater(this::loadBuildingsAsync);
+        sensorManager.addChangeListener(sensorListener);
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosed(java.awt.event.WindowEvent e) {
-                if (removeRepoListener != null) {
-                    removeRepoListener.run();
-                }
+                cleanupListeners();
             }
 
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
-                if (removeRepoListener != null) {
-                    removeRepoListener.run();
-                }
+                cleanupListeners();
             }
         });
 
@@ -721,6 +721,17 @@ public class EngineerConfigureSensorWindow extends JFrame {
         setVisible(true);
     }
 
+    private void cleanupListeners() {
+        if (removeRepoListener != null) {
+            removeRepoListener.run();
+            removeRepoListener = null;
+        }
+        if (sensorListener != null) {
+            sensorManager.removeChangeListener(sensorListener);
+            sensorListener = null;
+        }
+    }
+
     private void loadBuildingsAsync() {
         if (listStateLayout != null && listStatePanel != null) {
             listStateLayout.show(listStatePanel, "LOADING");
@@ -730,9 +741,8 @@ public class EngineerConfigureSensorWindow extends JFrame {
             @Override
             protected List<BuildingRowData> doInBackground() {
                 List<BuildingRowData> out = new ArrayList<>();
-                boolean hasEsp32Connected = !SensorDataManager.getInstance().scanActiveEsp32Devices().isEmpty();
                 for (Project p : ProjectRepository.getAll()) {
-                    BuildingRowData row = BuildingRowData.fromProject(p, hasEsp32Connected);
+                    BuildingRowData row = BuildingRowData.fromProject(p);
                     if (row != null) {
                         out.add(row);
                     }
@@ -777,7 +787,7 @@ public class EngineerConfigureSensorWindow extends JFrame {
 
         int disconnected = 0;
         for (BuildingRowData row : rows) {
-            if ("Disconnected".equalsIgnoreCase(row.status)) {
+            if (row.status != null && row.status.toLowerCase().startsWith("disconnected")) {
                 disconnected++;
             }
             projectsContainer.add(Box.createVerticalStrut(3));
@@ -827,11 +837,46 @@ public class EngineerConfigureSensorWindow extends JFrame {
         JPanel rowStatusPanel = new JPanel(new BorderLayout());
         rowStatusPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         JLabel statusLbl = new JLabel(row.status, SwingConstants.CENTER);
-        if ("Connected".equalsIgnoreCase(row.status)) {
+        boolean connected = row.status != null && row.status.toLowerCase().startsWith("connected");
+        if (connected) {
             statusLbl.setForeground(new Color(0, 140, 0));
         } else {
             statusLbl.setForeground(Color.RED);
         }
+        statusLbl.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        statusLbl.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                String[] options = {"Toggle Connection", "Edit Operational Status", "Cancel"};
+                int choice = JOptionPane.showOptionDialog(
+                        instance,
+                        "Choose an update:",
+                        "Update Status",
+                        JOptionPane.YES_NO_CANCEL_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        options,
+                        options[2]
+                );
+                if (choice == 0) {
+                    String current = sensorManager.getBuildingConnectionStatus(row.projectId);
+                    String next = "Connected".equalsIgnoreCase(current) ? "Disconnected" : "Connected";
+                    sensorManager.setBuildingConnectionStatus(row.projectId, next);
+                } else if (choice == 1) {
+                    String current = sensorManager.getBuildingOperationalStatus(row.projectId);
+                    String next = JOptionPane.showInputDialog(instance, "Operational Status:", current);
+                    if (next == null) {
+                        return;
+                    }
+                    next = next.trim();
+                    if (next.isEmpty()) {
+                        JOptionPane.showMessageDialog(instance, "Value cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    sensorManager.setBuildingOperationalStatus(row.projectId, next);
+                }
+            }
+        });
         rowStatusPanel.add(statusLbl, BorderLayout.CENTER);
 
         JPanel rowActionsPanel = new JPanel(new BorderLayout());
@@ -871,14 +916,17 @@ public class EngineerConfigureSensorWindow extends JFrame {
             this.status = status;
         }
 
-        private static BuildingRowData fromProject(Project p, boolean hasEsp32Connected) {
+        private static BuildingRowData fromProject(Project p) {
             if (p == null || p.getId() == null) {
                 return null;
             }
             String buildingName = valueOrFallback(p.getBuildingName(), "New Heritage Building");
             String location = valueOrFallback(p.getAddress(), "Location Not Set");
             String function = valueOrFallback(p.getFunction(), "Not Specified");
-            String status = hasEsp32Connected ? "Connected" : "Disconnected";
+            SensorDataManager mgr = SensorDataManager.getInstance();
+            String connection = mgr.getBuildingConnectionStatus(p.getId());
+            String operational = mgr.getBuildingOperationalStatus(p.getId());
+            String status = connection + " | " + operational;
             return new BuildingRowData(p.getId(), buildingName, location, function, status);
         }
 
