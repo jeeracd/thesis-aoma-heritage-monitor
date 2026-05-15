@@ -360,13 +360,6 @@ public class OfficerESP32StatusWindow extends JFrame {
         SwingUtilities.invokeLater(() -> tabsUI.setSelectedIndex(1));
     });
 
-        JLabel LGULabel = new JLabel("LGU OFFICER ACCOUNT");
-        LGULabel.setFont(new Font("Arial", Font.BOLD, 14));
-        LGULabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        LGULabel.setBounds(1080, 5, 280, 38);
-
-        headPanel.add(LGULabel);
-
         JPanel centerPanelDescription = new JPanel(new BorderLayout());
         centerPanelDescription.setBounds(10, 20, 1380, 40);
         Border firstBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
