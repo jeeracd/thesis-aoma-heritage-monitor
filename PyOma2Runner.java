@@ -25,6 +25,13 @@ public final class PyOma2Runner {
             return new RunResult(false, "Failed to create output folder: " + e.getMessage(), new Properties());
         }
 
+        CsvFileValidator.QaArtifacts qa = null;
+        try {
+            ImportQaRules rules = ImportQaRules.loadFromPreferences();
+            qa = CsvFileValidator.writeImportQaReport(csvFile, outDir, rules);
+        } catch (Exception ignored) {
+        }
+
         Path raw = outDir.resolve("raw_input.csv");
         try {
             Files.copy(csvFile.toPath(), raw, StandardCopyOption.REPLACE_EXISTING);
@@ -38,6 +45,10 @@ public final class PyOma2Runner {
         props.setProperty("input_csv", csvFile.getAbsolutePath());
         props.setProperty("raw_csv", raw.toAbsolutePath().toString());
         props.setProperty("fs_hz", "1.0");
+        if (qa != null) {
+            props.setProperty("import_qa_json", qa.jsonPath().toAbsolutePath().toString());
+            props.setProperty("import_qa_csv", qa.csvPath().toAbsolutePath().toString());
+        }
 
         Path propsPath = outDir.resolve("summary.properties");
         StringBuilder sb = new StringBuilder();
@@ -46,6 +57,10 @@ public final class PyOma2Runner {
         sb.append("input_csv=").append(csvFile.getAbsolutePath()).append("\n");
         sb.append("raw_csv=").append(raw.toAbsolutePath()).append("\n");
         sb.append("fs_hz=1.0\n");
+        if (qa != null) {
+            sb.append("import_qa_json=").append(qa.jsonPath().toAbsolutePath()).append("\n");
+            sb.append("import_qa_csv=").append(qa.csvPath().toAbsolutePath()).append("\n");
+        }
         try {
             Files.writeString(propsPath, sb.toString(), StandardCharsets.UTF_8);
         } catch (Exception ignored) {
@@ -62,6 +77,13 @@ public final class PyOma2Runner {
             Files.createDirectories(outDir);
         } catch (IOException e) {
             return new RunResult(false, "Failed to create output folder: " + e.getMessage(), new Properties());
+        }
+
+        CsvFileValidator.QaArtifacts qa = null;
+        try {
+            ImportQaRules rules = ImportQaRules.loadFromPreferences();
+            qa = CsvFileValidator.writeImportQaReport(csvFile, outDir, rules);
+        } catch (Exception ignored) {
         }
 
         List<String> cmd = new ArrayList<>();
@@ -105,6 +127,12 @@ public final class PyOma2Runner {
 
         String status = props.getProperty("status");
         if (code == 0 && "ok".equalsIgnoreCase(status)) {
+            if (qa != null) {
+                props.setProperty("import_qa_json", qa.jsonPath().toAbsolutePath().toString());
+                props.setProperty("import_qa_csv", qa.csvPath().toAbsolutePath().toString());
+                upsertProperty(propsPath, "import_qa_json", qa.jsonPath().toAbsolutePath().toString());
+                upsertProperty(propsPath, "import_qa_csv", qa.csvPath().toAbsolutePath().toString());
+            }
             return new RunResult(true, "PyOMA2 results generated.", props);
         }
 
@@ -113,6 +141,31 @@ public final class PyOma2Runner {
             msg = output.isEmpty() ? "PyOMA2 pipeline failed." : output.toString().trim();
         }
         return new RunResult(false, msg, props);
+    }
+
+    private static void upsertProperty(Path propsPath, String key, String value) {
+        if (propsPath == null || key == null || key.isBlank()) {
+            return;
+        }
+        try {
+            List<String> lines = Files.exists(propsPath) ? Files.readAllLines(propsPath, StandardCharsets.UTF_8) : List.of();
+            boolean replaced = false;
+            List<String> out = new ArrayList<>(lines.size() + 1);
+            for (String l : lines) {
+                String s = l == null ? "" : l.trim();
+                if (s.startsWith(key + "=")) {
+                    out.add(key + "=" + (value == null ? "" : value));
+                    replaced = true;
+                } else {
+                    out.add(l);
+                }
+            }
+            if (!replaced) {
+                out.add(key + "=" + (value == null ? "" : value));
+            }
+            Files.write(propsPath, out, StandardCharsets.UTF_8);
+        } catch (Exception ignored) {
+        }
     }
 }
 
