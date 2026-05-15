@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.util.UUID;
 import javax.swing.*;
 import javax.swing.border.Border;
 
@@ -626,7 +627,7 @@ public class EngineerEditStructuralDetails extends JFrame {
 
         submitBtn.addActionListener(e -> {
             try {
-                ProjectRepository.createProject(
+                UUID projectId = ProjectRepository.createProject(
                         projectName.getText(),
                         buildingField.getText(),
                         dateField.getText(),
@@ -636,6 +637,8 @@ public class EngineerEditStructuralDetails extends JFrame {
                         addressField.getText(),
                         descArea.getText()
                 );
+                AppSession.setActiveProjectId(projectId);
+                ProjectDatasetIdStore.setActiveDatasetForSession(projectId, "PROJECT_INIT");
 
                 JOptionPane.showMessageDialog(
                         this,
@@ -688,4 +691,3 @@ public class EngineerEditStructuralDetails extends JFrame {
         new EngineerEditStructuralDetails();
     }
 }
-

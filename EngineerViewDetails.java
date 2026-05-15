@@ -37,6 +37,7 @@ public class EngineerViewDetails extends JFrame {
 
         Project project = null;
         if (projectId != null) {
+            AppSession.setActiveProjectId(projectId);
             project = ProjectRepository.findById(projectId).orElse(null);
             if (project == null) {
                 JOptionPane.showMessageDialog(
@@ -941,14 +942,23 @@ public class EngineerViewDetails extends JFrame {
         formPanel.add(monitoringSessionLbl);
 
         Map<String, Path> sessionPaths = new LinkedHashMap<>();
+        Map<String, String> datasetToSessionKey = new LinkedHashMap<>();
         DefaultComboBoxModel<String> sessionComboModel = new DefaultComboBoxModel<>();
         sessionComboModel.addElement("---none---");
         List<Path> availableSessions = OmaResultsModel.listAvailableOutDirs();
         for (Path p : availableSessions) {
-            String label = "#" + p.getFileName().toString();
-            if (!sessionPaths.containsKey(label)) {
-                sessionPaths.put(label, p);
-                sessionComboModel.addElement(label);
+            String sessionKey = "#" + p.getFileName().toString();
+            String display = sessionKey;
+            if (this.projectId != null) {
+                String datasetId = ProjectDatasetIdStore.getOrCreateDatasetId(this.projectId, sessionKey);
+                if (datasetId != null && !datasetId.isBlank()) {
+                    display = datasetId;
+                }
+            }
+            if (!sessionPaths.containsKey(display)) {
+                sessionPaths.put(display, p);
+                datasetToSessionKey.put(display, sessionKey);
+                sessionComboModel.addElement(display);
             }
         }
 
@@ -957,6 +967,12 @@ public class EngineerViewDetails extends JFrame {
         sessionDropdown.setBounds(leftX + 210, y + gap, 200, 30);
         sessionDropdown.setEnabled(true);
         formPanel.add(sessionDropdown);
+        if (this.projectId != null) {
+            String active = ProjectDatasetIdStore.getActiveDatasetId(this.projectId);
+            if (active != null && !active.isBlank() && sessionPaths.containsKey(active)) {
+                sessionDropdown.setSelectedItem(active);
+            }
+        }
 
         JLabel reportTypeLbl = new JLabel("Select Report Type:");
         reportTypeLbl.setFont(labelFont);
@@ -1463,9 +1479,29 @@ public class EngineerViewDetails extends JFrame {
             }
 
             dateAssessmentExecLbl.setText("DATE: " + dateStr);
-            datasetExecLbl.setText("DATASET ID: " + selected);
+            UUID effectiveProjectId = this.projectId == null ? AppSession.getActiveProjectId() : this.projectId;
+            String datasetId = "";
+            if (effectiveProjectId != null) {
+                String sessionKey = datasetToSessionKey.getOrDefault(selected, selected);
+                if (ProjectDatasetIdStore.isValidDatasetId(effectiveProjectId, selected)) {
+                    boolean ok = ProjectDatasetIdStore.setActiveDatasetId(effectiveProjectId, selected);
+                    datasetId = ok ? selected : "";
+                }
+                if (datasetId.isBlank()) {
+                    datasetId = ProjectDatasetIdStore.setActiveDatasetForSession(effectiveProjectId, sessionKey);
+                }
+            }
+            if (datasetId == null || datasetId.isBlank()) {
+                datasetId = "—";
+                if (effectiveProjectId == null) {
+                    JOptionPane.showMessageDialog(this, "No active project is selected. Dataset ID cannot be assigned.", "Dataset Sync Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to assign a project dataset ID for this monitoring session.", "Dataset Sync Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            datasetExecLbl.setText("DATASET ID: " + datasetId);
             dateAssessmentTechLbl.setText("DATE: " + dateStr);
-            datasetTechLbl.setText("DATASET ID: " + selected);
+            datasetTechLbl.setText("DATASET ID: " + datasetId);
 
             OmaResultsModel.Severity overall = OmaResultsModel.Severity.OK;
             for (OmaResultsModel.ModeRow r : results.modes()) {
@@ -1630,4 +1666,3 @@ public class EngineerViewDetails extends JFrame {
         new EngineerViewDetails();
     }
 }
-

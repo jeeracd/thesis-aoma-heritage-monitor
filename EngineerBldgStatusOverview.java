@@ -11,6 +11,7 @@ public class EngineerBldgStatusOverview extends JFrame {
 
     public static EngineerBldgStatusOverview instance;
     public static JPanel projectsContainer;
+    public static JScrollPane projectsScrollPane;
     public static JPanel tableHeaderPanel;
     public static JPanel centerContentWrapper;
     public static int projectCount = 1;
@@ -25,6 +26,7 @@ public class EngineerBldgStatusOverview extends JFrame {
     private SensorDataManager sensorManager;
     private SensorDataManager.ChangeListener sensorListener;
     private Runnable removeRepoListener;
+    private Runnable removeDatasetListener;
 
     public EngineerBldgStatusOverview() {
         instance = this;
@@ -344,7 +346,7 @@ public class EngineerBldgStatusOverview extends JFrame {
         centerContentWrapper.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         centerPanel.add(centerContentWrapper, BorderLayout.CENTER);
 
-        Dimension overviewSize = new Dimension(1600, 100);
+        Dimension overviewSize = new Dimension(1360, 100);
 
         JPanel centerPanelStatusOverview = new JPanel(new BorderLayout());
         centerPanelStatusOverview.setPreferredSize(overviewSize);
@@ -373,8 +375,8 @@ public class EngineerBldgStatusOverview extends JFrame {
         centerContentWrapper.add(Box.createVerticalStrut(10));
 
         JPanel horizontalFirstPanel = new JPanel(new GridLayout(1, 4, 10, 0));
-        horizontalFirstPanel.setPreferredSize(new Dimension(1600, 50));
-        horizontalFirstPanel.setMaximumSize(new Dimension(1600, 50));
+        horizontalFirstPanel.setPreferredSize(new Dimension(1360, 50));
+        horizontalFirstPanel.setMaximumSize(new Dimension(1360, 50));
         horizontalFirstPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         horizontalFirstPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
@@ -436,8 +438,8 @@ public class EngineerBldgStatusOverview extends JFrame {
         centerContentWrapper.add(Box.createVerticalStrut(10));
 
         JPanel horizontalSecondPanel = new JPanel(new GridLayout(1, 5, 10, 0));
-        horizontalSecondPanel.setPreferredSize(new Dimension(1600, 50));
-        horizontalSecondPanel.setMaximumSize(new Dimension(1600, 50));
+        horizontalSecondPanel.setPreferredSize(new Dimension(1360, 50));
+        horizontalSecondPanel.setMaximumSize(new Dimension(1360, 50));
         horizontalSecondPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         horizontalSecondPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
@@ -492,11 +494,28 @@ public class EngineerBldgStatusOverview extends JFrame {
         projectsContainer = new JPanel();
         projectsContainer.setLayout(new BoxLayout(projectsContainer, BoxLayout.Y_AXIS));
         projectsContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
+        projectsContainer.setOpaque(true);
+        projectsContainer.setBackground(Color.WHITE);
 
-        centerContentWrapper.add(projectsContainer);
+        projectsScrollPane = new JScrollPane(projectsContainer, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        projectsScrollPane.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        projectsScrollPane.getViewport().setBorder(null);
+        projectsScrollPane.getViewport().setOpaque(true);
+        projectsScrollPane.getViewport().setBackground(Color.WHITE);
+        projectsScrollPane.setOpaque(true);
+        projectsScrollPane.setAlignmentX(Component.CENTER_ALIGNMENT);
+        Dimension listSize = new Dimension(1360, 320);
+        projectsScrollPane.setPreferredSize(listSize);
+        projectsScrollPane.setMaximumSize(listSize);
+        projectsScrollPane.setMinimumSize(new Dimension(1360, 200));
+        JScrollBar vsb = projectsScrollPane.getVerticalScrollBar();
+        vsb.setUI(new AppScrollBarUI(10));
+        vsb.setUnitIncrement(16);
+        centerContentWrapper.add(projectsScrollPane);
         loadPersistedProjectsIntoUI();
 
         removeRepoListener = ProjectRepository.addChangeListener(() -> SwingUtilities.invokeLater(EngineerBldgStatusOverview::loadPersistedProjectsIntoUI));
+        removeDatasetListener = ProjectDatasetIdStore.addActiveDatasetListener((projectId, datasetId) -> SwingUtilities.invokeLater(() -> updateDatasetLabelForProject(projectId)));
         sensorListener = () -> SwingUtilities.invokeLater(EngineerBldgStatusOverview::loadPersistedProjectsIntoUI);
         sensorManager.addChangeListener(sensorListener);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -515,7 +534,7 @@ public class EngineerBldgStatusOverview extends JFrame {
         createBtnWrapper.setLayout(new GridBagLayout());
         createBtnWrapper.setOpaque(false);
 
-        createBtnWrapper.setPreferredSize(new Dimension(220, 700));
+        createBtnWrapper.setPreferredSize(new Dimension(220, 90));
 
         JButton createBtn = new JButton("Create a New Project");
         createBtn.setFont(new Font("Arial", Font.BOLD, 14));
@@ -589,6 +608,7 @@ public class EngineerBldgStatusOverview extends JFrame {
         }
 
         for (Project p : ProjectRepository.getAll()) {
+            ProjectDatasetIdStore.ensureActiveDatasetId(p.getId());
             String buildingName = p.getBuildingName().isEmpty()
                     ? "New Heritage Building"
                     : p.getBuildingName();
@@ -639,8 +659,8 @@ public class EngineerBldgStatusOverview extends JFrame {
         }
 
         JPanel rowPanel = new JPanel(new GridLayout(1, 5, 10, 0));
-        rowPanel.setPreferredSize(new Dimension(1600, 50));
-        rowPanel.setMaximumSize(new Dimension(1600, 50));
+        rowPanel.setPreferredSize(new Dimension(1360, 50));
+        rowPanel.setMaximumSize(new Dimension(1360, 50));
         rowPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JPanel rowBldgPanel = new JPanel(new BorderLayout());
@@ -678,20 +698,27 @@ public class EngineerBldgStatusOverview extends JFrame {
         viewDetailsBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         viewDetailsBtn.setFocusPainted(false);
 
+        JLabel datasetLabel = new JLabel(formatDatasetLabel(projectId), SwingConstants.CENTER);
+        datasetLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+        datasetLabel.setForeground(Color.DARK_GRAY);
+        datasetLabel.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
+
         viewDetailsBtn.addActionListener(e -> {
             SwingUtilities.invokeLater(() -> {
                 if (projectId == null) {
                     new EngineerViewDetails();
                 } else {
+                    AppSession.setActiveProjectId(projectId);
                     new EngineerViewDetails(projectId);
                 }
                 instance.setVisible(false);
             });
         });
 
-        JPanel actionButtonsPanel = new JPanel(new GridLayout(1, 2, 6, 0));
+        JPanel actionButtonsPanel = new JPanel(new GridLayout(1, 1, 6, 0));
         actionButtonsPanel.add(viewDetailsBtn);
         rowActionsPanel.add(actionButtonsPanel, BorderLayout.CENTER);
+        rowActionsPanel.add(datasetLabel, BorderLayout.SOUTH);
 
         rowPanel.add(rowBldgPanel);
         rowPanel.add(rowLocationPanel);
@@ -699,8 +726,44 @@ public class EngineerBldgStatusOverview extends JFrame {
         rowPanel.add(rowHealthPanel);
         rowPanel.add(rowActionsPanel);
 
+        rowPanel.putClientProperty("projectId", projectId);
+        rowPanel.putClientProperty("datasetLabel", datasetLabel);
+
         projectsContainer.add(Box.createVerticalStrut(3));
         projectsContainer.add(rowPanel);
+    }
+
+    private static String formatDatasetLabel(UUID projectId) {
+        if (projectId == null) {
+            return "Dataset: —";
+        }
+        String active = ProjectDatasetIdStore.getActiveDatasetId(projectId);
+        if (active == null || active.isBlank()) {
+            return "Dataset: —";
+        }
+        return "Dataset: " + active;
+    }
+
+    private static void updateDatasetLabelForProject(UUID projectId) {
+        if (projectsContainer == null || projectId == null) {
+            return;
+        }
+        for (Component c : projectsContainer.getComponents()) {
+            if (!(c instanceof JPanel p)) {
+                continue;
+            }
+            Object id = p.getClientProperty("projectId");
+            if (!(id instanceof UUID uid)) {
+                continue;
+            }
+            if (!uid.equals(projectId)) {
+                continue;
+            }
+            Object l = p.getClientProperty("datasetLabel");
+            if (l instanceof JLabel label) {
+                label.setText(formatDatasetLabel(projectId));
+            }
+        }
     }
 
     private static void installFieldEditor(UUID projectId, JLabel label, int fieldIndex) {
@@ -825,6 +888,10 @@ public class EngineerBldgStatusOverview extends JFrame {
         if (removeRepoListener != null) {
             removeRepoListener.run();
             removeRepoListener = null;
+        }
+        if (removeDatasetListener != null) {
+            removeDatasetListener.run();
+            removeDatasetListener = null;
         }
         if (sensorListener != null) {
             sensorManager.removeChangeListener(sensorListener);
