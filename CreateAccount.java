@@ -948,6 +948,16 @@ public class CreateAccount extends JFrame {
         t.setRepeats(false);
         t.addActionListener(e -> {
             setLoading(false);
+            String acct = accountType.getSelectedItem() == null ? "" : accountType.getSelectedItem().toString();
+            if (ACCOUNT_TYPE_ENGINEER.equals(acct)) {
+                boolean nameOk = EngineerProfileStore.setName(firstNameField.getText(), lastNameField.getText());
+                long ver = EngineerCredentialStore.getVersion();
+                boolean credOk = EngineerCredentialStore.updateCredentials(emailField.getText(), passwordField.getPassword(), ver);
+                if (!nameOk || !credOk) {
+                    formError.fadeIn("Account creation failed due to a synchronization error. Please retry.");
+                    return;
+                }
+            }
             new CreateAccountConfirmation().setVisible(true);
             dispose();
         });

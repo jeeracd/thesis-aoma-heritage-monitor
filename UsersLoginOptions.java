@@ -22,8 +22,8 @@ import java.util.Objects;
 import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -35,8 +35,8 @@ import javax.swing.JRootPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.Timer;
+import javax.swing.UIManager;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -484,6 +484,8 @@ public class UsersLoginOptions extends JFrame {
         rememberMe.setSelected(remember);
         if (remember && email != null && !email.isBlank()) {
             emailField.setText(email);
+        } else if (emailField.getText() == null || emailField.getText().isBlank()) {
+            emailField.setText(EngineerCredentialStore.getEmail());
         }
     }
 
@@ -514,7 +516,7 @@ public class UsersLoginOptions extends JFrame {
             String email = emailField.getText().trim();
             String password = new String(passwordField.getPassword());
 
-            if (email.equals("juandelacruz1@engr.com") && password.equals("dummy123")) {
+            if (EngineerCredentialStore.verifyCredentials(email, passwordField.getPassword())) {
                 persistRememberedStateOnSuccess();
                 setLoading(false);
                 JOptionPane.showMessageDialog(this, "Engineer Login Successful!");
@@ -635,17 +637,91 @@ public class UsersLoginOptions extends JFrame {
         t.setFont(H2);
         t.setForeground(TEXT);
 
-        JLabel msg = new JLabel("<html><div style='width:360px'>Password reset is not available in this prototype. Please contact your system administrator or support to regain access.</div></html>");
-        msg.setFont(BODY);
-        msg.setForeground(MUTED);
+        JTextField email = new JTextField(EngineerCredentialStore.getEmail());
+        email.setFont(BODY);
+        email.setBorder(new EmptyBorder(8, 10, 8, 10));
 
-        JButton ok = new JButton("Close");
-        ok.setFont(BODY_BOLD);
-        ok.addActionListener(e -> d.dispose());
+        JPasswordField newPass = new JPasswordField();
+        newPass.setFont(BODY);
+        newPass.setBorder(new EmptyBorder(8, 10, 8, 10));
+
+        JPasswordField confirm = new JPasswordField();
+        confirm.setFont(BODY);
+        confirm.setBorder(new EmptyBorder(8, 10, 8, 10));
+
+        FadeLabel err = new FadeLabel();
+        err.setFont(BODY);
+        err.setForeground(ERROR);
+        err.setVisible(false);
+
+        long expectedVersion = EngineerCredentialStore.getVersion();
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.gridx = 0;
+        gc.gridy = 0;
+        gc.weightx = 1;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.insets = new Insets(0, 0, 6, 0);
+        form.add(new JLabel("Email"), gc);
+        gc.gridy++;
+        form.add(fieldWrap(email), gc);
+        gc.gridy++;
+        gc.insets = new Insets(12, 0, 6, 0);
+        form.add(new JLabel("New password"), gc);
+        gc.gridy++;
+        gc.insets = new Insets(0, 0, 6, 0);
+        form.add(fieldWrap(newPass), gc);
+        gc.gridy++;
+        gc.insets = new Insets(12, 0, 6, 0);
+        form.add(new JLabel("Confirm new password"), gc);
+        gc.gridy++;
+        gc.insets = new Insets(0, 0, 6, 0);
+        form.add(fieldWrap(confirm), gc);
+        gc.gridy++;
+        gc.insets = new Insets(8, 0, 0, 0);
+        form.add(err, gc);
+
+        JButton reset = new JButton("Reset password");
+        reset.setFont(BODY_BOLD);
+        reset.addActionListener(ev -> {
+            String em = email.getText() == null ? "" : email.getText().trim();
+            if (!EngineerCredentialStore.getEmail().equalsIgnoreCase(em)) {
+                err.fadeIn("Email does not match the current engineer account.");
+                return;
+            }
+            char[] p1 = newPass.getPassword();
+            char[] p2 = confirm.getPassword();
+            if (!java.util.Arrays.equals(p1, p2)) {
+                err.fadeIn("Passwords do not match.");
+                return;
+            }
+            if (!EngineerCredentialStore.isValidPassword(p1)) {
+                err.fadeIn("Password must be at least 6 characters and include letters and digits.");
+                return;
+            }
+            boolean updated = EngineerCredentialStore.updatePassword(p1, expectedVersion);
+            if (!updated) {
+                err.fadeIn("Password reset failed. Please retry.");
+                return;
+            }
+            JOptionPane.showMessageDialog(d, "Password updated.", "Password reset", JOptionPane.INFORMATION_MESSAGE);
+            d.dispose();
+        });
+
+        JButton cancel = new JButton("Cancel");
+        cancel.setFont(BODY_BOLD);
+        cancel.addActionListener(ev -> d.dispose());
+
+        JPanel buttons = new JPanel(new BorderLayout(8, 0));
+        buttons.setOpaque(false);
+        buttons.add(cancel, BorderLayout.WEST);
+        buttons.add(reset, BorderLayout.EAST);
 
         p.add(t, BorderLayout.NORTH);
-        p.add(msg, BorderLayout.CENTER);
-        p.add(ok, BorderLayout.SOUTH);
+        p.add(form, BorderLayout.CENTER);
+        p.add(buttons, BorderLayout.SOUTH);
 
         d.setContentPane(p);
         d.pack();

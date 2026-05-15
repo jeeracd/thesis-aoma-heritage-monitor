@@ -3,9 +3,11 @@ import javax.swing.*;
 import javax.swing.border.Border;
 
 public class EngineerStartingPage extends JFrame {
+    private JLabel greetingLabel;
+    private Runnable removeProfileListener = () -> {};
 
     public EngineerStartingPage() {
-        setTitle("AOMA-Heritage Monitor - Engineer Account");
+        setTitle(EngineerUiNames.ENGINEER_ACCOUNT_WINDOW_TITLE);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
         setLocationRelativeTo(null);
@@ -18,9 +20,9 @@ public class EngineerStartingPage extends JFrame {
         JPanel engineerPanel = new JPanel(null);
         RoleMenuBar.install(this, RoleMenuBar.Role.ENGINEER);
 
-        tabsUI.addTab("Projects", engineerPanel);
-        tabsUI.addTab("View", new JPanel());
-        tabsUI.addTab("Help", new JPanel());
+        tabsUI.addTab(EngineerUiNames.TAB_PROJECTS, engineerPanel);
+        tabsUI.addTab(EngineerUiNames.TAB_VIEW, new JPanel());
+        tabsUI.addTab(EngineerUiNames.TAB_HELP, new JPanel());
 
         tabsUI.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
     @Override
@@ -67,49 +69,49 @@ public class EngineerStartingPage extends JFrame {
         //projects menu
         JPopupMenu projectsMenu = new JPopupMenu();
 
-        JMenuItem newProject = new JMenuItem("New Project");
+        JMenuItem newProject = new JMenuItem(EngineerUiNames.MENU_NEW_PROJECT);
         newProject.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "New Project initialization process will start.",
-                    "New Project",
+                    EngineerUiNames.MENU_NEW_PROJECT,
                     JOptionPane.INFORMATION_MESSAGE
             );
             new EngineerEditStructuralDetails();
             this.dispose();
         });
 
-        JMenuItem openProject = new JMenuItem("Open Project");
-        JMenuItem importCsv = new JMenuItem("Import Sensor Data (.csv)");
+        JMenuItem openProject = new JMenuItem(EngineerUiNames.MENU_OPEN_PROJECT);
+        JMenuItem importCsv = new JMenuItem(EngineerUiNames.MENU_IMPORT_SENSOR_DATA);
         importCsv.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to Import Sensor Data page.",
-                    "Import Sensor Data",
+                    EngineerUiNames.MENU_IMPORT_SENSOR_DATA,
                     JOptionPane.INFORMATION_MESSAGE
             );
             new EngineerImportSensorData();
             this.dispose();
         });
 
-        JMenuItem exportPDF = new JMenuItem("Export Report (PDF)");
+        JMenuItem exportPDF = new JMenuItem(EngineerUiNames.MENU_EXPORT_REPORT_PDF);
         exportPDF.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to Export Report page.",
-                    "Export Report",
+                    EngineerUiNames.MENU_EXPORT_REPORT_PDF,
                     JOptionPane.INFORMATION_MESSAGE
             );
             new EngineerExportSensorData();
             this.dispose();
         });
 
-        JMenuItem exit = new JMenuItem("Exit");
+        JMenuItem exit = new JMenuItem(EngineerUiNames.MENU_EXIT);
         exit.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(
                     this,
                     "Are you sure you want to exit?",
-                    "Exit Confirmation",
+                    EngineerUiNames.TITLE_EXIT_CONFIRMATION,
                     JOptionPane.YES_NO_OPTION
             );
             if (confirm == JOptionPane.YES_OPTION) {
@@ -152,24 +154,24 @@ public class EngineerStartingPage extends JFrame {
         //VIEW MENU 
         JPopupMenu viewMenu = new JPopupMenu();
 
-        JMenuItem dashboardView = new JMenuItem("Dashboard View");
+        JMenuItem dashboardView = new JMenuItem(EngineerUiNames.MENU_DASHBOARD_VIEW);
         dashboardView.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to Dashboard View.",
-                    "Dashboard View",
+                    EngineerUiNames.MENU_DASHBOARD_VIEW,
                     JOptionPane.INFORMATION_MESSAGE
             );
             new EngineerBldgStatusOverview();
             this.dispose();
         });
 
-        JMenuItem setupConnection = new JMenuItem("Setup & Connection");
+        JMenuItem setupConnection = new JMenuItem(EngineerUiNames.MENU_SETUP_CONNECTION);
         setupConnection.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to Setup & Connection page.",
-                    "Setup & Connection",
+                    EngineerUiNames.MENU_SETUP_CONNECTION,
                     JOptionPane.INFORMATION_MESSAGE
             );
             new EngineerSetupConnectionWindow();
@@ -177,67 +179,67 @@ public class EngineerStartingPage extends JFrame {
         });
 
 
-        JMenuItem configureSensor = new JMenuItem("Configure Sensor");
+        JMenuItem configureSensor = new JMenuItem(EngineerUiNames.MENU_CONFIGURE_SENSOR);
         configureSensor.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to Configure Sensor page.",
-                    "Configure Sensor",
+                    EngineerUiNames.MENU_CONFIGURE_SENSOR,
                     JOptionPane.INFORMATION_MESSAGE
             );
             new EngineerConfigureSensorWindow();
             this.dispose();
         });
 
-        JMenuItem esp32Status = new JMenuItem("ESP32 Status");
+        JMenuItem esp32Status = new JMenuItem(EngineerUiNames.MENU_ESP32_STATUS);
         esp32Status.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to ESP32 Status page.",
-                    "ESP32 Status",
+                    EngineerUiNames.MENU_ESP32_STATUS,
                     JOptionPane.INFORMATION_MESSAGE
             );
             new EngineerESP32StatusWindow();
             this.dispose();
         });
 
-        JMenuItem vibrationData = new JMenuItem("Vibration Data");
+        JMenuItem vibrationData = new JMenuItem(EngineerUiNames.MENU_VIBRATION_DATA);
         vibrationData.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to Vibration Data page.",
-                    "Vibration Data",
+                    EngineerUiNames.MENU_VIBRATION_DATA,
                     JOptionPane.INFORMATION_MESSAGE
             );
             new EngineerVibrationDataWindow();
             this.dispose();
         }); 
 
-        JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
+        JMenuItem omaAnalysisResult = new JMenuItem(EngineerUiNames.MENU_OMA_ANALYSIS_RESULT);
         omaAnalysisResult.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to OMA Analysis Result page.",
-                    "OMA Analysis Result",
+                    EngineerUiNames.MENU_OMA_ANALYSIS_RESULT,
                     JOptionPane.INFORMATION_MESSAGE
             );
             new EngineerOMAAnalysisResultWindow();
             this.dispose();
         });
 
-        JMenuItem reportHistory = new JMenuItem("View Report");
+        JMenuItem reportHistory = new JMenuItem(EngineerUiNames.MENU_VIEW_REPORT);
         reportHistory.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to View Report page.",
-                    "View Report",
+                    EngineerUiNames.MENU_VIEW_REPORT,
                     JOptionPane.INFORMATION_MESSAGE
             );
             new EngineerViewReportWindow();
             this.dispose();
         });
 
-        JMenuItem systemLogs = new JMenuItem("System Logs");
+        JMenuItem systemLogs = new JMenuItem(EngineerUiNames.MENU_SYSTEM_LOGS);
         systemLogs.setEnabled(false);
 
         viewMenu.add(dashboardView);
@@ -271,6 +273,9 @@ public class EngineerStartingPage extends JFrame {
         );
 
         SwingUtilities.invokeLater(() -> {
+        if (tabsUI.getTabCount() <= 1) {
+            return;
+        }
         Rectangle viewTabBounds = tabsUI.getBoundsAt(1);
 
         int arrowSize = 22;
@@ -288,45 +293,45 @@ public class EngineerStartingPage extends JFrame {
         //help menu
         JPopupMenu helpMenu = new JPopupMenu();
 
-        JMenuItem sensorSetupGuide = new JMenuItem("Sensor Setup Guide");
+        JMenuItem sensorSetupGuide = new JMenuItem(EngineerUiNames.MENU_SENSOR_SETUP_GUIDE);
         sensorSetupGuide.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to Sensor Setup Guide.",
-                    "Sensor Setup Guide",
+                    EngineerUiNames.MENU_SENSOR_SETUP_GUIDE,
                     JOptionPane.INFORMATION_MESSAGE
             );
             RoleMenuBar.navigate(this, EngineerSensorSetupGuide::new);
         });
 
-        JMenuItem userDocumentation = new JMenuItem("User Documentation");
+        JMenuItem userDocumentation = new JMenuItem(EngineerUiNames.MENU_USER_DOCUMENTATION);
         userDocumentation.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to User Documentation.",
-                    "User Documentation",
+                    EngineerUiNames.MENU_USER_DOCUMENTATION,
                     JOptionPane.INFORMATION_MESSAGE
             );
             RoleMenuBar.navigate(this, EngineerUserDocumentation::new);
         });
 
-        JMenuItem aboutAOMA = new JMenuItem("About AOMA-Heritage Monitor");
+        JMenuItem aboutAOMA = new JMenuItem(EngineerUiNames.MENU_ABOUT);
         aboutAOMA.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to About AOMA-Heritage Monitor.",
-                    "About AOMA-Heritage Monitor",
+                    EngineerUiNames.MENU_ABOUT,
                     JOptionPane.INFORMATION_MESSAGE
             );
             RoleMenuBar.navigate(this, EngineerAboutAOMA::new);
         });
 
-        JMenuItem contactSupport = new JMenuItem("Contact Support");
+        JMenuItem contactSupport = new JMenuItem(EngineerUiNames.MENU_CONTACT_SUPPORT);
         contactSupport.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
                     "Directing to Contact Support.",
-                    "Contact Support",
+                    EngineerUiNames.MENU_CONTACT_SUPPORT,
                     JOptionPane.INFORMATION_MESSAGE
             );
             RoleMenuBar.navigate(this, EngineerContactSupport::new);
@@ -354,6 +359,9 @@ public class EngineerStartingPage extends JFrame {
         ); 
 
         SwingUtilities.invokeLater(() -> {
+        if (tabsUI.getTabCount() <= 2) {
+            return;
+        }
         Rectangle helpTabBounds = tabsUI.getBoundsAt(2);    
         int arrowSize = 22;
         helpMenuDropdownBtn.setBounds(
@@ -380,7 +388,7 @@ public class EngineerStartingPage extends JFrame {
             );
         }
 
-        if (selectedIndex == 2) { // Help tab clicked
+        if (selectedIndex == 2 && tabsUI.getTabCount() > 2) { // Help tab clicked
             tabsUI.setSelectedIndex(0); // go back to Projects
 
             Rectangle bounds = tabsUI.getBoundsAt(2);
@@ -417,19 +425,19 @@ public class EngineerStartingPage extends JFrame {
 
         // engr POPUP MENU
         JPopupMenu userMenu = new JPopupMenu();
-        JMenuItem userSettings = new JMenuItem("User Settings");
+        JMenuItem userSettings = new JMenuItem(EngineerUiNames.MENU_USER_SETTINGS);
 
         // Open Engineer Dashboard User Settings
         userSettings.addActionListener(e -> {
             dispose(); 
             new EngineerDashboardUserSettings(); // opens settings window
         });
-        JMenuItem logout = new JMenuItem("Logout");
+        JMenuItem logout = new JMenuItem(EngineerUiNames.MENU_LOGOUT);
         logout.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(
                     this,
                     "Are you sure you want to logout?",
-                    "Logout Confirmation",
+                    EngineerUiNames.TITLE_LOGOUT_CONFIRMATION,
                     JOptionPane.YES_NO_OPTION
             );
             if (confirm == JOptionPane.YES_OPTION) {
@@ -461,10 +469,24 @@ public class EngineerStartingPage extends JFrame {
         centerPanel.setBorder(secondBorder);
         engineerPanel.add(centerPanel);
 
-        JLabel greetingLabel = new JLabel("Welcome, Engr. Juan Dela Cruz!", JLabel.LEFT); //add database here [collect the fullname of the engineer]
+        greetingLabel = new JLabel("", JLabel.LEFT);
         greetingLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        greetingLabel.setBorder( BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(120, 120, 120)), 
-        BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+        greetingLabel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(120, 120, 120)),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        greetingLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        greetingLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (EngineerPreferences.getAccessLevel() == EngineerPreferences.AccessLevel.VIEWER) {
+                    return;
+                }
+                editNameFromStartingPage();
+            }
+        });
+        updateGreetingLabel();
+        removeProfileListener = EngineerProfileStore.addListener(this::updateGreetingLabel);
         centerPanel.add(greetingLabel, BorderLayout.NORTH);
 
         JPanel textContainer = new JPanel();
@@ -509,10 +531,45 @@ public class EngineerStartingPage extends JFrame {
         footerPanel.add(footerLabel, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
-        add(engineerPanel, BorderLayout.CENTER);
+        add(layeredPane, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
         
         setVisible(true);
+    }
+
+    private void updateGreetingLabel() {
+        if (greetingLabel == null) {
+            return;
+        }
+        greetingLabel.setText("Welcome, Engr. " + EngineerProfileStore.getFullName() + "!");
+    }
+
+    private void editNameFromStartingPage() {
+        JTextField first = new JTextField(EngineerProfileStore.getFirstName());
+        JTextField last = new JTextField(EngineerProfileStore.getLastName());
+
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.add(new JLabel("First Name"));
+        p.add(first);
+        p.add(Box.createVerticalStrut(10));
+        p.add(new JLabel("Last Name"));
+        p.add(last);
+
+        int ok = JOptionPane.showConfirmDialog(this, p, "Edit Name", JOptionPane.OK_CANCEL_OPTION);
+        if (ok != JOptionPane.OK_OPTION) {
+            return;
+        }
+        boolean updated = EngineerProfileStore.setName(first.getText(), last.getText());
+        if (!updated) {
+            JOptionPane.showMessageDialog(this, "Invalid name values.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    @Override
+    public void dispose() {
+        removeProfileListener.run();
+        super.dispose();
     }
 
     public static void main(String[] args) {
