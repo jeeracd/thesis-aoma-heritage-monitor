@@ -1,4 +1,9 @@
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.UUID;
 import javax.swing.*;
 import javax.swing.border.Border;
 
@@ -12,11 +17,18 @@ public class EngineerViewReportWindow extends JFrame {
 
     public static JLabel totalBuildingsValue;
     public static JLabel criticalValue;
+    public static JLabel safeValue;
     public static int totalBuildingsCount = 0;
     public static int criticalBuildingsCount = 0;
+    public static int safeBuildingsCount = 0;
+
+    private SensorDataManager sensorManager;
+    private SensorDataManager.ChangeListener sensorListener;
+    private Runnable removeRepoListener;
 
     public EngineerViewReportWindow() {
         instance = this;
+        sensorManager = SensorDataManager.getInstance();
         setTitle("AOMA-Heritage Monitor - View Report");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
@@ -503,7 +515,7 @@ public class EngineerViewReportWindow extends JFrame {
         centerPanelStatusOverview.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel statusOverviewHeaderLabel = new JLabel(
-                "View Report",
+                "Heritage Building Status Overview",
                 SwingConstants.CENTER
         );
         statusOverviewHeaderLabel.setFont(new Font("Arial", Font.BOLD, 16));
@@ -511,7 +523,7 @@ public class EngineerViewReportWindow extends JFrame {
         centerPanelStatusOverview.add(statusOverviewHeaderLabel, BorderLayout.NORTH);
 
         JLabel statusOverviewSubheaderLabel = new JLabel(
-                "A centralized hub for viewing past AOMA results, tracking dataset history, and evaluating current structural conditions.",
+                "Welcome, LGU Head. Below is the real-time safety and serviceability status of all heritage structures under your jurisdiction.",
                 SwingConstants.CENTER
         );
         statusOverviewSubheaderLabel.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -545,7 +557,7 @@ public class EngineerViewReportWindow extends JFrame {
         JPanel criticalPanel = new JPanel(new BorderLayout());
         criticalPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
-        JLabel criticalLabel = new JLabel("No Data", SwingConstants.CENTER);
+        JLabel criticalLabel = new JLabel("Critical Attention Needed", SwingConstants.CENTER);
         criticalLabel.setFont(new Font("Arial", Font.BOLD, 14));
         criticalLabel.setForeground(Color.RED);
 
@@ -560,11 +572,11 @@ public class EngineerViewReportWindow extends JFrame {
         JPanel safePanel = new JPanel(new BorderLayout());
         safePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
-        JLabel safeLabel = new JLabel("With Data", SwingConstants.CENTER);
+        JLabel safeLabel = new JLabel("Safe / Serviceable", SwingConstants.CENTER);
         safeLabel.setFont(new Font("Arial", Font.BOLD, 14));
         safeLabel.setForeground(new Color(0, 128, 0));
 
-        JLabel safeValue = new JLabel("0", SwingConstants.CENTER);
+        safeValue = new JLabel(String.valueOf(safeBuildingsCount), SwingConstants.CENTER);
         safeValue.setFont(new Font("Arial", Font.BOLD, 20));
         safeValue.setForeground(new Color(0, 128, 0));
 
@@ -647,12 +659,31 @@ public class EngineerViewReportWindow extends JFrame {
         tableHeaderPanel = horizontalSecondPanel;
         centerContentWrapper.add(tableHeaderPanel);
         centerContentWrapper.add(Box.createVerticalStrut(3));
+        assert tableHeaderPanel.getComponentCount() == 5;
 
         projectsContainer = new JPanel();
         projectsContainer.setLayout(new BoxLayout(projectsContainer, BoxLayout.Y_AXIS));
         projectsContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         centerContentWrapper.add(projectsContainer);
+        loadPersistedProjectsIntoUI();
+
+        removeRepoListener = ProjectRepository.addChangeListener(
+                () -> SwingUtilities.invokeLater(EngineerViewReportWindow::loadPersistedProjectsIntoUI)
+        );
+        sensorListener = () -> SwingUtilities.invokeLater(EngineerViewReportWindow::loadPersistedProjectsIntoUI);
+        sensorManager.addChangeListener(sensorListener);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent e) {
+                cleanupListeners();
+            }
+
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                cleanupListeners();
+            }
+        });
 
         JPanel footerPanel = new JPanel(new BorderLayout());
         footerPanel.setPreferredSize(new java.awt.Dimension(1400, 45));
@@ -673,24 +704,86 @@ public class EngineerViewReportWindow extends JFrame {
         setVisible(true);
     }
 
-        public static void addNewProjectRow(
+    private void cleanupListeners() {
+        if (removeRepoListener != null) {
+            removeRepoListener.run();
+            removeRepoListener = null;
+        }
+        if (sensorListener != null) {
+            sensorManager.removeChangeListener(sensorListener);
+            sensorListener = null;
+        }
+    }
+
+    private static void loadPersistedProjectsIntoUI() {
+        if (projectsContainer == null) {
+            return;
+        }
+        projectsContainer.removeAll();
+
+        totalBuildingsCount = 0;
+        criticalBuildingsCount = 0;
+        safeBuildingsCount = 0;
+        if (totalBuildingsValue != null) {
+            totalBuildingsValue.setText(String.valueOf(totalBuildingsCount));
+        }
+        if (criticalValue != null) {
+            criticalValue.setText(String.valueOf(criticalBuildingsCount));
+        }
+        if (safeValue != null) {
+            safeValue.setText(String.valueOf(safeBuildingsCount));
+        }
+
+        SensorDataManager mgr = SensorDataManager.getInstance();
+        for (Project p : ProjectRepository.getAll()) {
+            String buildingName = p.getBuildingName().isEmpty()
+                    ? "New Heritage Building"
+                    : p.getBuildingName();
+            String location = p.getAddress().isEmpty()
+                    ? "Location Not Set"
+                    : p.getAddress();
+            String function = p.getFunction().isEmpty()
+                    ? "Not Specified"
+                    : p.getFunction();
+            String connection = mgr.getBuildingConnectionStatus(p.getId());
+            String operational = mgr.getBuildingOperationalStatus(p.getId());
+            String status = operational + " | " + connection;
+            renderProjectRow(p.getId(), buildingName, location, function, status);
+        }
+
+        if (safeValue != null) {
+            safeValue.setText(String.valueOf(safeBuildingsCount));
+        }
+
+        projectsContainer.revalidate();
+        projectsContainer.repaint();
+    }
+
+    private static void renderProjectRow(
+            UUID projectId,
             String buildingName,
             String location,
             String function,
-            //i should change this: hindi health status to, dpat connection status
-            String healthStatus) {
-
+            String status
+    ) {
         if (projectsContainer == null) {
-            System.err.println("Projects container not initialized!");
             return;
         }
 
         totalBuildingsCount++;
-        totalBuildingsValue.setText(String.valueOf(totalBuildingsCount));
+        if (totalBuildingsValue != null) {
+            totalBuildingsValue.setText(String.valueOf(totalBuildingsCount));
+        }
 
-        if (healthStatus.equalsIgnoreCase("CRITICAL")) {
+        if (status != null && status.toUpperCase().startsWith("CRITICAL")) {
             criticalBuildingsCount++;
-            criticalValue.setText(String.valueOf(criticalBuildingsCount));
+            if (criticalValue != null) {
+                criticalValue.setText(String.valueOf(criticalBuildingsCount));
+            }
+        }
+        safeBuildingsCount = Math.max(0, totalBuildingsCount - criticalBuildingsCount);
+        if (safeValue != null) {
+            safeValue.setText(String.valueOf(safeBuildingsCount));
         }
 
         JPanel rowPanel = new JPanel(new GridLayout(1, 5, 10, 0));
@@ -700,21 +793,31 @@ public class EngineerViewReportWindow extends JFrame {
 
         JPanel rowBldgPanel = new JPanel(new BorderLayout());
         rowBldgPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        rowBldgPanel.add(new JLabel(buildingName, SwingConstants.CENTER), BorderLayout.CENTER);
+        JLabel buildingLbl = new JLabel(buildingName, SwingConstants.CENTER);
+        rowBldgPanel.add(buildingLbl, BorderLayout.CENTER);
 
         JPanel rowLocationPanel = new JPanel(new BorderLayout());
         rowLocationPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        rowLocationPanel.add(new JLabel(location, SwingConstants.CENTER), BorderLayout.CENTER);
+        JLabel locationLbl = new JLabel(location, SwingConstants.CENTER);
+        rowLocationPanel.add(locationLbl, BorderLayout.CENTER);
 
         JPanel rowFunctionPanel = new JPanel(new BorderLayout());
         rowFunctionPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        rowFunctionPanel.add(new JLabel(function, SwingConstants.CENTER), BorderLayout.CENTER);
+        JLabel functionLbl = new JLabel(function, SwingConstants.CENTER);
+        rowFunctionPanel.add(functionLbl, BorderLayout.CENTER);
 
-        JPanel rowHealthPanel = new JPanel(new BorderLayout());
-        rowHealthPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        JLabel healthLbl = new JLabel(healthStatus, SwingConstants.CENTER);
-        healthLbl.setForeground(Color.GRAY);
-        rowHealthPanel.add(healthLbl, BorderLayout.CENTER);
+        JPanel rowStatusPanel = new JPanel(new BorderLayout());
+        rowStatusPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        JLabel statusLbl = new JLabel(status, SwingConstants.CENTER);
+        statusLbl.setForeground(Color.GRAY);
+        rowStatusPanel.add(statusLbl, BorderLayout.CENTER);
+
+        if (projectId != null) {
+            installFieldEditor(projectId, buildingLbl, 0);
+            installFieldEditor(projectId, locationLbl, 1);
+            installFieldEditor(projectId, functionLbl, 2);
+            installStatusEditor(projectId, statusLbl);
+        }
 
         JPanel rowActionsPanel = new JPanel(new BorderLayout());
         rowActionsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
@@ -722,27 +825,140 @@ public class EngineerViewReportWindow extends JFrame {
         JButton viewReportBtn = new JButton("View Report");
         viewReportBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         viewReportBtn.setFocusPainted(false);
-
-        viewReportBtn.addActionListener(e -> {
-            SwingUtilities.invokeLater(() -> {
-                new EngineerViewReport();
-                instance.setVisible(false);
-            });
-        });
+        viewReportBtn.addActionListener(e -> SwingUtilities.invokeLater(() -> {
+            new EngineerViewReport();
+            instance.setVisible(false);
+        }));
 
         rowActionsPanel.add(viewReportBtn, BorderLayout.CENTER);
 
         rowPanel.add(rowBldgPanel);
         rowPanel.add(rowLocationPanel);
         rowPanel.add(rowFunctionPanel);
-        rowPanel.add(rowHealthPanel);
+        rowPanel.add(rowStatusPanel);
         rowPanel.add(rowActionsPanel);
+        assert rowPanel.getComponentCount() == 5;
 
         projectsContainer.add(Box.createVerticalStrut(3));
         projectsContainer.add(rowPanel);
+    }
 
-        projectsContainer.revalidate();
-        projectsContainer.repaint();
+    private static void installStatusEditor(UUID projectId, JLabel label) {
+        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                SensorDataManager mgr = SensorDataManager.getInstance();
+                String currentConn = mgr.getBuildingConnectionStatus(projectId);
+                String currentOp = mgr.getBuildingOperationalStatus(projectId);
+
+                String[] options = {"Toggle Connection", "Edit Operational Status", "Cancel"};
+                int choice = JOptionPane.showOptionDialog(
+                        instance,
+                        "Choose an update:",
+                        "Update Status",
+                        JOptionPane.YES_NO_CANCEL_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        options,
+                        options[2]
+                );
+
+                if (choice == 0) {
+                    String nextConn = "Connected".equalsIgnoreCase(currentConn) ? "Disconnected" : "Connected";
+                    mgr.setBuildingConnectionStatus(projectId, nextConn);
+                } else if (choice == 1) {
+                    String nextOp = JOptionPane.showInputDialog(instance, "Operational Status:", currentOp);
+                    if (nextOp == null) {
+                        return;
+                    }
+                    nextOp = nextOp.trim();
+                    if (nextOp.isEmpty()) {
+                        JOptionPane.showMessageDialog(instance, "Value cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    mgr.setBuildingOperationalStatus(projectId, nextOp);
+                }
+            }
+        });
+    }
+
+    private static void installFieldEditor(UUID projectId, JLabel label, int fieldIndex) {
+        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Optional<Project> maybeProject = ProjectRepository.findById(projectId);
+                if (maybeProject.isEmpty()) {
+                    return;
+                }
+                Project p = maybeProject.get();
+                String currentValue;
+                String title;
+                if (fieldIndex == 0) {
+                    currentValue = p.getBuildingName();
+                    title = "Heritage Building Name";
+                } else if (fieldIndex == 1) {
+                    currentValue = p.getAddress();
+                    title = "Location";
+                } else {
+                    currentValue = p.getFunction();
+                    title = "Function";
+                }
+
+                String nextValue = JOptionPane.showInputDialog(instance, "Edit " + title + ":", currentValue);
+                if (nextValue == null) {
+                    return;
+                }
+                nextValue = nextValue.trim();
+                if (nextValue.isEmpty()) {
+                    JOptionPane.showMessageDialog(instance, "Value cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                Project updated;
+                if (fieldIndex == 0) {
+                    updated = p.withUpdatedDetails(
+                            p.getProjectName(),
+                            nextValue,
+                            p.getDateConstructed(),
+                            p.getMaterialsUsed(),
+                            p.getFunction(),
+                            p.getConservationStatus(),
+                            p.getAddress(),
+                            p.getDescription()
+                    );
+                } else if (fieldIndex == 1) {
+                    updated = p.withUpdatedDetails(
+                            p.getProjectName(),
+                            p.getBuildingName(),
+                            p.getDateConstructed(),
+                            p.getMaterialsUsed(),
+                            p.getFunction(),
+                            p.getConservationStatus(),
+                            nextValue,
+                            p.getDescription()
+                    );
+                } else {
+                    updated = p.withUpdatedDetails(
+                            p.getProjectName(),
+                            p.getBuildingName(),
+                            p.getDateConstructed(),
+                            p.getMaterialsUsed(),
+                            nextValue,
+                            p.getConservationStatus(),
+                            p.getAddress(),
+                            p.getDescription()
+                    );
+                }
+
+                try {
+                    ProjectRepository.updateProject(updated);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(instance, "Failed to update project.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
     }
     
 
@@ -750,5 +966,3 @@ public class EngineerViewReportWindow extends JFrame {
         SwingUtilities.invokeLater(EngineerViewReportWindow::new);
     }
 }
-
-

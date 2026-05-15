@@ -1,8 +1,11 @@
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import javax.swing.SwingUtilities;
 
 public class SensorDataManager {
@@ -10,6 +13,8 @@ public class SensorDataManager {
     
     private List<Sensor> sensors;
     private List<ChangeListener> listeners;
+    private Map<UUID, String> buildingConnectionStatus;
+    private Map<UUID, String> buildingOperationalStatus;
 
     private static final DateTimeFormatter DEVICE_TIMESTAMP_FORMAT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -56,6 +61,8 @@ public class SensorDataManager {
     private SensorDataManager() {
         sensors = new ArrayList<>();
         listeners = new ArrayList<>();
+        buildingConnectionStatus = new HashMap<>();
+        buildingOperationalStatus = new HashMap<>();
     }
     
     public static synchronized SensorDataManager getInstance() {
@@ -239,7 +246,114 @@ public class SensorDataManager {
     
     public void reset() {
         sensors.clear();
+        buildingConnectionStatus.clear();
+        buildingOperationalStatus.clear();
         notifyListeners();
+    }
+
+    public synchronized String getBuildingConnectionStatus(UUID projectId) {
+        if (projectId == null) {
+            return "Disconnected";
+        }
+        String existing = buildingConnectionStatus.get(projectId);
+        if (existing != null && isValidConnectionStatus(existing)) {
+            return normalizeConnectionStatus(existing);
+        }
+        String derived = scanActiveEsp32Devices().isEmpty() ? "Disconnected" : "Connected";
+        buildingConnectionStatus.put(projectId, derived);
+        return derived;
+    }
+
+    public synchronized void setBuildingConnectionStatus(UUID projectId, String nextStatus) {
+        if (projectId == null) {
+            return;
+        }
+        if (!isValidConnectionStatus(nextStatus)) {
+            return;
+        }
+        String normalized = normalizeConnectionStatus(nextStatus);
+        String prev = buildingConnectionStatus.get(projectId);
+        if (Objects.equals(prev, normalized)) {
+            return;
+        }
+        buildingConnectionStatus.put(projectId, normalized);
+        notifyListeners();
+    }
+
+    public synchronized String getBuildingOperationalStatus(UUID projectId) {
+        if (projectId == null) {
+            return "NO DATA";
+        }
+        String existing = buildingOperationalStatus.get(projectId);
+        if (existing == null) {
+            buildingOperationalStatus.put(projectId, "NO DATA");
+            return "NO DATA";
+        }
+        String trimmed = existing.trim();
+        if (trimmed.isEmpty()) {
+            buildingOperationalStatus.put(projectId, "NO DATA");
+            return "NO DATA";
+        }
+        return trimmed;
+    }
+
+    public synchronized void setBuildingOperationalStatus(UUID projectId, String nextStatus) {
+        if (projectId == null) {
+            return;
+        }
+        if (nextStatus == null) {
+            return;
+        }
+        String trimmed = nextStatus.trim();
+        if (trimmed.isEmpty()) {
+            return;
+        }
+        String prev = buildingOperationalStatus.get(projectId);
+        if (Objects.equals(prev, trimmed)) {
+            return;
+        }
+        buildingOperationalStatus.put(projectId, trimmed);
+        notifyListeners();
+    }
+
+    public synchronized int getConnectedBuildingCount(Iterable<UUID> projectIds) {
+        int count = 0;
+        if (projectIds == null) {
+            return 0;
+        }
+        for (UUID id : projectIds) {
+            if ("Connected".equalsIgnoreCase(getBuildingConnectionStatus(id))) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public synchronized int getDisconnectedBuildingCount(Iterable<UUID> projectIds) {
+        int total = 0;
+        int connected = 0;
+        if (projectIds == null) {
+            return 0;
+        }
+        for (UUID id : projectIds) {
+            total++;
+            if ("Connected".equalsIgnoreCase(getBuildingConnectionStatus(id))) {
+                connected++;
+            }
+        }
+        return Math.max(0, total - connected);
+    }
+
+    private static boolean isValidConnectionStatus(String v) {
+        if (v == null) {
+            return false;
+        }
+        String t = v.trim();
+        return "Connected".equalsIgnoreCase(t) || "Disconnected".equalsIgnoreCase(t);
+    }
+
+    private static String normalizeConnectionStatus(String v) {
+        return "Connected".equalsIgnoreCase(v) ? "Connected" : "Disconnected";
     }
 
     private static String signatureForSensors(List<Sensor> sensors) {

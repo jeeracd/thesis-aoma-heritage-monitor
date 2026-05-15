@@ -1,4 +1,9 @@
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.UUID;
 import javax.swing.*;
 import javax.swing.border.Border;
 public class EngineerSetupConnectionWindow extends JFrame {
@@ -11,8 +16,10 @@ public class EngineerSetupConnectionWindow extends JFrame {
 
     public static JLabel totalBuildingsValue;
     public static JLabel criticalValue;
+    public static JLabel safeValue;
     public static int totalBuildingsCount = 0;
     public static int criticalBuildingsCount = 0;
+    public static int safeBuildingsCount = 0;
 
     public EngineerSetupConnectionWindow() {
         instance = this;
@@ -563,7 +570,7 @@ public class EngineerSetupConnectionWindow extends JFrame {
         safeLabel.setFont(new Font("Arial", Font.BOLD, 14));
         safeLabel.setForeground(new Color(0, 128, 0));
 
-        JLabel safeValue = new JLabel("0", SwingConstants.CENTER);
+        safeValue = new JLabel(String.valueOf(safeBuildingsCount), SwingConstants.CENTER);
         safeValue.setFont(new Font("Arial", Font.BOLD, 20));
         safeValue.setForeground(new Color(0, 128, 0));
 
@@ -621,7 +628,13 @@ public class EngineerSetupConnectionWindow extends JFrame {
         functionLabel.setFont(headerFont);
         functionPanel.add(functionLabel, BorderLayout.CENTER);
 
-        // p5
+        JPanel healthStatusPanel = new JPanel(new BorderLayout());
+        healthStatusPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        JLabel healthStatusLabel = new JLabel("Status", SwingConstants.CENTER);
+        healthStatusLabel.setFont(headerFont);
+        healthStatusPanel.add(healthStatusLabel, BorderLayout.CENTER);
+
         JPanel actionsPanel = new JPanel(new BorderLayout());
         actionsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
@@ -632,6 +645,7 @@ public class EngineerSetupConnectionWindow extends JFrame {
         horizontalSecondPanel.add(bldgPanel);
         horizontalSecondPanel.add(locationPanel);
         horizontalSecondPanel.add(functionPanel);
+        horizontalSecondPanel.add(healthStatusPanel);
         horizontalSecondPanel.add(actionsPanel);
 
         tableHeaderPanel = horizontalSecondPanel;
@@ -643,6 +657,22 @@ public class EngineerSetupConnectionWindow extends JFrame {
         projectsContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         centerContentWrapper.add(projectsContainer);
+
+        loadPersistedProjectsIntoUI();
+        Runnable removeRepoListener = ProjectRepository.addChangeListener(
+                () -> SwingUtilities.invokeLater(EngineerSetupConnectionWindow::loadPersistedProjectsIntoUI)
+        );
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent e) {
+                removeRepoListener.run();
+            }
+
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                removeRepoListener.run();
+            }
+        });
 
         JPanel footerPanel = new JPanel(new BorderLayout());
         footerPanel.setPreferredSize(new java.awt.Dimension(1400, 45));
@@ -668,18 +698,77 @@ public class EngineerSetupConnectionWindow extends JFrame {
             String location,
             String function,
             String healthStatus) {
+        renderProjectRow(null, buildingName, location, function, healthStatus);
+    }
 
+    private static void loadPersistedProjectsIntoUI() {
         if (projectsContainer == null) {
-            System.err.println("Projects container not initialized!");
+            return;
+        }
+        projectsContainer.removeAll();
+
+        totalBuildingsCount = 0;
+        criticalBuildingsCount = 0;
+        safeBuildingsCount = 0;
+        if (totalBuildingsValue != null) {
+            totalBuildingsValue.setText(String.valueOf(totalBuildingsCount));
+        }
+        if (criticalValue != null) {
+            criticalValue.setText(String.valueOf(criticalBuildingsCount));
+        }
+        if (safeValue != null) {
+            safeValue.setText(String.valueOf(safeBuildingsCount));
+        }
+
+        for (Project p : ProjectRepository.getAll()) {
+            String buildingName = p.getBuildingName().isEmpty()
+                    ? "New Heritage Building"
+                    : p.getBuildingName();
+            String location = p.getAddress().isEmpty()
+                    ? "Location Not Set"
+                    : p.getAddress();
+            String function = p.getFunction().isEmpty()
+                    ? "Not Specified"
+                    : p.getFunction();
+            String status = "NO DATA";
+            renderProjectRow(p.getId(), buildingName, location, function, status);
+        }
+
+        safeBuildingsCount = Math.max(0, totalBuildingsCount - criticalBuildingsCount);
+        if (safeValue != null) {
+            safeValue.setText(String.valueOf(safeBuildingsCount));
+        }
+
+        projectsContainer.revalidate();
+        projectsContainer.repaint();
+    }
+
+    private static void renderProjectRow(
+            UUID projectId,
+            String buildingName,
+            String location,
+            String function,
+            String status
+    ) {
+        if (projectsContainer == null) {
             return;
         }
 
         totalBuildingsCount++;
-        totalBuildingsValue.setText(String.valueOf(totalBuildingsCount));
+        if (totalBuildingsValue != null) {
+            totalBuildingsValue.setText(String.valueOf(totalBuildingsCount));
+        }
 
-        if (healthStatus.equalsIgnoreCase("CRITICAL")) {
+        if (status != null && status.equalsIgnoreCase("CRITICAL")) {
             criticalBuildingsCount++;
-            criticalValue.setText(String.valueOf(criticalBuildingsCount));
+            if (criticalValue != null) {
+                criticalValue.setText(String.valueOf(criticalBuildingsCount));
+            }
+        }
+
+        safeBuildingsCount = Math.max(0, totalBuildingsCount - criticalBuildingsCount);
+        if (safeValue != null) {
+            safeValue.setText(String.valueOf(safeBuildingsCount));
         }
 
         JPanel rowPanel = new JPanel(new GridLayout(1, 5, 10, 0));
@@ -689,49 +778,128 @@ public class EngineerSetupConnectionWindow extends JFrame {
 
         JPanel rowBldgPanel = new JPanel(new BorderLayout());
         rowBldgPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        rowBldgPanel.add(new JLabel(buildingName, SwingConstants.CENTER), BorderLayout.CENTER);
+        JLabel buildingLbl = new JLabel(buildingName, SwingConstants.CENTER);
+        rowBldgPanel.add(buildingLbl, BorderLayout.CENTER);
 
         JPanel rowLocationPanel = new JPanel(new BorderLayout());
         rowLocationPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        rowLocationPanel.add(new JLabel(location, SwingConstants.CENTER), BorderLayout.CENTER);
+        JLabel locationLbl = new JLabel(location, SwingConstants.CENTER);
+        rowLocationPanel.add(locationLbl, BorderLayout.CENTER);
 
         JPanel rowFunctionPanel = new JPanel(new BorderLayout());
         rowFunctionPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        rowFunctionPanel.add(new JLabel(function, SwingConstants.CENTER), BorderLayout.CENTER);
+        JLabel functionLbl = new JLabel(function, SwingConstants.CENTER);
+        rowFunctionPanel.add(functionLbl, BorderLayout.CENTER);
 
-        JPanel rowHealthPanel = new JPanel(new BorderLayout());
-        rowHealthPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        JLabel healthLbl = new JLabel(healthStatus, SwingConstants.CENTER);
-        healthLbl.setForeground(Color.GRAY);
-        rowHealthPanel.add(healthLbl, BorderLayout.CENTER);
+        JPanel rowStatusPanel = new JPanel(new BorderLayout());
+        rowStatusPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        JLabel statusLbl = new JLabel(status, SwingConstants.CENTER);
+        statusLbl.setForeground(Color.GRAY);
+        rowStatusPanel.add(statusLbl, BorderLayout.CENTER);
+
+        if (projectId != null) {
+            installFieldEditor(projectId, buildingLbl, 0);
+            installFieldEditor(projectId, locationLbl, 1);
+            installFieldEditor(projectId, functionLbl, 2);
+        }
 
         JPanel rowActionsPanel = new JPanel(new BorderLayout());
         rowActionsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
-        JButton viewDetailsBtn = new JButton("Connect ESP32 Hub");
-        viewDetailsBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        viewDetailsBtn.setFocusPainted(false);
-
-        viewDetailsBtn.addActionListener(e -> {
-            SwingUtilities.invokeLater(() -> {
-                //new EngineerESP32Connect();
-                instance.setVisible(false);
-            });
-        });
-
-        rowActionsPanel.add(viewDetailsBtn, BorderLayout.CENTER);
+        JButton connectBtn = new JButton("Connect ESP32 Hub");
+        connectBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        connectBtn.setFocusPainted(false);
+        connectBtn.addActionListener(e -> SwingUtilities.invokeLater(() -> {
+            instance.setVisible(false);
+        }));
+        rowActionsPanel.add(connectBtn, BorderLayout.CENTER);
 
         rowPanel.add(rowBldgPanel);
         rowPanel.add(rowLocationPanel);
         rowPanel.add(rowFunctionPanel);
-        rowPanel.add(rowHealthPanel);
+        rowPanel.add(rowStatusPanel);
         rowPanel.add(rowActionsPanel);
 
         projectsContainer.add(Box.createVerticalStrut(3));
         projectsContainer.add(rowPanel);
+    }
 
-        projectsContainer.revalidate();
-        projectsContainer.repaint();
+    private static void installFieldEditor(UUID projectId, JLabel label, int fieldIndex) {
+        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Optional<Project> maybeProject = ProjectRepository.findById(projectId);
+                if (maybeProject.isEmpty()) {
+                    return;
+                }
+                Project p = maybeProject.get();
+                String currentValue;
+                String title;
+                if (fieldIndex == 0) {
+                    currentValue = p.getBuildingName();
+                    title = "Heritage Building Name";
+                } else if (fieldIndex == 1) {
+                    currentValue = p.getAddress();
+                    title = "Location";
+                } else {
+                    currentValue = p.getFunction();
+                    title = "Function";
+                }
+
+                String nextValue = JOptionPane.showInputDialog(instance, "Edit " + title + ":", currentValue);
+                if (nextValue == null) {
+                    return;
+                }
+                nextValue = nextValue.trim();
+                if (nextValue.isEmpty()) {
+                    JOptionPane.showMessageDialog(instance, "Value cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                Project updated;
+                if (fieldIndex == 0) {
+                    updated = p.withUpdatedDetails(
+                            p.getProjectName(),
+                            nextValue,
+                            p.getDateConstructed(),
+                            p.getMaterialsUsed(),
+                            p.getFunction(),
+                            p.getConservationStatus(),
+                            p.getAddress(),
+                            p.getDescription()
+                    );
+                } else if (fieldIndex == 1) {
+                    updated = p.withUpdatedDetails(
+                            p.getProjectName(),
+                            p.getBuildingName(),
+                            p.getDateConstructed(),
+                            p.getMaterialsUsed(),
+                            p.getFunction(),
+                            p.getConservationStatus(),
+                            nextValue,
+                            p.getDescription()
+                    );
+                } else {
+                    updated = p.withUpdatedDetails(
+                            p.getProjectName(),
+                            p.getBuildingName(),
+                            p.getDateConstructed(),
+                            p.getMaterialsUsed(),
+                            nextValue,
+                            p.getConservationStatus(),
+                            p.getAddress(),
+                            p.getDescription()
+                    );
+                }
+
+                try {
+                    ProjectRepository.updateProject(updated);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(instance, "Failed to update project.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
     }
     
 
@@ -739,5 +907,3 @@ public class EngineerSetupConnectionWindow extends JFrame {
         SwingUtilities.invokeLater(EngineerSetupConnectionWindow::new);
     }
 }
-
-

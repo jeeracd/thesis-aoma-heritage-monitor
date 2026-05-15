@@ -1,4 +1,8 @@
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.util.Optional;
 import java.util.UUID;
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -18,8 +22,13 @@ public class EngineerBldgStatusOverview extends JFrame {
     public static int criticalBuildingsCount = 0;
     public static int safeBuildingsCount = 0;
 
+    private SensorDataManager sensorManager;
+    private SensorDataManager.ChangeListener sensorListener;
+    private Runnable removeRepoListener;
+
     public EngineerBldgStatusOverview() {
         instance = this;
+        sensorManager = SensorDataManager.getInstance();
         
         setTitle("AOMA-Heritage Monitor - Building Status Overview");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -478,6 +487,7 @@ public class EngineerBldgStatusOverview extends JFrame {
         tableHeaderPanel = horizontalSecondPanel;
         centerContentWrapper.add(tableHeaderPanel);
         centerContentWrapper.add(Box.createVerticalStrut(3));
+        assert tableHeaderPanel.getComponentCount() == 5;
 
         projectsContainer = new JPanel();
         projectsContainer.setLayout(new BoxLayout(projectsContainer, BoxLayout.Y_AXIS));
@@ -486,16 +496,18 @@ public class EngineerBldgStatusOverview extends JFrame {
         centerContentWrapper.add(projectsContainer);
         loadPersistedProjectsIntoUI();
 
-        Runnable removeRepoListener = ProjectRepository.addChangeListener(() -> SwingUtilities.invokeLater(EngineerBldgStatusOverview::loadPersistedProjectsIntoUI));
+        removeRepoListener = ProjectRepository.addChangeListener(() -> SwingUtilities.invokeLater(EngineerBldgStatusOverview::loadPersistedProjectsIntoUI));
+        sensorListener = () -> SwingUtilities.invokeLater(EngineerBldgStatusOverview::loadPersistedProjectsIntoUI);
+        sensorManager.addChangeListener(sensorListener);
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosed(java.awt.event.WindowEvent e) {
-                removeRepoListener.run();
+                cleanupListeners();
             }
 
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
-                removeRepoListener.run();
+                cleanupListeners();
             }
         });
 
@@ -586,7 +598,10 @@ public class EngineerBldgStatusOverview extends JFrame {
             String function = p.getFunction().isEmpty()
                     ? "Not Specified"
                     : p.getFunction();
-            String healthStatus = "NO DATA";
+            SensorDataManager mgr = SensorDataManager.getInstance();
+            String connectionStatus = mgr.getBuildingConnectionStatus(p.getId());
+            String operationalStatus = mgr.getBuildingOperationalStatus(p.getId());
+            String healthStatus = operationalStatus + " | " + connectionStatus;
             renderProjectRow(p.getId(), buildingName, location, function, healthStatus);
         }
 
@@ -614,7 +629,7 @@ public class EngineerBldgStatusOverview extends JFrame {
         totalBuildingsCount++;
         totalBuildingsValue.setText(String.valueOf(totalBuildingsCount));
 
-        if (healthStatus.equalsIgnoreCase("CRITICAL")) {
+        if (healthStatus != null && healthStatus.toUpperCase().startsWith("CRITICAL")) {
             criticalBuildingsCount++;
             criticalValue.setText(String.valueOf(criticalBuildingsCount));
         }
@@ -630,21 +645,31 @@ public class EngineerBldgStatusOverview extends JFrame {
 
         JPanel rowBldgPanel = new JPanel(new BorderLayout());
         rowBldgPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        rowBldgPanel.add(new JLabel(buildingName, SwingConstants.CENTER), BorderLayout.CENTER);
+        JLabel buildingLbl = new JLabel(buildingName, SwingConstants.CENTER);
+        rowBldgPanel.add(buildingLbl, BorderLayout.CENTER);
 
         JPanel rowLocationPanel = new JPanel(new BorderLayout());
         rowLocationPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        rowLocationPanel.add(new JLabel(location, SwingConstants.CENTER), BorderLayout.CENTER);
+        JLabel locationLbl = new JLabel(location, SwingConstants.CENTER);
+        rowLocationPanel.add(locationLbl, BorderLayout.CENTER);
 
         JPanel rowFunctionPanel = new JPanel(new BorderLayout());
         rowFunctionPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        rowFunctionPanel.add(new JLabel(function, SwingConstants.CENTER), BorderLayout.CENTER);
+        JLabel functionLbl = new JLabel(function, SwingConstants.CENTER);
+        rowFunctionPanel.add(functionLbl, BorderLayout.CENTER);
 
         JPanel rowHealthPanel = new JPanel(new BorderLayout());
         rowHealthPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         JLabel healthLbl = new JLabel(healthStatus, SwingConstants.CENTER);
         healthLbl.setForeground(Color.GRAY);
         rowHealthPanel.add(healthLbl, BorderLayout.CENTER);
+
+        if (projectId != null) {
+            installFieldEditor(projectId, buildingLbl, 0);
+            installFieldEditor(projectId, locationLbl, 1);
+            installFieldEditor(projectId, functionLbl, 2);
+            installStatusEditor(projectId, healthLbl);
+        }
 
         JPanel rowActionsPanel = new JPanel(new BorderLayout());
         rowActionsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
@@ -676,6 +701,135 @@ public class EngineerBldgStatusOverview extends JFrame {
 
         projectsContainer.add(Box.createVerticalStrut(3));
         projectsContainer.add(rowPanel);
+    }
+
+    private static void installFieldEditor(UUID projectId, JLabel label, int fieldIndex) {
+        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Optional<Project> maybeProject = ProjectRepository.findById(projectId);
+                if (maybeProject.isEmpty()) {
+                    return;
+                }
+                Project p = maybeProject.get();
+                String currentValue;
+                String title;
+                if (fieldIndex == 0) {
+                    currentValue = p.getBuildingName();
+                    title = "Heritage Building Name";
+                } else if (fieldIndex == 1) {
+                    currentValue = p.getAddress();
+                    title = "Location";
+                } else {
+                    currentValue = p.getFunction();
+                    title = "Function";
+                }
+
+                String nextValue = JOptionPane.showInputDialog(instance, "Edit " + title + ":", currentValue);
+                if (nextValue == null) {
+                    return;
+                }
+                nextValue = nextValue.trim();
+                if (nextValue.isEmpty()) {
+                    JOptionPane.showMessageDialog(instance, "Value cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                Project updated;
+                if (fieldIndex == 0) {
+                    updated = p.withUpdatedDetails(
+                            p.getProjectName(),
+                            nextValue,
+                            p.getDateConstructed(),
+                            p.getMaterialsUsed(),
+                            p.getFunction(),
+                            p.getConservationStatus(),
+                            p.getAddress(),
+                            p.getDescription()
+                    );
+                } else if (fieldIndex == 1) {
+                    updated = p.withUpdatedDetails(
+                            p.getProjectName(),
+                            p.getBuildingName(),
+                            p.getDateConstructed(),
+                            p.getMaterialsUsed(),
+                            p.getFunction(),
+                            p.getConservationStatus(),
+                            nextValue,
+                            p.getDescription()
+                    );
+                } else {
+                    updated = p.withUpdatedDetails(
+                            p.getProjectName(),
+                            p.getBuildingName(),
+                            p.getDateConstructed(),
+                            p.getMaterialsUsed(),
+                            nextValue,
+                            p.getConservationStatus(),
+                            p.getAddress(),
+                            p.getDescription()
+                    );
+                }
+
+                try {
+                    ProjectRepository.updateProject(updated);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(instance, "Failed to update project.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+    }
+
+    private static void installStatusEditor(UUID projectId, JLabel label) {
+        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                SensorDataManager mgr = SensorDataManager.getInstance();
+                String currentConn = mgr.getBuildingConnectionStatus(projectId);
+                String currentOp = mgr.getBuildingOperationalStatus(projectId);
+
+                String[] options = {"Toggle Connection", "Edit Operational Status", "Cancel"};
+                int choice = JOptionPane.showOptionDialog(
+                        instance,
+                        "Choose an update:",
+                        "Update Status",
+                        JOptionPane.YES_NO_CANCEL_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        options,
+                        options[2]
+                );
+
+                if (choice == 0) {
+                    String nextConn = "Connected".equalsIgnoreCase(currentConn) ? "Disconnected" : "Connected";
+                    mgr.setBuildingConnectionStatus(projectId, nextConn);
+                } else if (choice == 1) {
+                    String nextOp = JOptionPane.showInputDialog(instance, "Operational Status:", currentOp);
+                    if (nextOp == null) {
+                        return;
+                    }
+                    nextOp = nextOp.trim();
+                    if (nextOp.isEmpty()) {
+                        JOptionPane.showMessageDialog(instance, "Value cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    mgr.setBuildingOperationalStatus(projectId, nextOp);
+                }
+            }
+        });
+    }
+
+    private void cleanupListeners() {
+        if (removeRepoListener != null) {
+            removeRepoListener.run();
+            removeRepoListener = null;
+        }
+        if (sensorListener != null) {
+            sensorManager.removeChangeListener(sensorListener);
+            sensorListener = null;
+        }
     }
 
     public static void main(String[] args) {
