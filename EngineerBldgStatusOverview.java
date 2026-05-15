@@ -1,7 +1,7 @@
 import java.awt.*;
+import java.util.UUID;
 import javax.swing.*;
 import javax.swing.border.Border;
-import java.util.UUID;
 
 public class EngineerBldgStatusOverview extends JFrame {
 
@@ -13,11 +13,14 @@ public class EngineerBldgStatusOverview extends JFrame {
 
     public static JLabel totalBuildingsValue;
     public static JLabel criticalValue;
+    public static JLabel safeValue;
     public static int totalBuildingsCount = 0;
     public static int criticalBuildingsCount = 0;
+    public static int safeBuildingsCount = 0;
 
     public EngineerBldgStatusOverview() {
         instance = this;
+        
         setTitle("AOMA-Heritage Monitor - Building Status Overview");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
@@ -123,7 +126,6 @@ public class EngineerBldgStatusOverview extends JFrame {
             this.dispose();
         });
 
-
         JMenuItem configureSensor = new JMenuItem("Configure Sensor");
         configureSensor.addActionListener(e -> {
             JOptionPane.showMessageDialog(
@@ -158,7 +160,7 @@ public class EngineerBldgStatusOverview extends JFrame {
             );
             new EngineerVibrationDataWindow();
             this.dispose();
-        }); 
+        });
 
         JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
         omaAnalysisResult.addActionListener(e -> {
@@ -185,7 +187,7 @@ public class EngineerBldgStatusOverview extends JFrame {
         });
 
         JMenuItem systemLogs = new JMenuItem("System Logs");
-        systemLogs.setEnabled(false); // disabled for now
+        systemLogs.setEnabled(false);
 
         viewMenu.add(dashboardView);
         viewMenu.addSeparator();
@@ -277,12 +279,11 @@ public class EngineerBldgStatusOverview extends JFrame {
         JLabel userIconLabel = new JLabel(new ImageIcon(userImgScaled));
         userIconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
 
-        // Head POPUP MENU
         JPopupMenu userMenu = new JPopupMenu();
         JMenuItem userSettings = new JMenuItem("User Settings");
         userSettings.addActionListener(e -> {
-            dispose(); 
-            new EngineerDashboardUserSettings(); // opens settings window
+            dispose();
+            new EngineerDashboardUserSettings();
         });
 
         JMenuItem logout = new JMenuItem("Logout");
@@ -294,8 +295,8 @@ public class EngineerBldgStatusOverview extends JFrame {
                     JOptionPane.YES_NO_OPTION
             );
             if (confirm == JOptionPane.YES_OPTION) {
-                dispose(); 
-                new UsersLoginOptions(); // opens login page
+                dispose();
+                new UsersLoginOptions();
             }
         });
 
@@ -304,7 +305,6 @@ public class EngineerBldgStatusOverview extends JFrame {
         userMenu.add(logout);
         userIconLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        // Show popup when clicked
         userIconLabel.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
@@ -316,14 +316,12 @@ public class EngineerBldgStatusOverview extends JFrame {
         centerPanelDescription.add(userIconLabel, BorderLayout.EAST);
         engineerPanel.add(centerPanelDescription);
 
-        // CENTER PANEL 
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setBounds(10, 70, 1380, 648);
         Border secondBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
         centerPanel.setBorder(secondBorder);
         engineerPanel.add(centerPanel);
 
-        // HEADER 
         JLabel headerLabel = new JLabel("Dashboard");
         headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
         headerLabel.setBorder(BorderFactory.createCompoundBorder(
@@ -337,7 +335,7 @@ public class EngineerBldgStatusOverview extends JFrame {
         centerContentWrapper.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         centerPanel.add(centerContentWrapper, BorderLayout.CENTER);
 
-        Dimension overviewSize = new Dimension(1600, 100); 
+        Dimension overviewSize = new Dimension(1600, 100);
 
         JPanel centerPanelStatusOverview = new JPanel(new BorderLayout());
         centerPanelStatusOverview.setPreferredSize(overviewSize);
@@ -363,16 +361,14 @@ public class EngineerBldgStatusOverview extends JFrame {
         centerPanelStatusOverview.add(statusOverviewSubheaderLabel, BorderLayout.CENTER);
 
         centerContentWrapper.add(centerPanelStatusOverview);
-        centerContentWrapper.add(Box.createVerticalStrut(10)); 
+        centerContentWrapper.add(Box.createVerticalStrut(10));
 
-        // HORIZONTAL FIRST PANEL 
         JPanel horizontalFirstPanel = new JPanel(new GridLayout(1, 4, 10, 0));
         horizontalFirstPanel.setPreferredSize(new Dimension(1600, 50));
         horizontalFirstPanel.setMaximumSize(new Dimension(1600, 50));
         horizontalFirstPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         horizontalFirstPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-        // p1
         JPanel totalBuildingsPanel = new JPanel(new BorderLayout());
         totalBuildingsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
@@ -385,7 +381,6 @@ public class EngineerBldgStatusOverview extends JFrame {
         totalBuildingsPanel.add(totalBuildingsLabel, BorderLayout.NORTH);
         totalBuildingsPanel.add(totalBuildingsValue, BorderLayout.CENTER);
 
-        // p2
         JPanel criticalPanel = new JPanel(new BorderLayout());
         criticalPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
@@ -400,7 +395,6 @@ public class EngineerBldgStatusOverview extends JFrame {
         criticalPanel.add(criticalLabel, BorderLayout.NORTH);
         criticalPanel.add(criticalValue, BorderLayout.CENTER);
 
-        // p3
         JPanel safePanel = new JPanel(new BorderLayout());
         safePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
@@ -408,18 +402,17 @@ public class EngineerBldgStatusOverview extends JFrame {
         safeLabel.setFont(new Font("Arial", Font.BOLD, 14));
         safeLabel.setForeground(new Color(0, 128, 0));
 
-        JLabel safeValue = new JLabel("0", SwingConstants.CENTER);
+        safeValue = new JLabel(String.valueOf(safeBuildingsCount), SwingConstants.CENTER);
         safeValue.setFont(new Font("Arial", Font.BOLD, 20));
         safeValue.setForeground(new Color(0, 128, 0));
 
         safePanel.add(safeLabel, BorderLayout.NORTH);
         safePanel.add(safeValue, BorderLayout.CENTER);
 
-        // p4
         JPanel searchPanel = new JPanel(new BorderLayout());
         searchPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
-        JTextField searchField = new JTextField("🔍 Search");
+        JTextField searchField = new JTextField("Search");
         searchField.setHorizontalAlignment(JTextField.CENTER);
         searchField.setFont(new Font("Arial", Font.PLAIN, 14));
 
@@ -431,9 +424,8 @@ public class EngineerBldgStatusOverview extends JFrame {
         horizontalFirstPanel.add(searchPanel);
 
         centerContentWrapper.add(horizontalFirstPanel);
-        centerContentWrapper.add(Box.createVerticalStrut(10)); 
+        centerContentWrapper.add(Box.createVerticalStrut(10));
 
-        // HORIZONTAL SECOND PANEL 
         JPanel horizontalSecondPanel = new JPanel(new GridLayout(1, 5, 10, 0));
         horizontalSecondPanel.setPreferredSize(new Dimension(1600, 50));
         horizontalSecondPanel.setMaximumSize(new Dimension(1600, 50));
@@ -442,7 +434,6 @@ public class EngineerBldgStatusOverview extends JFrame {
 
         Font headerFont = new Font("Arial", Font.BOLD, 14);
 
-        // p1
         JPanel bldgPanel = new JPanel(new BorderLayout());
         bldgPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
@@ -450,7 +441,6 @@ public class EngineerBldgStatusOverview extends JFrame {
         bldgLabel.setFont(headerFont);
         bldgPanel.add(bldgLabel, BorderLayout.CENTER);
 
-        // p2
         JPanel locationPanel = new JPanel(new BorderLayout());
         locationPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
@@ -458,7 +448,6 @@ public class EngineerBldgStatusOverview extends JFrame {
         locationLabel.setFont(headerFont);
         locationPanel.add(locationLabel, BorderLayout.CENTER);
 
-        // p3
         JPanel functionPanel = new JPanel(new BorderLayout());
         functionPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
@@ -466,7 +455,6 @@ public class EngineerBldgStatusOverview extends JFrame {
         functionLabel.setFont(headerFont);
         functionPanel.add(functionLabel, BorderLayout.CENTER);
 
-        // p4
         JPanel healthStatusPanel = new JPanel(new BorderLayout());
         healthStatusPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
@@ -474,7 +462,6 @@ public class EngineerBldgStatusOverview extends JFrame {
         healthStatusLabel.setFont(headerFont);
         healthStatusPanel.add(healthStatusLabel, BorderLayout.CENTER);
 
-        // p5
         JPanel actionsPanel = new JPanel(new BorderLayout());
         actionsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
@@ -498,6 +485,7 @@ public class EngineerBldgStatusOverview extends JFrame {
 
         centerContentWrapper.add(projectsContainer);
         loadPersistedProjectsIntoUI();
+
         Runnable removeRepoListener = ProjectRepository.addChangeListener(() -> SwingUtilities.invokeLater(EngineerBldgStatusOverview::loadPersistedProjectsIntoUI));
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
@@ -512,7 +500,7 @@ public class EngineerBldgStatusOverview extends JFrame {
         });
 
         JPanel createBtnWrapper = new JPanel();
-        createBtnWrapper.setLayout(new GridBagLayout()); 
+        createBtnWrapper.setLayout(new GridBagLayout());
         createBtnWrapper.setOpaque(false);
 
         createBtnWrapper.setPreferredSize(new Dimension(220, 700));
@@ -556,7 +544,7 @@ public class EngineerBldgStatusOverview extends JFrame {
         setLayout(new BorderLayout());
         add(engineerPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
-        
+
         setVisible(true);
     }
 
@@ -577,11 +565,15 @@ public class EngineerBldgStatusOverview extends JFrame {
 
         totalBuildingsCount = 0;
         criticalBuildingsCount = 0;
+        safeBuildingsCount = 0;
         if (totalBuildingsValue != null) {
             totalBuildingsValue.setText(String.valueOf(totalBuildingsCount));
         }
         if (criticalValue != null) {
             criticalValue.setText(String.valueOf(criticalBuildingsCount));
+        }
+        if (safeValue != null) {
+            safeValue.setText(String.valueOf(safeBuildingsCount));
         }
 
         for (Project p : ProjectRepository.getAll()) {
@@ -596,6 +588,11 @@ public class EngineerBldgStatusOverview extends JFrame {
                     : p.getFunction();
             String healthStatus = "NO DATA";
             renderProjectRow(p.getId(), buildingName, location, function, healthStatus);
+        }
+
+        safeBuildingsCount = Math.max(0, totalBuildingsCount - criticalBuildingsCount);
+        if (safeValue != null) {
+            safeValue.setText(String.valueOf(safeBuildingsCount));
         }
 
         projectsContainer.revalidate();
@@ -620,6 +617,10 @@ public class EngineerBldgStatusOverview extends JFrame {
         if (healthStatus.equalsIgnoreCase("CRITICAL")) {
             criticalBuildingsCount++;
             criticalValue.setText(String.valueOf(criticalBuildingsCount));
+        }
+        safeBuildingsCount = Math.max(0, totalBuildingsCount - criticalBuildingsCount);
+        if (safeValue != null) {
+            safeValue.setText(String.valueOf(safeBuildingsCount));
         }
 
         JPanel rowPanel = new JPanel(new GridLayout(1, 5, 10, 0));
@@ -663,7 +664,9 @@ public class EngineerBldgStatusOverview extends JFrame {
             });
         });
 
-        rowActionsPanel.add(viewDetailsBtn, BorderLayout.CENTER);
+        JPanel actionButtonsPanel = new JPanel(new GridLayout(1, 2, 6, 0));
+        actionButtonsPanel.add(viewDetailsBtn);
+        rowActionsPanel.add(actionButtonsPanel, BorderLayout.CENTER);
 
         rowPanel.add(rowBldgPanel);
         rowPanel.add(rowLocationPanel);
@@ -674,10 +677,8 @@ public class EngineerBldgStatusOverview extends JFrame {
         projectsContainer.add(Box.createVerticalStrut(3));
         projectsContainer.add(rowPanel);
     }
-    
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(EngineerBldgStatusOverview::new);
     }
 }
-

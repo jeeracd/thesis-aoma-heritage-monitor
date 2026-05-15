@@ -1,11 +1,39 @@
 import java.awt.*;
+import java.util.Optional;
+import java.util.UUID;
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
 public class EngineerConfigureSensors extends JFrame {
 
+    private JTable table;
+    private SensorDataManager sensorManager;
+    private UUID projectId;
+    private Timer devicePollTimer;
+    private JLabel footerLabel;
+    private CardLayout rightCenterLayout;
+    private JPanel rightCenterPanel;
+    private AbstractTableModel tableModel;
+    private JLabel projectNameValueLabel;
+    private JLabel buildingNameValueLabel;
+    private JLabel yearConstructedValueLabel;
+    private JLabel materialUsedValueLabel;
+    private JLabel conservationStatusValueLabel;
+    private JLabel functionValueLabel;
+    private JLabel addressValueLabel;
+    private JTextArea descriptionValueArea;
+    private Runnable removeProjectListener;
+
     public EngineerConfigureSensors() {
+        this(null);
+    }
+
+    public EngineerConfigureSensors(UUID projectId) {
+        sensorManager = SensorDataManager.getInstance();
+        this.projectId = projectId;
+        
         setTitle("AOMA-Heritage Monitor - Configure Sensor");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
@@ -23,52 +51,50 @@ public class EngineerConfigureSensors extends JFrame {
         tabsUI.addTab("View", headPanel);
         tabsUI.addTab("Help", new JPanel());
 
-        tabsUI.setSelectedIndex(1); //set default tab
-
+        tabsUI.setSelectedIndex(1);
 
         tabsUI.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
-    @Override
-        protected void paintTabBackground(
-                Graphics g,
-                int tabPlacement,
-                int tabIndex,
-                int x, int y, int w, int h,
-                boolean isSelected
-        ) {
-            if (isSelected) {
-                g.setColor(new Color(0, 102, 204)); 
-                g.fillRect(x, y, w, h);
+            @Override
+            protected void paintTabBackground(
+                    Graphics g,
+                    int tabPlacement,
+                    int tabIndex,
+                    int x, int y, int w, int h,
+                    boolean isSelected
+            ) {
+                if (isSelected) {
+                    g.setColor(new Color(0, 102, 204));
+                    g.fillRect(x, y, w, h);
+                }
             }
-        }
 
-        @Override
-        protected void paintText(
-                Graphics g,
-                int tabPlacement,
-                Font font,
-                FontMetrics metrics,
-                int tabIndex,
-                String title,
-                Rectangle textRect,
-                boolean isSelected
-        ) {
-            g.setFont(font);
-            g.setColor(isSelected ? Color.WHITE : Color.BLACK);
-            g.drawString(title, textRect.x, textRect.y + metrics.getAscent());
-        }
+            @Override
+            protected void paintText(
+                    Graphics g,
+                    int tabPlacement,
+                    Font font,
+                    FontMetrics metrics,
+                    int tabIndex,
+                    String title,
+                    Rectangle textRect,
+                    boolean isSelected
+            ) {
+                g.setFont(font);
+                g.setColor(isSelected ? Color.WHITE : Color.BLACK);
+                g.drawString(title, textRect.x, textRect.y + metrics.getAscent());
+            }
 
-        @Override
-        protected Insets getTabInsets(int tabPlacement, int tabIndex) {
-            return new Insets(6, 20, 6, 20);
-        }
+            @Override
+            protected Insets getTabInsets(int tabPlacement, int tabIndex) {
+                return new Insets(6, 20, 6, 20);
+            }
 
-        @Override
-        protected Insets getTabAreaInsets(int tabPlacement) {
-            return new Insets(5, 10, 5, 0);
-        }
-    });
+            @Override
+            protected Insets getTabAreaInsets(int tabPlacement) {
+                return new Insets(5, 10, 5, 0);
+            }
+        });
 
-        //projects menu
         JPopupMenu projectsMenu = new JPopupMenu();
 
         JMenuItem newProject = new JMenuItem("New Project");
@@ -143,17 +169,15 @@ public class EngineerConfigureSensors extends JFrame {
         projectsMenu.show(projectsDropdownBtn,0,projectsDropdownBtn.getHeight())
         );
 
-        //project dropdown button position
         JLayeredPane layeredPane = new JLayeredPane();
         layeredPane.setLayout(null);
         layeredPane.setPreferredSize(new java.awt.Dimension(1300, 850));
 
-        layeredPane.add(projectsDropdownBtn, JLayeredPane.PALETTE_LAYER); 
+        layeredPane.add(projectsDropdownBtn, JLayeredPane.PALETTE_LAYER);
 
         tabsUI.setBounds(0, 0, 1395, 770);
         layeredPane.add(tabsUI, JLayeredPane.DEFAULT_LAYER);
 
-        //VIEW MENU 
         JPopupMenu viewMenu = new JPopupMenu();
 
         JMenuItem dashboardView = new JMenuItem("Dashboard View");
@@ -179,7 +203,6 @@ public class EngineerConfigureSensors extends JFrame {
             new EngineerSetupConnectionWindow();
             this.dispose();
         });
-
 
         JMenuItem configureSensor = new JMenuItem("Configure Sensor");
         configureSensor.addActionListener(e -> {
@@ -215,7 +238,7 @@ public class EngineerConfigureSensors extends JFrame {
             );
             new EngineerVibrationDataWindow();
             this.dispose();
-        }); 
+        });
 
         JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
         omaAnalysisResult.addActionListener(e -> {
@@ -242,7 +265,7 @@ public class EngineerConfigureSensors extends JFrame {
         });
 
         JMenuItem systemLogs = new JMenuItem("System Logs");
-        systemLogs.setEnabled(false); //disabled
+        systemLogs.setEnabled(false);
 
         viewMenu.add(dashboardView);
         viewMenu.addSeparator();
@@ -258,14 +281,14 @@ public class EngineerConfigureSensors extends JFrame {
         viewMenu.add(systemLogs);
 
         JButton viewMenuDropdownBtn = new JButton("▼");
-        viewMenuDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14)); // bigger arrow
+        viewMenuDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14));
         viewMenuDropdownBtn.setMargin(new Insets(0, 0, 0, 0));
         viewMenuDropdownBtn.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
 
         viewMenuDropdownBtn.setFocusPainted(false);
-        viewMenuDropdownBtn.setContentAreaFilled(false);   
-        viewMenuDropdownBtn.setBorderPainted(false);       
-        viewMenuDropdownBtn.setOpaque(false);            
+        viewMenuDropdownBtn.setContentAreaFilled(false);
+        viewMenuDropdownBtn.setBorderPainted(false);
+        viewMenuDropdownBtn.setOpaque(false);
 
         viewMenuDropdownBtn.setForeground(Color.BLACK);
         viewMenuDropdownBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -275,21 +298,20 @@ public class EngineerConfigureSensors extends JFrame {
         );
 
         SwingUtilities.invokeLater(() -> {
-        Rectangle viewTabBounds = tabsUI.getBoundsAt(1);
+            Rectangle viewTabBounds = tabsUI.getBoundsAt(1);
 
-        int arrowSize = 22;
+            int arrowSize = 22;
 
-        viewMenuDropdownBtn.setBounds(
-            viewTabBounds.x + viewTabBounds.width - arrowSize - 4,
-            viewTabBounds.y + (viewTabBounds.height - arrowSize) / 2,
-            arrowSize,
-            arrowSize
-        );
+            viewMenuDropdownBtn.setBounds(
+                viewTabBounds.x + viewTabBounds.width - arrowSize - 4,
+                viewTabBounds.y + (viewTabBounds.height - arrowSize) / 2,
+                arrowSize,
+                arrowSize
+            );
 
-        layeredPane.add(viewMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
-    });
+            layeredPane.add(viewMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
+        });
 
-        //help menu
         JPopupMenu helpMenu = new JPopupMenu();
 
         JMenuItem sensorSetupGuide = new JMenuItem("Sensor Setup Guide");
@@ -347,58 +369,56 @@ public class EngineerConfigureSensors extends JFrame {
         helpMenu.add(contactSupport);
 
         JButton helpMenuDropdownBtn = new JButton("▼");
-        helpMenuDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14)); 
+        helpMenuDropdownBtn.setFont(new Font("Arial", Font.BOLD, 14));
         helpMenuDropdownBtn.setMargin(new Insets(0, 0, 0, 0));
         helpMenuDropdownBtn.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
         helpMenuDropdownBtn.setFocusPainted(false);
-        helpMenuDropdownBtn.setContentAreaFilled(false);   
-        helpMenuDropdownBtn.setBorderPainted(false);       
-        helpMenuDropdownBtn.setOpaque(false);              
+        helpMenuDropdownBtn.setContentAreaFilled(false);
+        helpMenuDropdownBtn.setBorderPainted(false);
+        helpMenuDropdownBtn.setOpaque(false);
         helpMenuDropdownBtn.setForeground(Color.BLACK);
         helpMenuDropdownBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         helpMenuDropdownBtn.addActionListener(e ->
             helpMenu.show(helpMenuDropdownBtn, 0, helpMenuDropdownBtn.getHeight())
-        ); 
+        );
 
         SwingUtilities.invokeLater(() -> {
-        Rectangle helpTabBounds = tabsUI.getBoundsAt(2);    
-        int arrowSize = 22;
-        helpMenuDropdownBtn.setBounds(
-            helpTabBounds.x + helpTabBounds.width - arrowSize - 4,
-            helpTabBounds.y + (helpTabBounds.height - arrowSize) / 2,
-            arrowSize,
-            arrowSize
-        );
-        layeredPane.add(helpMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
-    }); 
+            Rectangle helpTabBounds = tabsUI.getBoundsAt(2);
+            int arrowSize = 22;
+            helpMenuDropdownBtn.setBounds(
+                helpTabBounds.x + helpTabBounds.width - arrowSize - 4,
+                helpTabBounds.y + (helpTabBounds.height - arrowSize) / 2,
+                arrowSize,
+                arrowSize
+            );
+            layeredPane.add(helpMenuDropdownBtn, JLayeredPane.PALETTE_LAYER);
+        });
 
-        //para hindi ma-select yung view/help kapag clinick yung dropdown or text 
         tabsUI.addChangeListener(e -> {
-        int selectedIndex = tabsUI.getSelectedIndex();
+            int selectedIndex = tabsUI.getSelectedIndex();
 
-        Rectangle bounds = tabsUI.getBoundsAt(selectedIndex);
+            Rectangle bounds = tabsUI.getBoundsAt(selectedIndex);
 
-        if (selectedIndex == 0) { // Projects clicked
-            projectsMenu.show(
-                    tabsUI,
-                    bounds.x,
-                    bounds.y + bounds.height
-            );
-        }
+            if (selectedIndex == 0) {
+                projectsMenu.show(
+                        tabsUI,
+                        bounds.x,
+                        bounds.y + bounds.height
+                );
+            }
 
-        if (selectedIndex == 2) { // Help clicked
-            helpMenu.show(
-                    tabsUI,
-                    bounds.x,
-                    bounds.y + bounds.height
-            );
-        }
+            if (selectedIndex == 2) {
+                helpMenu.show(
+                        tabsUI,
+                        bounds.x,
+                        bounds.y + bounds.height
+                );
+            }
 
-        // Always go back to View tab
-        SwingUtilities.invokeLater(() -> tabsUI.setSelectedIndex(1));
-    });
-    
+            SwingUtilities.invokeLater(() -> tabsUI.setSelectedIndex(1));
+        });
+
         JLabel LGULabel = new JLabel("STRUCTURAL ENGINEER ACCOUNT");
         LGULabel.setFont(new Font("Arial", Font.BOLD, 14));
         LGULabel.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -422,12 +442,11 @@ public class EngineerConfigureSensors extends JFrame {
         JLabel userIconLabel = new JLabel(new ImageIcon(userImgScaled));
         userIconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
 
-        // ENGINEER POPUP MENU
         JPopupMenu userMenu = new JPopupMenu();
         JMenuItem userSettings = new JMenuItem("User Settings");
         userSettings.addActionListener(e -> {
-            dispose(); 
-            new EngineerDashboardUserSettings(); // opens settings window
+            dispose();
+            new EngineerDashboardUserSettings();
         });
 
         JMenuItem logout = new JMenuItem("Logout");
@@ -439,8 +458,8 @@ public class EngineerConfigureSensors extends JFrame {
                     JOptionPane.YES_NO_OPTION
             );
             if (confirm == JOptionPane.YES_OPTION) {
-                dispose(); 
-                new UsersLoginOptions(); // opens login page
+                dispose();
+                new UsersLoginOptions();
             }
         });
 
@@ -449,7 +468,6 @@ public class EngineerConfigureSensors extends JFrame {
         userMenu.add(logout);
         userIconLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        // Show popup when clicked
         userIconLabel.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
@@ -466,7 +484,6 @@ public class EngineerConfigureSensors extends JFrame {
         centerPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         headPanel.add(centerPanel);
 
-        // MAIN CONTENT WRAPPER
         JPanel contentWrapper = new JPanel(new BorderLayout());
         contentWrapper.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         centerPanel.add(contentWrapper, BorderLayout.CENTER);
@@ -476,8 +493,6 @@ public class EngineerConfigureSensors extends JFrame {
         splitPane.setDividerSize(4);
         splitPane.setEnabled(false);
         contentWrapper.add(splitPane, BorderLayout.CENTER);
-
-        //LEFT PANEL 
 
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BorderLayout());
@@ -491,7 +506,6 @@ public class EngineerConfigureSensors extends JFrame {
         headerTitle.setOpaque(true);
         headerTitle.setBackground(new Color(230,230,230));
 
-        // smol button for editing structural details
         JButton editStructureBtn = new JButton("...");
         editStructureBtn.setFocusPainted(true);
         editStructureBtn.setMargin(new Insets(2,8,2,8));
@@ -507,7 +521,7 @@ public class EngineerConfigureSensors extends JFrame {
             new EngineerStructuralDetails();
             this.dispose();
         });
-        
+
         JPanel buildingHeaderPanel = new JPanel(new BorderLayout());
         buildingHeaderPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0,Color.GRAY));
         buildingHeaderPanel.setBackground(new Color(230,230,230));
@@ -522,26 +536,142 @@ public class EngineerConfigureSensors extends JFrame {
         buildingInfoPanel.setLayout(new GridBagLayout());
         buildingInfoPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        addInfoField(buildingInfoPanel, "Project Name:", "test1");
-        addInfoField(buildingInfoPanel, "Building Name:", "test1");
-        addInfoField(buildingInfoPanel, "Year Constructed:", "test1");
-        addInfoField(buildingInfoPanel, "Material Used Type:", "test1");
-        addInfoField(buildingInfoPanel, "Conservation Status:", "test1");
-        addInfoField(buildingInfoPanel, "Function:", "test1");
-        addInfoField(buildingInfoPanel, "Address:", "test1");
+        int rowIndex = 0;
 
-        addInfoArea(buildingInfoPanel, "Description:",
-                "test1");
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 4, 6, 4);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        addBottomSpacer(buildingInfoPanel);
-        
+        gbc.gridy = rowIndex;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        JLabel lbl1 = new JLabel("Project Name:");
+        lbl1.setFont(new Font("Arial", Font.BOLD, 12));
+        buildingInfoPanel.add(lbl1, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        projectNameValueLabel = new JLabel("Not Set");
+        projectNameValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        buildingInfoPanel.add(projectNameValueLabel, gbc);
+
+        rowIndex++;
+        gbc.gridy = rowIndex;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        JLabel lbl2 = new JLabel("Building Name:");
+        lbl2.setFont(new Font("Arial", Font.BOLD, 12));
+        buildingInfoPanel.add(lbl2, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        buildingNameValueLabel = new JLabel("Not Set");
+        buildingNameValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        buildingInfoPanel.add(buildingNameValueLabel, gbc);
+
+        rowIndex++;
+        gbc.gridy = rowIndex;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        JLabel lbl3 = new JLabel("Year Constructed:");
+        lbl3.setFont(new Font("Arial", Font.BOLD, 12));
+        buildingInfoPanel.add(lbl3, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        yearConstructedValueLabel = new JLabel("Not Set");
+        yearConstructedValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        buildingInfoPanel.add(yearConstructedValueLabel, gbc);
+
+        rowIndex++;
+        gbc.gridy = rowIndex;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        JLabel lbl4 = new JLabel("Material Used Type:");
+        lbl4.setFont(new Font("Arial", Font.BOLD, 12));
+        buildingInfoPanel.add(lbl4, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        materialUsedValueLabel = new JLabel("Not Set");
+        materialUsedValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        buildingInfoPanel.add(materialUsedValueLabel, gbc);
+
+        rowIndex++;
+        gbc.gridy = rowIndex;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        JLabel lbl5 = new JLabel("Conservation Status:");
+        lbl5.setFont(new Font("Arial", Font.BOLD, 12));
+        buildingInfoPanel.add(lbl5, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        conservationStatusValueLabel = new JLabel("Not Set");
+        conservationStatusValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        buildingInfoPanel.add(conservationStatusValueLabel, gbc);
+
+        rowIndex++;
+        gbc.gridy = rowIndex;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        JLabel lbl6 = new JLabel("Function:");
+        lbl6.setFont(new Font("Arial", Font.BOLD, 12));
+        buildingInfoPanel.add(lbl6, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        functionValueLabel = new JLabel("Not Set");
+        functionValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        buildingInfoPanel.add(functionValueLabel, gbc);
+
+        rowIndex++;
+        gbc.gridy = rowIndex;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        JLabel lbl7 = new JLabel("Address:");
+        lbl7.setFont(new Font("Arial", Font.BOLD, 12));
+        buildingInfoPanel.add(lbl7, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        addressValueLabel = new JLabel("Not Set");
+        addressValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        buildingInfoPanel.add(addressValueLabel, gbc);
+
+        rowIndex++;
+        gbc.gridy = rowIndex;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        JLabel lbl8 = new JLabel("Description:");
+        lbl8.setFont(new Font("Arial", Font.BOLD, 12));
+        buildingInfoPanel.add(lbl8, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        descriptionValueArea = new JTextArea("Not Set");
+        descriptionValueArea.setFont(new Font("Arial", Font.PLAIN, 12));
+        descriptionValueArea.setEditable(false);
+        descriptionValueArea.setLineWrap(true);
+        descriptionValueArea.setWrapStyleWord(true);
+        descriptionValueArea.setBackground(buildingInfoPanel.getBackground());
+        descriptionValueArea.setBorder(null);
+        buildingInfoPanel.add(descriptionValueArea, gbc);
+
+        rowIndex++;
+        gbc.gridy = rowIndex;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.weighty = 1;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        buildingInfoPanel.add(Box.createVerticalGlue(), gbc);
+
         JScrollPane leftScroll = new JScrollPane(buildingInfoPanel);
         leftScroll.setBorder(null);
         leftPanel.add(leftScroll, BorderLayout.CENTER);
 
+        reloadProjectDetails();
+        if (projectId != null) {
+            removeProjectListener = ProjectRepository.addChangeListener(
+                    () -> SwingUtilities.invokeLater(this::reloadProjectDetails)
+            );
+        }
+
         splitPane.setLeftComponent(leftPanel);
 
-        //RIGHT PANEL 
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
@@ -552,31 +682,67 @@ public class EngineerConfigureSensors extends JFrame {
         rightTitle.setBackground(new Color(230,230,230));
         rightPanel.add(rightTitle, BorderLayout.NORTH);
 
-        //TABLE DATA - data base to ah
-        String[] columns = {
-                "Sensor ID", "Location", "Status",
-                "Device Type", "Timestamp", "Time Sync"
-        };
+        table = new JTable();
 
-        Object[][] data = {
-                {"ESP32 HUB", "Center", "Connected", "HUB", "00:01:00", "Synced (<1ms)"},
-                {"Sensor 1", "Corner", "Connected", "Accelerometer", "00:01:00", "Synced (<1ms)"},
-                {"Sensor 2", "Corner", "Connected", "Accelerometer", "00:01:00", "Synced (<1ms)"},
-                {"Sensor 3", "Corner", "Connected", "Accelerometer", "00:01:00", "Synced (<1ms)"},
-                {"Sensor 4", "Middle", "Connected", "Accelerometer", "00:01:00", "Synced (<1ms)"},
-                {"Sensor 5", "Middle", "Connected", "Accelerometer", "00:01:00", "Synced (<1ms)"},
-                {"Sensor 6", "Middle", "Connected", "Accelerometer", "00:01:00", "Synced (<1ms)"},
-                {"Sensor 7", "Middle", "Connected", "Accelerometer", "00:01:00", "Synced (<1ms)"},
-                {"Sensor 8", "Middle", "Connected", "Accelerometer", "00:01:00", "Error (>5ms)"}
-        };
-        
+        tableModel = new AbstractTableModel() {
+            private String[] columns = sensorManager.getSensorColumns();
 
-        JTable table = new JTable(data, columns) {
-        @Override
-        public boolean isCellEditable(int row, int column) {
-                return column == 3; // only Device Type is editable
+            @Override
+            public int getRowCount() {
+                return sensorManager.getTotalSensorCount();
             }
-        };       
+
+            @Override
+            public int getColumnCount() {
+                return columns.length;
+            }
+
+            @Override
+            public String getColumnName(int columnIndex) {
+                return columns[columnIndex];
+            }
+
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                return Object.class;
+            }
+
+            @Override
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return false;
+            }
+
+            @Override
+            public Object getValueAt(int rowIndex, int columnIndex) {
+                if (rowIndex >= sensorManager.getTotalSensorCount()) {
+                    return null;
+                }
+                SensorDataManager.Sensor sensor = sensorManager.getAllSensors().get(rowIndex);
+                switch (columnIndex) {
+                    case 0: return sensor.getSensorId();
+                    case 1: return sensor.getLocation();
+                    case 2: return sensor.getStatus();
+                    case 3: return sensor.getDeviceType();
+                    case 4: return sensor.getTimestamp();
+                    case 5: return sensor.getTimeSync();
+                    default: return null;
+                }
+            }
+
+            @Override
+            public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+                super.setValueAt(aValue, rowIndex, columnIndex);
+            }
+        };
+
+        table.setModel(tableModel);
+        sensorManager.addChangeListener(() -> {
+            SwingUtilities.invokeLater(() -> {
+                tableModel.fireTableDataChanged();
+                sensorManager.validateCounts();
+            });
+        });
+
         table.setRowHeight(28);
         table.setFont(new Font("Arial", Font.PLAIN, 13));
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 13));
@@ -587,16 +753,8 @@ public class EngineerConfigureSensors extends JFrame {
         table.setShowHorizontalLines(true);
         table.setShowVerticalLines(true);
 
-        table.setGridColor(Color.BLACK);      
-        table.setIntercellSpacing(new Dimension(1, 1)); 
-
-        // DROPDOWN FOR DEVICE TYPE COLUMN
-        String[] deviceTypes = {"Accelerometer", "HUB"};
-
-        JComboBox<String> deviceTypeDropdown = new JComboBox<>(deviceTypes);
-
-        // column index 3 = "Device Type"
-        table.getColumnModel().getColumn(3).setCellEditor(new DefaultCellEditor(deviceTypeDropdown));
+        table.setGridColor(Color.BLACK);
+        table.setIntercellSpacing(new Dimension(1, 1));
 
         DefaultTableCellRenderer headerRenderer =
                 (DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer();
@@ -610,46 +768,27 @@ public class EngineerConfigureSensors extends JFrame {
         }
 
         table.getColumnModel().getColumn(2).setCellRenderer(new DefaultTableCellRenderer() {
-        @Override
-        public Component getTableCellRendererComponent(
-                JTable table, Object value, boolean isSelected,
-                boolean hasFocus, int row, int column) {
+            @Override
+            public Component getTableCellRendererComponent(
+                    JTable table, Object value, boolean isSelected,
+                    boolean hasFocus, int row, int column) {
 
-            JLabel label = (JLabel) super.getTableCellRendererComponent(
-                    table, value, isSelected, hasFocus, row, column);
+                JLabel label = (JLabel) super.getTableCellRendererComponent(
+                        table, value, isSelected, hasFocus, row, column);
 
-            label.setHorizontalAlignment(SwingConstants.CENTER);
+                label.setHorizontalAlignment(SwingConstants.CENTER);
 
-            if (value != null && value.toString().equalsIgnoreCase("Connected")) {
-                label.setText("Connected");
-                label.setForeground(new Color(0,140,0)); // green
-            } else {
-                label.setText("Disconnected");
-                label.setForeground(Color.RED);
+                if (value != null && value.toString().equalsIgnoreCase("Connected")) {
+                    label.setText("Connected");
+                    label.setForeground(new Color(0,140,0));
+                } else {
+                    label.setText("Disconnected");
+                    label.setForeground(Color.RED);
+                }
+
+                return label;
             }
-
-            return label;
-        }
-    });
-
-        table.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
-        @Override
-        public Component getTableCellRendererComponent(
-                JTable table, Object value, boolean isSelected,
-                boolean hasFocus, int row, int column) {
-
-            JLabel label = (JLabel) super.getTableCellRendererComponent(
-                    table, value, isSelected, hasFocus, row, column);
-
-            label.setHorizontalAlignment(SwingConstants.CENTER);
-
-            if (value != null) {
-                label.setText(value.toString() + "  ▼");
-            }
-
-            return label;
-        }
-    });
+        });
 
         table.getColumnModel().getColumn(5).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
@@ -672,7 +811,20 @@ public class EngineerConfigureSensors extends JFrame {
         });
 
         JScrollPane tableScroll = new JScrollPane(table);
-        rightPanel.add(tableScroll, BorderLayout.CENTER);
+
+        JPanel emptyStatePanel = new JPanel(new GridBagLayout());
+        JLabel emptyStateLabel = new JLabel(
+                "<html>No active ESP32 devices detected.<br>Connect an ESP32 via USB to begin.</html>",
+                SwingConstants.CENTER
+        );
+        emptyStateLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        emptyStatePanel.add(emptyStateLabel);
+
+        rightCenterLayout = new CardLayout();
+        rightCenterPanel = new JPanel(rightCenterLayout);
+        rightCenterPanel.add(tableScroll, "TABLE");
+        rightCenterPanel.add(emptyStatePanel, "EMPTY");
+        rightPanel.add(rightCenterPanel, BorderLayout.CENTER);
 
         JPanel syncPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         syncPanel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
@@ -680,6 +832,20 @@ public class EngineerConfigureSensors extends JFrame {
         JButton syncButton = new JButton("Sync now");
         syncButton.setPreferredSize(new Dimension(120,35));
         syncButton.setFocusPainted(false);
+
+        syncButton.addActionListener(e -> {
+            refreshEsp32Devices();
+            sensorManager.validateCounts();
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Sensor data synchronized successfully!\n" +
+                    "Total Sensors: " + sensorManager.getTotalSensorCount() + "\n" +
+                    "Connected: " + sensorManager.getConnectedSensorCount() + "\n" +
+                    "Disconnected: " + sensorManager.getDisconnectedSensorCount(),
+                    "Sync Complete",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        });
 
         syncPanel.add(syncButton);
         rightPanel.add(syncPanel, BorderLayout.SOUTH);
@@ -690,7 +856,7 @@ public class EngineerConfigureSensors extends JFrame {
         footerPanel.setPreferredSize(new java.awt.Dimension(1400, 45));
         footerPanel.setBorder(BorderFactory.createMatteBorder(3, 0, 0, 0, new Color(120, 120, 120)) );
 
-        JLabel footerLabel = new JLabel("Status: ESP32 Hub Not Connected");
+        footerLabel = new JLabel("Status: ESP32 Hub Not Connected");
         footerLabel.setFont(new Font("Arial", Font.BOLD, 14));
         footerLabel.setForeground(Color.RED);
         footerLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -701,83 +867,99 @@ public class EngineerConfigureSensors extends JFrame {
         setLayout(new BorderLayout());
         add(headPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
-        
+
+        refreshEsp32Devices();
+        devicePollTimer = new Timer(2000, e -> refreshEsp32Devices());
+        devicePollTimer.start();
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent e) {
+                if (devicePollTimer != null) {
+                    devicePollTimer.stop();
+                }
+                if (removeProjectListener != null) {
+                    removeProjectListener.run();
+                }
+            }
+
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if (devicePollTimer != null) {
+                    devicePollTimer.stop();
+                }
+                if (removeProjectListener != null) {
+                    removeProjectListener.run();
+                }
+            }
+        });
+
         setVisible(true);
     }
 
-        private int rowIndex = 0; 
+    private void refreshEsp32Devices() {
+        java.util.List<SensorDataManager.Sensor> devices = sensorManager.scanActiveEsp32Devices();
+        sensorManager.setSensors(devices);
 
-        private void addInfoField(JPanel panel, String label, String value) {
-
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(6, 4, 6, 4); 
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            gbc.gridy = rowIndex;
-
-            // LABEL
-            gbc.gridx = 0;
-            gbc.weightx = 0;
-            JLabel lbl = new JLabel(label);
-            lbl.setFont(new Font("Arial", Font.BOLD, 12));
-            panel.add(lbl, gbc);
-
-            // VALUE
-            gbc.gridx = 1;
-            gbc.weightx = 1;
-            JLabel val = new JLabel(value);
-            val.setFont(new Font("Arial", Font.PLAIN, 12));
-            panel.add(val, gbc);
-
-            rowIndex++;
+        boolean hasDevices = !devices.isEmpty();
+        if (rightCenterLayout != null && rightCenterPanel != null) {
+            rightCenterLayout.show(rightCenterPanel, hasDevices ? "TABLE" : "EMPTY");
         }
 
-        private void addInfoArea(JPanel panel, String label, String value) {
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 4, 8, 4); // slightly more for description
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridy = rowIndex;
-
-        // LABEL
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        gbc.anchor = GridBagConstraints.NORTHWEST;
-
-        JLabel lbl = new JLabel(label);
-        lbl.setFont(new Font("Arial", Font.BOLD, 12));
-        panel.add(lbl, gbc);
-
-        // TEXT AREA
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-
-        JTextArea area = new JTextArea(value);
-        area.setFont(new Font("Arial", Font.PLAIN, 12));
-        area.setEditable(false);
-        area.setLineWrap(true);
-        area.setWrapStyleWord(true);
-        area.setBackground(panel.getBackground());
-        area.setBorder(null);
-
-        panel.add(area, gbc);
-
-        rowIndex++;
+        if (footerLabel != null) {
+            if (hasDevices) {
+                footerLabel.setText("Status: ESP32 Hub Connected");
+                footerLabel.setForeground(new Color(0, 140, 0));
+            } else {
+                footerLabel.setText("Status: ESP32 Hub Not Connected");
+                footerLabel.setForeground(Color.RED);
+            }
+        }
     }
 
-    private void addBottomSpacer(JPanel panel) {
+    private void reloadProjectDetails() {
+        Project project = null;
+        if (projectId != null) {
+            Optional<Project> maybeProject = ProjectRepository.findById(projectId);
+            if (maybeProject.isPresent()) {
+                project = maybeProject.get();
+            }
+        }
 
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.gridx = 0;
-    gbc.gridy = rowIndex;
-    gbc.gridwidth = 2;           
-    gbc.weighty = 1;        
-    gbc.fill = GridBagConstraints.VERTICAL;
+        if (projectNameValueLabel != null) {
+            projectNameValueLabel.setText(valueOrNotSet(project == null ? "" : project.getProjectName()));
+        }
+        if (buildingNameValueLabel != null) {
+            buildingNameValueLabel.setText(valueOrNotSet(project == null ? "" : project.getBuildingName()));
+        }
+        if (yearConstructedValueLabel != null) {
+            yearConstructedValueLabel.setText(valueOrNotSet(project == null ? "" : project.getDateConstructed()));
+        }
+        if (materialUsedValueLabel != null) {
+            materialUsedValueLabel.setText(valueOrNotSet(project == null ? "" : project.getMaterialsUsed()));
+        }
+        if (conservationStatusValueLabel != null) {
+            conservationStatusValueLabel.setText(valueOrNotSet(project == null ? "" : project.getConservationStatus()));
+        }
+        if (functionValueLabel != null) {
+            functionValueLabel.setText(valueOrNotSet(project == null ? "" : project.getFunction()));
+        }
+        if (addressValueLabel != null) {
+            addressValueLabel.setText(valueOrNotSet(project == null ? "" : project.getAddress()));
+        }
+        if (descriptionValueArea != null) {
+            descriptionValueArea.setText(valueOrNotSet(project == null ? "" : project.getDescription()));
+        }
+    }
 
-    panel.add(Box.createVerticalGlue(), gbc);
-}
+    private static String valueOrNotSet(String value) {
+        if (value == null) {
+            return "Not Set";
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? "Not Set" : trimmed;
+    }
 
     public static void main(String[] args) {
         new EngineerConfigureSensors();
     }
-}   
-
+}
