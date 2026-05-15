@@ -59,6 +59,9 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
     private final JLabel rawInfo = new JLabel("");
     private final JLabel rawSelection = new JLabel("");
     private final JTextArea rawQaArea = new JTextArea();
+    private final JButton qaOpenJson = new JButton("Open QA JSON");
+    private final JButton qaOpenCsv = new JButton("Open QA CSV");
+    private final JButton qaOpenFolder = new JButton("Open Results Folder");
     private final JComboBox<String> rawMetric = new JComboBox<>();
     private final TimeSeriesPlotPanel rawPlot = new TimeSeriesPlotPanel();
     private final ModeTimelinePanel rawTimeline = new ModeTimelinePanel();
@@ -899,7 +902,18 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
 
         JButton refresh = new JButton("Refresh");
         refresh.addActionListener(e -> updateRawCsvPanel());
-        top.add(refresh, BorderLayout.EAST);
+        qaOpenJson.addActionListener(e -> openImportQaFile(qaJsonFile()));
+        qaOpenCsv.addActionListener(e -> openImportQaFile(qaCsvFile()));
+        qaOpenFolder.addActionListener(e -> openImportQaFolder());
+        updateQaButtons();
+
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        right.setOpaque(false);
+        right.add(qaOpenJson);
+        right.add(qaOpenCsv);
+        right.add(qaOpenFolder);
+        right.add(refresh);
+        top.add(right, BorderLayout.EAST);
 
         JScrollPane sp = new JScrollPane(rawQaArea);
         sp.setBorder(new EmptyBorder(0, 8, 8, 8));
@@ -983,6 +997,7 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
             rawEventFilter.setEnabled(false);
             rawAnomalyOnly.setEnabled(false);
             rawSorter.setRowFilter(null);
+            updateQaButtons();
             return;
         }
 
@@ -1003,8 +1018,71 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         updateRawQaArea();
         updateRawPlot();
         updateRawTimeline();
+        updateQaButtons();
         rawInfo.setText("Loaded: " + f.getAbsolutePath() + "  (rows: " + rawTableModel.getRowCount() + ", cols: " + rawTableModel.getColumnCount() + ")");
         updateRawSelectionLabel();
+    }
+
+    private void updateQaButtons() {
+        File j = qaJsonFile();
+        File c = qaCsvFile();
+        qaOpenJson.setEnabled(j != null && j.isFile());
+        qaOpenCsv.setEnabled(c != null && c.isFile());
+        qaOpenFolder.setEnabled(model != null && model.outDir() != null);
+    }
+
+    private File qaJsonFile() {
+        if (model == null) {
+            return null;
+        }
+        File f = model.resolveFileFromSummary("import_qa_json");
+        if (f != null && f.isFile()) {
+            return f;
+        }
+        if (model.outDir() == null) {
+            return null;
+        }
+        File fallback = model.outDir().resolve("import_qa_report.json").toFile();
+        return fallback.isFile() ? fallback : null;
+    }
+
+    private File qaCsvFile() {
+        if (model == null) {
+            return null;
+        }
+        File f = model.resolveFileFromSummary("import_qa_csv");
+        if (f != null && f.isFile()) {
+            return f;
+        }
+        if (model.outDir() == null) {
+            return null;
+        }
+        File fallback = model.outDir().resolve("import_qa_report.csv").toFile();
+        return fallback.isFile() ? fallback : null;
+    }
+
+    private void openImportQaFolder() {
+        if (model == null || model.outDir() == null) {
+            JOptionPane.showMessageDialog(this, "Results folder is not available for this session.", "Open Results Folder", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try {
+            Desktop.getDesktop().open(model.outDir().toFile());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Failed to open results folder.", "Open Results Folder", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void openImportQaFile(File f) {
+        if (f == null || !f.isFile()) {
+            JOptionPane.showMessageDialog(this, "QA report file not found for this session.", "Open QA Report", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try {
+            Desktop.getDesktop().open(f);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Failed to open QA report file.", "Open QA Report", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void loadCsvIntoRawTable(File f) throws IOException {
