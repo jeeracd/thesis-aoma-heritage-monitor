@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -13,6 +14,45 @@ public final class PyOma2Runner {
     public record RunResult(boolean ok, String message, Properties summary) {}
 
     private PyOma2Runner() {}
+
+    public static RunResult writeKpiOnlyResults(File csvFile, Path outDir) {
+        if (csvFile == null || !csvFile.exists() || !csvFile.isFile()) {
+            return new RunResult(false, "CSV file not found.", new Properties());
+        }
+        try {
+            Files.createDirectories(outDir);
+        } catch (IOException e) {
+            return new RunResult(false, "Failed to create output folder: " + e.getMessage(), new Properties());
+        }
+
+        Path raw = outDir.resolve("raw_input.csv");
+        try {
+            Files.copy(csvFile.toPath(), raw, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception ex) {
+            raw = csvFile.toPath();
+        }
+
+        Properties props = new Properties();
+        props.setProperty("status", "ok");
+        props.setProperty("message", "KPI log CSV loaded (OMA run skipped).");
+        props.setProperty("input_csv", csvFile.getAbsolutePath());
+        props.setProperty("raw_csv", raw.toAbsolutePath().toString());
+        props.setProperty("fs_hz", "1.0");
+
+        Path propsPath = outDir.resolve("summary.properties");
+        StringBuilder sb = new StringBuilder();
+        sb.append("status=ok\n");
+        sb.append("message=KPI log CSV loaded (OMA run skipped).\n");
+        sb.append("input_csv=").append(csvFile.getAbsolutePath()).append("\n");
+        sb.append("raw_csv=").append(raw.toAbsolutePath()).append("\n");
+        sb.append("fs_hz=1.0\n");
+        try {
+            Files.writeString(propsPath, sb.toString(), StandardCharsets.UTF_8);
+        } catch (Exception ignored) {
+        }
+
+        return new RunResult(true, "KPI log loaded.", props);
+    }
 
     public static RunResult run(File csvFile, Path outDir, Double fsHz) {
         if (csvFile == null || !csvFile.exists() || !csvFile.isFile()) {

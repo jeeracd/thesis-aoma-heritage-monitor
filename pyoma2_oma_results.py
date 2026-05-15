@@ -2,6 +2,7 @@ import argparse
 import json
 import math
 import os
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -174,7 +175,7 @@ def _safe_freqlim(cfg: OmaRunConfig) -> tuple[float, float] | None:
     return float(cfg.freqlim_min_hz), float(cfg.freqlim_max_hz)
 
 
-def run_pyoma2(data: np.ndarray, fs_hz: float, channel_labels: list[str], out_dir: Path, cfg: OmaRunConfig) -> dict[str, str]:
+def run_pyoma2(data: np.ndarray, fs_hz: float, channel_labels: list[str], out_dir: Path, cfg: OmaRunConfig, source_csv: Path | None = None) -> dict[str, str]:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -185,6 +186,14 @@ def run_pyoma2(data: np.ndarray, fs_hz: float, channel_labels: list[str], out_di
     from pyoma2.functions.plot import CMIF_plot, plot_mac_matrix, stab_plot
 
     _ensure_dir(out_dir)
+
+    raw_csv: Path | None = None
+    if source_csv is not None and source_csv.exists() and source_csv.is_file():
+        raw_csv = out_dir / "raw_input.csv"
+        try:
+            shutil.copy2(source_csv, raw_csv)
+        except Exception:
+            raw_csv = source_csv
 
     setup = SingleSetup(np.asarray(data, dtype=float), float(fs_hz))
 
@@ -383,6 +392,7 @@ def run_pyoma2(data: np.ndarray, fs_hz: float, channel_labels: list[str], out_di
 
     summary_json = out_dir / "summary.json"
     summary = {
+        "input_csv": str(source_csv) if source_csv is not None else None,
         "fs_hz": float(fs_hz),
         "channels": list(channel_labels),
         "ssi": {
@@ -391,6 +401,7 @@ def run_pyoma2(data: np.ndarray, fs_hz: float, channel_labels: list[str], out_di
             "modes_exported": n_modes,
         },
         "files": {
+            "raw_csv": str(raw_csv) if raw_csv is not None else None,
             "stabilization_png": str(stab_png),
             "cmif_png": str(cmif_png),
             "mode_shapes_png": str(mode_png),
@@ -403,7 +414,9 @@ def run_pyoma2(data: np.ndarray, fs_hz: float, channel_labels: list[str], out_di
     props_path = out_dir / "summary.properties"
     props_lines = [
         "status=ok",
+        f"input_csv={source_csv}" if source_csv is not None else "input_csv=",
         f"fs_hz={fs_hz}",
+        f"raw_csv={raw_csv}" if raw_csv is not None else "raw_csv=",
         f"stabilization_png={stab_png}",
         f"cmif_png={cmif_png}",
         f"mode_shapes_png={mode_png}",
@@ -414,6 +427,7 @@ def run_pyoma2(data: np.ndarray, fs_hz: float, channel_labels: list[str], out_di
     props_path.write_text("\n".join(props_lines) + "\n", encoding="utf-8")
 
     return {
+        "raw_csv": str(raw_csv) if raw_csv is not None else "",
         "stabilization_png": str(stab_png),
         "cmif_png": str(cmif_png),
         "mode_shapes_png": str(mode_png),
@@ -426,7 +440,7 @@ def run_pyoma2(data: np.ndarray, fs_hz: float, channel_labels: list[str], out_di
 
 def run_from_csv(csv_path: Path, out_dir: Path, fs_hz: float | None, cfg: OmaRunConfig) -> dict[str, str]:
     data, fs, labels = load_sensor_csv(csv_path, fs_hz=fs_hz)
-    return run_pyoma2(data, fs, labels, out_dir, cfg)
+    return run_pyoma2(data, fs, labels, out_dir, cfg, source_csv=csv_path)
 
 
 def _cli() -> int:

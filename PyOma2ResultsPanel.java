@@ -105,6 +105,15 @@ public final class PyOma2ResultsPanel extends JPanel {
 
     public void setSourceCsv(File csv) {
         this.sourceCsv = csv;
+        CsvFileValidator.CsvProfile profile = AppSession.getLastUploadedCsvProfile();
+        boolean kpi = profile == CsvFileValidator.CsvProfile.KPI_LOG;
+        fsField.setEnabled(!kpi);
+        runButton.setEnabled(!kpi);
+        if (kpi) {
+            setStatus("KPI log CSV detected. OMA run is skipped; use CAD Results → Raw CSV/QA/Time Series/Timeline.", false);
+        } else {
+            setStatus("", false);
+        }
         maybeAutoRun();
     }
 
@@ -182,6 +191,27 @@ public final class PyOma2ResultsPanel extends JPanel {
     private void maybeAutoRun() {
         File csv = sourceCsv;
         if (csv == null) {
+            return;
+        }
+        CsvFileValidator.CsvProfile profile = AppSession.getLastUploadedCsvProfile();
+        if (profile == CsvFileValidator.CsvProfile.KPI_LOG) {
+            long importSeq = AppSession.getLastUploadedCsvSequence();
+            long runSeq = AppSession.getLastPyOma2RunSequence();
+            if (runSeq >= importSeq) {
+                return;
+            }
+            if (!csv.equals(AppSession.getLastUploadedCsv())) {
+                return;
+            }
+            Path outDir = Path.of(System.getProperty("user.home"), ".aoma-heritage-monitor", "pyoma2-results", String.valueOf(System.currentTimeMillis()));
+            lastOutDir = outDir;
+            AppSession.markPyOma2RunStartedForCurrentCsv();
+            PyOma2Runner.RunResult r = PyOma2Runner.writeKpiOnlyResults(csv, outDir);
+            setStatus(r.message(), !r.ok());
+            if (r.ok()) {
+                openFolderButton.setEnabled(true);
+                applySummary(r.summary());
+            }
             return;
         }
         long importSeq = AppSession.getLastUploadedCsvSequence();

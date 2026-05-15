@@ -221,6 +221,25 @@ public final class OmaResultsModel {
         return outDir.resolve(v).toFile();
     }
 
+    public File rawCsvFile() {
+        File f = resolveFileFromSummary("raw_csv");
+        if (f != null && f.isFile()) {
+            return f;
+        }
+        f = resolveFileFromSummary("input_csv");
+        if (f != null && f.isFile()) {
+            return f;
+        }
+        if (outDir == null) {
+            return null;
+        }
+        Path p = outDir.resolve("raw_input.csv");
+        if (Files.isRegularFile(p)) {
+            return p.toFile();
+        }
+        return null;
+    }
+
     private static Severity validate(double fn, double xi, double mpc, double mpd) {
         boolean freqBad = !(Double.isFinite(fn) && fn > 0 && fn < 1000);
         boolean xiBad = !(Double.isFinite(xi) && xi >= 0 && xi <= 0.20);

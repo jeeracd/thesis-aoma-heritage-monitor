@@ -10,12 +10,25 @@ import javax.swing.table.TableRowSorter;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.prefs.Preferences;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 public class CadOmaAnalysisResultsWindow extends JFrame {
     public enum DockPosition {
@@ -39,6 +52,36 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
     private final DefaultTableModel macTableModel = new DefaultTableModel();
     private final JTable macTable = new JTable(macTableModel);
     private final JLabel macInfo = new JLabel("");
+
+    private final DefaultTableModel rawTableModel = new DefaultTableModel();
+    private final JTable rawTable = new JTable(rawTableModel);
+    private final TableRowSorter<DefaultTableModel> rawSorter = new TableRowSorter<>(rawTableModel);
+    private final JLabel rawInfo = new JLabel("");
+    private final JLabel rawSelection = new JLabel("");
+    private final JTextArea rawQaArea = new JTextArea();
+    private final JComboBox<String> rawMetric = new JComboBox<>();
+    private final TimeSeriesPlotPanel rawPlot = new TimeSeriesPlotPanel();
+    private final ModeTimelinePanel rawTimeline = new ModeTimelinePanel();
+    private final JTextField rawSearch = new JTextField();
+    private final JComboBox<String> rawModeFilter = new JComboBox<>();
+    private final JComboBox<String> rawEventFilter = new JComboBox<>();
+    private final JCheckBox rawAnomalyOnly = new JCheckBox("Anomalies only");
+    private final JButton rawLocate = new JButton("Locate CSV...");
+    private final JButton rawReload = new JButton("Reload");
+    private File rawLoadedFile;
+    private int rawColTimestamp = -1;
+    private int rawColMode = -1;
+    private int rawColEvent = -1;
+    private int rawColAnomaly = -1;
+    private int rawColDominantFreq = -1;
+    private int rawColDamping = -1;
+    private int rawColModeLabel = -1;
+    private long[] rawTimesEpochMillis = new long[0];
+    private int[] rawModes = new int[0];
+    private boolean[] rawAnomalies = new boolean[0];
+    private String[] rawEvents = new String[0];
+    private final Map<String, double[]> rawMetricSeries = new HashMap<>();
+    private static final DateTimeFormatter RAW_TS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final JLabel statusLeft = new JLabel("Ready");
     private final JLabel statusCenter = new JLabel("");
@@ -681,10 +724,21 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         JPanel mac = buildMacPanel();
         updateMacPanel();
 
+        JPanel raw = buildRawCsvPanel();
+        updateRawCsvPanel();
+
+        JComponent qa = buildRawQaPanel();
+        JComponent ts = buildRawTimeSeriesPanel();
+        JComponent timeline = buildRawTimelinePanel();
+
         JTabbedPane tabs = new JTabbedPane(JTabbedPane.TOP);
         tabs.setFont(new Font("Arial", Font.BOLD, 12));
         tabs.addTab("Modes", modes);
         tabs.addTab("MAC", mac);
+        tabs.addTab("Raw CSV", raw);
+        tabs.addTab("QA", qa);
+        tabs.addTab("Time Series", ts);
+        tabs.addTab("Timeline", timeline);
 
         JPanel body = new JPanel(new BorderLayout());
         body.add(tabs, BorderLayout.CENTER);
@@ -748,6 +802,725 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
             macTable.getColumnModel().getColumn(i).setPreferredWidth(i == 0 ? 60 : 70);
         }
         macInfo.setText("MAC matrix (0–1). Diagonal should be ~1.00; off-diagonals near 0.00 indicate distinct modes.");
+    }
+
+    private JPanel buildRawCsvPanel() {
+        rawTable.setFillsViewportHeight(true);
+        rawTable.setRowSelectionAllowed(true);
+        rawTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        rawTable.setFont(new Font("Consolas", Font.PLAIN, 12));
+        rawTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        rawTable.setRowSorter(rawSorter);
+
+        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+        center.setHorizontalAlignment(SwingConstants.CENTER);
+        rawTable.getTableHeader().setDefaultRenderer(center);
+
+        rawInfo.setFont(new Font("Arial", Font.PLAIN, 12));
+        rawSelection.setFont(new Font("Arial", Font.PLAIN, 12));
+
+        rawModeFilter.setFont(new Font("Arial", Font.PLAIN, 12));
+        rawEventFilter.setFont(new Font("Arial", Font.PLAIN, 12));
+        rawAnomalyOnly.setFont(new Font("Arial", Font.PLAIN, 12));
+
+        rawSearch.setFont(new Font("Arial", Font.PLAIN, 12));
+        rawSearch.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                applyRawFilters();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                applyRawFilters();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                applyRawFilters();
+            }
+        });
+
+        rawModeFilter.addActionListener(e -> applyRawFilters());
+        rawEventFilter.addActionListener(e -> applyRawFilters());
+        rawAnomalyOnly.addActionListener(e -> applyRawFilters());
+
+        rawReload.addActionListener(e -> updateRawCsvPanel());
+        rawLocate.addActionListener(e -> locateRawCsv());
+
+        rawTable.getSelectionModel().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) {
+                return;
+            }
+            updateRawSelectionLabel();
+        });
+
+        JPanel controls = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        controls.setOpaque(false);
+        rawSearch.setPreferredSize(new Dimension(220, 28));
+        rawModeFilter.setPreferredSize(new Dimension(160, 28));
+        rawEventFilter.setPreferredSize(new Dimension(170, 28));
+        controls.add(new JLabel("Search"));
+        controls.add(rawSearch);
+        controls.add(new JLabel("Mode"));
+        controls.add(rawModeFilter);
+        controls.add(new JLabel("Event"));
+        controls.add(rawEventFilter);
+        controls.add(rawAnomalyOnly);
+        controls.add(rawReload);
+        controls.add(rawLocate);
+
+        JPanel top = new JPanel(new BorderLayout(8, 8));
+        top.setBorder(new EmptyBorder(8, 8, 8, 8));
+        top.add(rawInfo, BorderLayout.NORTH);
+        top.add(controls, BorderLayout.CENTER);
+        top.add(rawSelection, BorderLayout.SOUTH);
+
+        JScrollPane sp = new JScrollPane(rawTable);
+        sp.setBorder(new EmptyBorder(0, 8, 8, 8));
+
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(top, BorderLayout.NORTH);
+        p.add(sp, BorderLayout.CENTER);
+        return p;
+    }
+
+    private JComponent buildRawQaPanel() {
+        rawQaArea.setEditable(false);
+        rawQaArea.setFont(new Font("Consolas", Font.PLAIN, 12));
+        rawQaArea.setLineWrap(true);
+        rawQaArea.setWrapStyleWord(true);
+
+        JPanel top = new JPanel(new BorderLayout(8, 8));
+        top.setBorder(new EmptyBorder(8, 8, 8, 8));
+        JLabel t = new JLabel("CSV QA & Validation");
+        t.setFont(new Font("Arial", Font.BOLD, 12));
+        top.add(t, BorderLayout.WEST);
+
+        JButton refresh = new JButton("Refresh");
+        refresh.addActionListener(e -> updateRawCsvPanel());
+        top.add(refresh, BorderLayout.EAST);
+
+        JScrollPane sp = new JScrollPane(rawQaArea);
+        sp.setBorder(new EmptyBorder(0, 8, 8, 8));
+
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(top, BorderLayout.NORTH);
+        p.add(sp, BorderLayout.CENTER);
+        return p;
+    }
+
+    private JComponent buildRawTimeSeriesPanel() {
+        rawMetric.setFont(new Font("Arial", Font.PLAIN, 12));
+        rawMetric.addActionListener(e -> updateRawPlot());
+
+        JPanel controls = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        controls.setOpaque(false);
+        rawMetric.setPreferredSize(new Dimension(220, 28));
+        controls.add(new JLabel("Metric"));
+        controls.add(rawMetric);
+        JLabel hint = new JLabel("Mouse wheel: zoom  |  Drag: pan");
+        hint.setFont(new Font("Arial", Font.PLAIN, 12));
+        hint.setForeground(new Color(90, 90, 90));
+        controls.add(hint);
+
+        JPanel top = new JPanel(new BorderLayout(8, 8));
+        top.setBorder(new EmptyBorder(8, 8, 8, 8));
+        top.add(controls, BorderLayout.CENTER);
+
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(top, BorderLayout.NORTH);
+        p.add(rawPlot, BorderLayout.CENTER);
+        return p;
+    }
+
+    private JComponent buildRawTimelinePanel() {
+        JPanel top = new JPanel(new BorderLayout(8, 8));
+        top.setBorder(new EmptyBorder(8, 8, 8, 8));
+        JLabel t = new JLabel("Mode Timeline");
+        t.setFont(new Font("Arial", Font.BOLD, 12));
+        top.add(t, BorderLayout.WEST);
+
+        JLabel hint = new JLabel("Mouse wheel: zoom  |  Drag: pan");
+        hint.setFont(new Font("Arial", Font.PLAIN, 12));
+        hint.setForeground(new Color(90, 90, 90));
+        top.add(hint, BorderLayout.EAST);
+
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(top, BorderLayout.NORTH);
+        p.add(rawTimeline, BorderLayout.CENTER);
+        return p;
+    }
+
+    private void updateRawCsvPanel() {
+        File f = model == null ? null : model.rawCsvFile();
+        if (f == null || !f.isFile()) {
+            if (rawLoadedFile != null && rawLoadedFile.isFile()) {
+                f = rawLoadedFile;
+            }
+        }
+
+        rawColTimestamp = -1;
+        rawColMode = -1;
+        rawColEvent = -1;
+        rawColAnomaly = -1;
+        rawColDominantFreq = -1;
+        rawColDamping = -1;
+        rawColModeLabel = -1;
+
+        if (f == null || !f.isFile()) {
+            rawInfo.setText("Raw CSV not found for this results set. Use “Locate CSV...” to load and optionally copy into the results folder.");
+            rawSelection.setText("");
+            rawTableModel.setRowCount(0);
+            rawTableModel.setColumnCount(0);
+            rawQaArea.setText("No CSV loaded.");
+            rawMetric.setModel(new DefaultComboBoxModel<>(new String[] { "No metrics" }));
+            rawPlot.setSeries(new long[0], new double[0], new boolean[0], new String[0], "");
+            rawTimeline.setTimeline(new long[0], new int[0], new boolean[0], new String[0]);
+            rawModeFilter.setModel(new DefaultComboBoxModel<>(new String[] { "All" }));
+            rawEventFilter.setModel(new DefaultComboBoxModel<>(new String[] { "All" }));
+            rawModeFilter.setEnabled(false);
+            rawEventFilter.setEnabled(false);
+            rawAnomalyOnly.setEnabled(false);
+            rawSorter.setRowFilter(null);
+            return;
+        }
+
+        rawLoadedFile = f;
+        try {
+            loadCsvIntoRawTable(f);
+        } catch (Exception ex) {
+            rawInfo.setText("Failed to load CSV: " + ex.getMessage());
+            rawSelection.setText("");
+            rawTableModel.setRowCount(0);
+            rawTableModel.setColumnCount(0);
+            return;
+        }
+
+        buildRawFiltersFromTable();
+        applyRawFilters();
+        rebuildRawSeriesCache();
+        updateRawQaArea();
+        updateRawPlot();
+        updateRawTimeline();
+        rawInfo.setText("Loaded: " + f.getAbsolutePath() + "  (rows: " + rawTableModel.getRowCount() + ", cols: " + rawTableModel.getColumnCount() + ")");
+        updateRawSelectionLabel();
+    }
+
+    private void loadCsvIntoRawTable(File f) throws IOException {
+        rawTableModel.setRowCount(0);
+        rawTableModel.setColumnCount(0);
+
+        try (BufferedReader in = Files.newBufferedReader(f.toPath(), StandardCharsets.UTF_8)) {
+            String header = in.readLine();
+            if (header == null) {
+                throw new IOException("Empty file");
+            }
+            String[] cols = splitCsvLine(header);
+            rawTableModel.setColumnIdentifiers(cols);
+            indexRawColumns(cols);
+
+            String line;
+            while ((line = in.readLine()) != null) {
+                if (line.isBlank()) {
+                    continue;
+                }
+                String[] parts = splitCsvLine(line);
+                Object[] row = new Object[cols.length];
+                for (int i = 0; i < cols.length; i++) {
+                    row[i] = i < parts.length ? parts[i] : "";
+                }
+                rawTableModel.addRow(row);
+            }
+        }
+
+        int cols = rawTableModel.getColumnCount();
+        int rows = rawTableModel.getRowCount();
+        for (int c = 0; c < cols; c++) {
+            int max = String.valueOf(rawTableModel.getColumnName(c)).length();
+            int scan = Math.min(rows, 120);
+            for (int r = 0; r < scan; r++) {
+                Object v = rawTableModel.getValueAt(r, c);
+                if (v != null) {
+                    max = Math.max(max, v.toString().length());
+                }
+            }
+            int w = Math.max(90, Math.min(420, 14 + (max * 7)));
+            rawTable.getColumnModel().getColumn(c).setPreferredWidth(w);
+        }
+    }
+
+    private void indexRawColumns(String[] cols) {
+        for (int i = 0; i < cols.length; i++) {
+            String c = cols[i] == null ? "" : cols[i].trim().toLowerCase();
+            if ("timestamp".equals(c)) {
+                rawColTimestamp = i;
+            } else if ("mode_active".equals(c) || "mode".equals(c)) {
+                rawColMode = i;
+            } else if ("mode_label".equals(c) || "mode_name".equals(c)) {
+                rawColModeLabel = i;
+            } else if ("event_marker".equals(c) || "event".equals(c)) {
+                rawColEvent = i;
+            } else if ("anomaly_flag".equals(c) || "anomaly".equals(c)) {
+                rawColAnomaly = i;
+            } else if ("dominant_freq_hz".equals(c) || "frequency_hz".equals(c)) {
+                rawColDominantFreq = i;
+            } else if ("damping_ratio".equals(c) || "damping".equals(c)) {
+                rawColDamping = i;
+            }
+        }
+    }
+
+    private void buildRawFiltersFromTable() {
+        Set<String> modes = new LinkedHashSet<>();
+        Set<String> events = new LinkedHashSet<>();
+        modes.add("All");
+        events.add("All");
+
+        int rows = rawTableModel.getRowCount();
+        for (int r = 0; r < rows; r++) {
+            if (rawColMode >= 0) {
+                Object v = rawTableModel.getValueAt(r, rawColMode);
+                String s = v == null ? "" : v.toString().trim();
+                if (!s.isEmpty()) {
+                    modes.add(s);
+                }
+            }
+            if (rawColEvent >= 0) {
+                Object v = rawTableModel.getValueAt(r, rawColEvent);
+                String s = v == null ? "" : v.toString().trim();
+                if (!s.isEmpty()) {
+                    events.add(s);
+                }
+            }
+        }
+
+        rawModeFilter.setModel(new DefaultComboBoxModel<>(modes.toArray(new String[0])));
+        rawEventFilter.setModel(new DefaultComboBoxModel<>(events.toArray(new String[0])));
+        rawModeFilter.setEnabled(rawColMode >= 0);
+        rawEventFilter.setEnabled(rawColEvent >= 0);
+        rawAnomalyOnly.setEnabled(rawColAnomaly >= 0);
+        if (rawColAnomaly < 0) {
+            rawAnomalyOnly.setSelected(false);
+        }
+    }
+
+    private void applyRawFilters() {
+        String search = rawSearch.getText() == null ? "" : rawSearch.getText().trim().toLowerCase();
+        String mode = Objects.toString(rawModeFilter.getSelectedItem(), "All").trim();
+        String event = Objects.toString(rawEventFilter.getSelectedItem(), "All").trim();
+        boolean anomaliesOnly = rawAnomalyOnly.isSelected();
+
+        if ((search.isEmpty()) && ("All".equalsIgnoreCase(mode) || rawColMode < 0) && ("All".equalsIgnoreCase(event) || rawColEvent < 0) && (!anomaliesOnly || rawColAnomaly < 0)) {
+            rawSorter.setRowFilter(null);
+            return;
+        }
+
+        rawSorter.setRowFilter(new RowFilter<>() {
+            @Override
+            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                int r = entry.getIdentifier();
+                if (rawColMode >= 0 && !"All".equalsIgnoreCase(mode)) {
+                    Object v = rawTableModel.getValueAt(r, rawColMode);
+                    if (!mode.equalsIgnoreCase(Objects.toString(v, "").trim())) {
+                        return false;
+                    }
+                }
+                if (rawColEvent >= 0 && !"All".equalsIgnoreCase(event)) {
+                    Object v = rawTableModel.getValueAt(r, rawColEvent);
+                    if (!event.equalsIgnoreCase(Objects.toString(v, "").trim())) {
+                        return false;
+                    }
+                }
+                if (anomaliesOnly && rawColAnomaly >= 0) {
+                    Object v = rawTableModel.getValueAt(r, rawColAnomaly);
+                    if (!"1".equals(Objects.toString(v, "").trim())) {
+                        return false;
+                    }
+                }
+                if (!search.isEmpty()) {
+                    int cols = rawTableModel.getColumnCount();
+                    for (int c = 0; c < cols; c++) {
+                        Object v = rawTableModel.getValueAt(r, c);
+                        if (v != null && v.toString().toLowerCase().contains(search)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                return true;
+            }
+        });
+    }
+
+    private void locateRawCsv() {
+        JFileChooser fc = new JFileChooser();
+        int r = fc.showOpenDialog(this);
+        if (r != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        File chosen = fc.getSelectedFile();
+        if (chosen == null || !chosen.isFile()) {
+            return;
+        }
+        if (model != null && model.outDir() != null) {
+            try {
+                Path dst = model.outDir().resolve("raw_input.csv");
+                Files.copy(chosen.toPath(), dst, StandardCopyOption.REPLACE_EXISTING);
+                ensureSummaryRawCsvKey(dst.toFile());
+                rawLoadedFile = dst.toFile();
+            } catch (Exception ex) {
+                rawLoadedFile = chosen;
+            }
+        } else {
+            rawLoadedFile = chosen;
+        }
+        updateRawCsvPanel();
+    }
+
+    private void ensureSummaryRawCsvKey(File copied) {
+        if (model == null || model.outDir() == null || copied == null) {
+            return;
+        }
+        try {
+            Path p = model.outDir().resolve("summary.properties");
+            if (!Files.isRegularFile(p)) {
+                return;
+            }
+            List<String> lines = Files.readAllLines(p, StandardCharsets.UTF_8);
+            boolean hasKey = false;
+            boolean changed = false;
+            List<String> out = new ArrayList<>(lines.size() + 1);
+            for (String l : lines) {
+                String s = l == null ? "" : l.trim();
+                if (s.startsWith("raw_csv=")) {
+                    hasKey = true;
+                    String v = s.substring("raw_csv=".length()).trim();
+                    if (v.isEmpty()) {
+                        out.add("raw_csv=" + copied.getAbsolutePath());
+                        changed = true;
+                    } else {
+                        out.add(l);
+                    }
+                } else {
+                    out.add(l);
+                }
+            }
+            if (!hasKey) {
+                out.add("raw_csv=" + copied.getAbsolutePath());
+                changed = true;
+            }
+            if (changed) {
+                Files.write(p, out, StandardCharsets.UTF_8);
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void rebuildRawSeriesCache() {
+        rawMetricSeries.clear();
+        int rows = rawTableModel.getRowCount();
+        rawTimesEpochMillis = new long[rows];
+        rawModes = new int[rows];
+        rawAnomalies = new boolean[rows];
+        rawEvents = new String[rows];
+
+        int cTs = rawColTimestamp;
+        int cMode = rawColMode;
+        int cAnom = rawColAnomaly;
+        int cEvent = rawColEvent;
+
+        for (int r = 0; r < rows; r++) {
+            if (cTs >= 0) {
+                String s = Objects.toString(rawTableModel.getValueAt(r, cTs), "").trim();
+                try {
+                    LocalDateTime dt = LocalDateTime.parse(s, RAW_TS);
+                    rawTimesEpochMillis[r] = dt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+                } catch (Exception ex) {
+                    rawTimesEpochMillis[r] = 0L;
+                }
+            } else {
+                rawTimesEpochMillis[r] = r * 60_000L;
+            }
+
+            if (cMode >= 0) {
+                String s = Objects.toString(rawTableModel.getValueAt(r, cMode), "").trim();
+                try {
+                    rawModes[r] = Integer.parseInt(s);
+                } catch (Exception ex) {
+                    rawModes[r] = 0;
+                }
+            } else {
+                rawModes[r] = 0;
+            }
+
+            if (cAnom >= 0) {
+                rawAnomalies[r] = "1".equals(Objects.toString(rawTableModel.getValueAt(r, cAnom), "").trim());
+            } else {
+                rawAnomalies[r] = false;
+            }
+
+            if (cEvent >= 0) {
+                rawEvents[r] = Objects.toString(rawTableModel.getValueAt(r, cEvent), "").trim();
+            } else {
+                rawEvents[r] = "";
+            }
+        }
+
+        String[] preferred = new String[] {
+                "accel_rms_g",
+                "accel_peak_g",
+                "vel_rms_mm_s",
+                "disp_rms_mm",
+                "dominant_freq_hz",
+                "damping_ratio",
+                "temperature_c",
+                "humidity_pct",
+                "battery_v"
+        };
+        for (String col : preferred) {
+            int idx = findRawColumnIndex(col);
+            if (idx < 0) {
+                continue;
+            }
+            double[] vals = new double[rows];
+            for (int r = 0; r < rows; r++) {
+                Double v = parseDoubleSafe(rawTableModel.getValueAt(r, idx));
+                vals[r] = v == null ? Double.NaN : v;
+            }
+            rawMetricSeries.put(col, vals);
+        }
+
+        DefaultComboBoxModel<String> metrics = new DefaultComboBoxModel<>();
+        if (rawMetricSeries.isEmpty()) {
+            metrics.addElement("No metrics");
+        } else {
+            for (String k : preferred) {
+                if (rawMetricSeries.containsKey(k)) {
+                    metrics.addElement(k);
+                }
+            }
+        }
+        rawMetric.setModel(metrics);
+        if (metrics.getSize() > 0) {
+            rawMetric.setSelectedIndex(0);
+        }
+    }
+
+    private int findRawColumnIndex(String name) {
+        if (name == null) {
+            return -1;
+        }
+        String n = name.trim().toLowerCase();
+        int cols = rawTableModel.getColumnCount();
+        for (int i = 0; i < cols; i++) {
+            String c = rawTableModel.getColumnName(i);
+            if (c != null && c.trim().toLowerCase().equals(n)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void updateRawQaArea() {
+        int rows = rawTableModel.getRowCount();
+        int cols = rawTableModel.getColumnCount();
+        if (rows == 0 || cols == 0) {
+            rawQaArea.setText("No CSV loaded.");
+            return;
+        }
+
+        String first = rawColTimestamp >= 0 ? Objects.toString(rawTableModel.getValueAt(0, rawColTimestamp), "").trim() : "";
+        String last = rawColTimestamp >= 0 ? Objects.toString(rawTableModel.getValueAt(rows - 1, rawColTimestamp), "").trim() : "";
+
+        int gaps = 0;
+        if (rawTimesEpochMillis.length == rows) {
+            for (int i = 1; i < rows; i++) {
+                long a = rawTimesEpochMillis[i - 1];
+                long b = rawTimesEpochMillis[i];
+                if (a > 0 && b > 0) {
+                    if (b - a != 60_000L) {
+                        gaps++;
+                    }
+                }
+            }
+        }
+
+        Set<Integer> modeSet = new LinkedHashSet<>();
+        Set<String> labelSet = new LinkedHashSet<>();
+        Map<String, Integer> eventCounts = new HashMap<>();
+        int anomalyCount = 0;
+        int warnHealth = 0;
+        int failHealth = 0;
+
+        int cHealth = findRawColumnIndex("sensor_health");
+        for (int i = 0; i < rows; i++) {
+            int m = i < rawModes.length ? rawModes[i] : 0;
+            if (m > 0) {
+                modeSet.add(m);
+            }
+            if (rawColModeLabel >= 0) {
+                String s = Objects.toString(rawTableModel.getValueAt(i, rawColModeLabel), "").trim();
+                if (!s.isEmpty()) {
+                    labelSet.add(s);
+                }
+            }
+            if (i < rawEvents.length) {
+                String ev = rawEvents[i] == null ? "" : rawEvents[i].trim();
+                if (!ev.isEmpty()) {
+                    eventCounts.put(ev, eventCounts.getOrDefault(ev, 0) + 1);
+                }
+            }
+            if (i < rawAnomalies.length && rawAnomalies[i]) {
+                anomalyCount++;
+            }
+            if (cHealth >= 0) {
+                String h = Objects.toString(rawTableModel.getValueAt(i, cHealth), "").trim().toUpperCase();
+                if ("WARN".equals(h)) {
+                    warnHealth++;
+                } else if ("FAIL".equals(h)) {
+                    failHealth++;
+                }
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Rows: ").append(rows).append("\n");
+        sb.append("Columns: ").append(cols).append("\n");
+        if (!first.isEmpty() || !last.isEmpty()) {
+            sb.append("Time range: ").append(first).append("  →  ").append(last).append("\n");
+        }
+        sb.append("Timestamp gaps (expected 1-min step): ").append(gaps).append("\n");
+        sb.append("Modes present: ").append(modeSet).append("\n");
+        if (!labelSet.isEmpty()) {
+            sb.append("Mode labels present: ").append(labelSet.size()).append("\n");
+        }
+        if (!modeSet.contains(8)) {
+            sb.append("Warning: Mode 8 not present in this CSV.\n");
+        }
+        sb.append("Anomaly rows: ").append(anomalyCount).append("\n");
+        if (cHealth >= 0) {
+            sb.append("Sensor health: WARN=").append(warnHealth).append("  FAIL=").append(failHealth).append("\n");
+        }
+        if (!eventCounts.isEmpty()) {
+            sb.append("\nEvent markers (count):\n");
+            for (Map.Entry<String, Integer> e : eventCounts.entrySet()) {
+                sb.append("  ").append(e.getKey()).append(" = ").append(e.getValue()).append("\n");
+            }
+        }
+        rawQaArea.setText(sb.toString());
+        rawQaArea.setCaretPosition(0);
+    }
+
+    private void updateRawPlot() {
+        Object sel = rawMetric.getSelectedItem();
+        String key = sel == null ? "" : sel.toString();
+        double[] series = rawMetricSeries.get(key);
+        if (series == null) {
+            rawPlot.setSeries(new long[0], new double[0], new boolean[0], new String[0], "");
+            return;
+        }
+        rawPlot.setSeries(rawTimesEpochMillis, series, rawAnomalies, rawEvents, key);
+        int viewRow = rawTable.getSelectedRow();
+        if (viewRow >= 0) {
+            int modelRow = rawTable.convertRowIndexToModel(viewRow);
+            rawPlot.setSelectedIndex(modelRow);
+        }
+    }
+
+    private void updateRawTimeline() {
+        rawTimeline.setTimeline(rawTimesEpochMillis, rawModes, rawAnomalies, rawEvents);
+        int viewRow = rawTable.getSelectedRow();
+        if (viewRow >= 0) {
+            int modelRow = rawTable.convertRowIndexToModel(viewRow);
+            rawTimeline.setSelectedIndex(modelRow);
+        }
+    }
+
+    private void updateRawSelectionLabel() {
+        int viewRow = rawTable.getSelectedRow();
+        if (viewRow < 0) {
+            rawSelection.setText("");
+            rawPlot.setSelectedIndex(-1);
+            rawTimeline.setSelectedIndex(-1);
+            return;
+        }
+        int modelRow = rawTable.convertRowIndexToModel(viewRow);
+        String ts = rawColTimestamp >= 0 ? Objects.toString(rawTableModel.getValueAt(modelRow, rawColTimestamp), "") : "";
+        String mode = rawColMode >= 0 ? Objects.toString(rawTableModel.getValueAt(modelRow, rawColMode), "") : "";
+        String event = rawColEvent >= 0 ? Objects.toString(rawTableModel.getValueAt(modelRow, rawColEvent), "") : "";
+        String anom = rawColAnomaly >= 0 ? Objects.toString(rawTableModel.getValueAt(modelRow, rawColAnomaly), "") : "";
+
+        Double f = parseDoubleSafe(rawColDominantFreq >= 0 ? rawTableModel.getValueAt(modelRow, rawColDominantFreq) : null);
+        Double xi = parseDoubleSafe(rawColDamping >= 0 ? rawTableModel.getValueAt(modelRow, rawColDamping) : null);
+
+        String derived = closestDerivedModeText(f, xi);
+        rawSelection.setText("Selected: " + ts + (mode.isBlank() ? "" : ("  mode=" + mode)) + (event.isBlank() ? "" : ("  event=" + event)) + ("1".equals(anom.trim()) ? "  anomaly=1" : "") + (derived.isBlank() ? "" : ("  |  " + derived)));
+        rawPlot.setSelectedIndex(modelRow);
+        rawTimeline.setSelectedIndex(modelRow);
+    }
+
+    private String closestDerivedModeText(Double freq, Double damping) {
+        if (model == null || model.modes() == null || model.modes().isEmpty() || freq == null || !Double.isFinite(freq)) {
+            return "";
+        }
+        OmaResultsModel.ModeRow best = null;
+        double bestDf = Double.POSITIVE_INFINITY;
+        for (OmaResultsModel.ModeRow r : model.modes()) {
+            if (r == null || !Double.isFinite(r.frequencyHz())) {
+                continue;
+            }
+            double df = Math.abs(r.frequencyHz() - freq);
+            if (df < bestDf) {
+                bestDf = df;
+                best = r;
+            }
+        }
+        if (best == null) {
+            return "";
+        }
+        String extra = "";
+        if (damping != null && Double.isFinite(damping) && Double.isFinite(best.dampingRatio())) {
+            extra = String.format(" (Δξ=%.4f)", Math.abs(best.dampingRatio() - damping));
+        }
+        return String.format("Closest derived mode: %d (Fn=%.3f Hz, ξ=%.4f)%s", best.modeIndex(), best.frequencyHz(), best.dampingRatio(), extra);
+    }
+
+    private static Double parseDoubleSafe(Object v) {
+        if (v == null) {
+            return null;
+        }
+        try {
+            String s = v.toString().trim();
+            if (s.isEmpty()) {
+                return null;
+            }
+            return Double.parseDouble(s);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private static String[] splitCsvLine(String line) {
+        if (line == null) {
+            return new String[0];
+        }
+        List<String> out = new ArrayList<>();
+        StringBuilder cur = new StringBuilder();
+        boolean quoted = false;
+        for (int i = 0; i < line.length(); i++) {
+            char ch = line.charAt(i);
+            if (ch == '"') {
+                quoted = !quoted;
+            } else if (ch == ',' && !quoted) {
+                out.add(cur.toString().trim());
+                cur.setLength(0);
+            } else {
+                cur.append(ch);
+            }
+        }
+        out.add(cur.toString().trim());
+        return out.toArray(new String[0]);
     }
 
     private JComponent buildImagesPanel() {
@@ -1101,6 +1874,7 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         updateStatusRight();
         imagesDock.replaceContent(buildImagesPanel());
         updateMacPanel();
+        updateRawCsvPanel();
     }
 
     private void applyPreset(String preset) {

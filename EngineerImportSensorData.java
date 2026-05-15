@@ -608,7 +608,8 @@ public class EngineerImportSensorData extends JFrame {
                 return;
             }
 
-            CsvFileValidator.ValidationResult vr = CsvFileValidator.validate(file);
+            CsvFileValidator.DetailedValidation dv = CsvFileValidator.validateDetailed(file);
+            CsvFileValidator.ValidationResult vr = dv.base();
             if (!vr.valid()) {
                 inlineMsg.setForeground(Color.RED);
                 inlineMsg.setText(vr.message());
@@ -624,8 +625,12 @@ public class EngineerImportSensorData extends JFrame {
             fileSizeLabel.setText(fileSizeInMB + " MB");
             selectedFilePanel.setVisible(true);
             inlineMsg.setForeground(new Color(0, 128, 0));
-            inlineMsg.setText("CSV selected successfully.");
+            String profile = dv.profile().name();
+            inlineMsg.setText("CSV selected (" + profile + "). " + (dv.summary() == null ? "" : dv.summary()));
             Toast.show(this, "CSV selected", new Color(0, 128, 0), 1600);
+            if (!dv.warnings().isEmpty()) {
+                JOptionPane.showMessageDialog(this, String.join("\n", dv.warnings()), "CSV Validation Warnings", JOptionPane.WARNING_MESSAGE);
+            }
         });
 
         deleteBtn.addActionListener(e -> {
