@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CreateAccountConfirmation",
+            "request": "launch",
+            "mainClass": "CreateAccountConfirmation",
+            "projectName": "thesis-aoma-heritage-monitor_16a1b6b2"
+        },
+        {
+            "type": "java",
             "name": "SpectrogramTableModelTest",
             "request": "launch",
             "mainClass": "SpectrogramTableModelTest",

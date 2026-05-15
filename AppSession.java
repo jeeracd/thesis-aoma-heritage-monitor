@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public final class AppSession {
     private static volatile File lastUploadedCsv;
+    private static volatile CsvFileValidator.CsvProfile lastUploadedCsvProfile = CsvFileValidator.CsvProfile.UNKNOWN;
     private static volatile long lastUploadedCsvSeq;
     private static volatile long lastPyOma2RunSeq;
     private static volatile UUID activeProjectId;
@@ -16,6 +17,7 @@ public final class AppSession {
     public static void setLastUploadedCsv(File file) {
         synchronized (csvLock) {
             lastUploadedCsv = file;
+            lastUploadedCsvProfile = CsvFileValidator.detectProfile(file);
             lastUploadedCsvSeq++;
         }
         notifyLastUploadedCsvListeners();
@@ -23,6 +25,10 @@ public final class AppSession {
 
     public static File getLastUploadedCsv() {
         return lastUploadedCsv;
+    }
+
+    public static CsvFileValidator.CsvProfile getLastUploadedCsvProfile() {
+        return lastUploadedCsvProfile;
     }
 
     public static long getLastUploadedCsvSequence() {
