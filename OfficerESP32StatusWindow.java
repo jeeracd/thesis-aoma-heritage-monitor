@@ -190,6 +190,9 @@ public class OfficerESP32StatusWindow extends JFrame {
             this.dispose();
         });
 
+        JMenuItem nodeHealth = new JMenuItem("Node Health Monitor");
+        nodeHealth.addActionListener(e -> new OfficerNodeHealthMonitorWindow());
+
         JMenuItem vibrationData = new JMenuItem("Vibration Data");
         JMenuItem omaAnalysisResult = new JMenuItem("OMA Analysis Result");
         JMenuItem reportHistory = new JMenuItem("View Report");
@@ -210,6 +213,7 @@ public class OfficerESP32StatusWindow extends JFrame {
         viewMenu.add(setupConnection);
         viewMenu.add(configureSensor);
         viewMenu.add(esp32Status);
+        viewMenu.add(nodeHealth);
         viewMenu.addSeparator();
         viewMenu.add(vibrationData);
         viewMenu.add(omaAnalysisResult);
