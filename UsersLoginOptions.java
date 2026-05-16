@@ -35,6 +35,7 @@ import javax.swing.JRootPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.border.AbstractBorder;
@@ -80,6 +81,7 @@ public class UsersLoginOptions extends JFrame {
     private JPanel passwordWrap;
     private boolean loadingState;
     private boolean wideLayout;
+    private Timer lockoutTimer;
 
     public UsersLoginOptions() {
         setTitle("AOMA-Heritage Monitor - Login");
@@ -503,6 +505,7 @@ public class UsersLoginOptions extends JFrame {
         if (loadingState) {
             return;
         }
+        stopLockoutTimer();
         clearFormError();
         boolean ok = validateEmail(true) & validatePassword(true);
         if (!ok) {
@@ -510,38 +513,72 @@ public class UsersLoginOptions extends JFrame {
         }
 
         setLoading(true);
-        Timer t = new Timer(350, null);
-        t.setRepeats(false);
-        t.addActionListener(e -> {
-            String email = emailField.getText().trim();
-            String password = new String(passwordField.getPassword());
+        final String email = emailField.getText().trim();
+        final char[] password = passwordField.getPassword();
 
-            if (EngineerCredentialStore.verifyCredentials(email, passwordField.getPassword())) {
-                persistRememberedStateOnSuccess();
+        new SwingWorker<UserStore.AuthResult, Void>() {
+            @Override
+            protected UserStore.AuthResult doInBackground() {
+                return UserStore.authenticate(email, password);
+            }
+
+            @Override
+            protected void done() {
                 setLoading(false);
-                JOptionPane.showMessageDialog(this, "Engineer Login Successful!");
-                new EngineerBldgStatusOverview();
-                dispose();
-            } else if (email.equals("juandelacruz2@officer.com") && password.equals("dummy123")) {
-                persistRememberedStateOnSuccess();
-                setLoading(false);
-                JOptionPane.showMessageDialog(this, "Officer Login Successful!");
-                new OfficerBldgStatusOverview();
-                dispose();
-            } else if (email.equals("juandelacruz3@head.com") && password.equals("dummy123")) {
-                persistRememberedStateOnSuccess();
-                setLoading(false);
-                JOptionPane.showMessageDialog(this, "Head Login Successful!");
-                new HeadBldgStatusOverview();
-                dispose();
+                try {
+                    UserStore.AuthResult result = get();
+                    if (result.ok()) {
+                        persistRememberedStateOnSuccess();
+                        AppSession.setActiveRole(result.role());
+                        switch (result.role()) {
+                            case ENGINEER -> { new EngineerBldgStatusOverview(); dispose(); }
+                            case OFFICER  -> { new OfficerBldgStatusOverview();  dispose(); }
+                            case HEAD     -> { new HeadBldgStatusOverview();     dispose(); }
+                        }
+                    } else if (result.lockedUntilMs() > 0) {
+                        startLockoutCountdown(result.lockedUntilMs());
+                    } else {
+                        showFormError(result.message());
+                        animateWrapBorder(emailWrap, currentWrapColor(emailWrap), ERROR, 120);
+                        animateWrapBorder(passwordWrap, currentWrapColor(passwordWrap), ERROR, 120);
+                    }
+                } catch (Exception ex) {
+                    showFormError("Login error. Please try again.");
+                }
+            }
+        }.execute();
+    }
+
+    private void startLockoutCountdown(long lockedUntilMs) {
+        animateWrapBorder(emailWrap, currentWrapColor(emailWrap), ERROR, 120);
+        animateWrapBorder(passwordWrap, currentWrapColor(passwordWrap), ERROR, 120);
+        updateLockoutLabel(lockedUntilMs);
+        lockoutTimer = new Timer(1000, e -> {
+            long rem = lockedUntilMs - System.currentTimeMillis();
+            if (rem <= 0) {
+                stopLockoutTimer();
+                clearFormError();
+                animateWrapBorder(emailWrap, currentWrapColor(emailWrap), BORDER, 120);
+                animateWrapBorder(passwordWrap, currentWrapColor(passwordWrap), BORDER, 120);
             } else {
-                setLoading(false);
-                showFormError("Invalid email or password.");
-                animateWrapBorder(emailWrap, currentWrapColor(emailWrap), ERROR, 120);
-                animateWrapBorder(passwordWrap, currentWrapColor(passwordWrap), ERROR, 120);
+                updateLockoutLabel(lockedUntilMs);
             }
         });
-        t.start();
+        lockoutTimer.start();
+    }
+
+    private void updateLockoutLabel(long lockedUntilMs) {
+        long rem = Math.max(0, lockedUntilMs - System.currentTimeMillis());
+        long mins = rem / 60_000;
+        long secs = (rem % 60_000) / 1000;
+        showFormError(String.format("Too many failed attempts. Try again in %dm %ds.", mins, secs));
+    }
+
+    private void stopLockoutTimer() {
+        if (lockoutTimer != null) {
+            lockoutTimer.stop();
+            lockoutTimer = null;
+        }
     }
 
     private boolean validateEmail(boolean show) {

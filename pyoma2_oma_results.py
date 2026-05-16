@@ -229,6 +229,40 @@ def run_pyoma2(data: np.ndarray, fs_hz: float, channel_labels: list[str], out_di
     fig.savefig(stab_png, dpi=160)
     plt.close(fig)
 
+    # Export raw SSI poles so the Java scatter panel can render them interactively
+    poles_csv = out_dir / "stabilization_poles.csv"
+    try:
+        Fn_poles = np.asarray(ssi_result.Fn_poles)
+        Lab = np.asarray(ssi_result.Lab)
+        Xi_poles_raw = getattr(ssi_result, "Xi_poles", None)
+        Xi_poles = np.asarray(Xi_poles_raw) if Xi_poles_raw is not None else None
+        _step = int(getattr(ssi.run_params, "step", 1))
+        _ordmin = int(getattr(ssi.run_params, "ordmin", 0))
+        def _is_stable(lab) -> int:
+            try:
+                return 1 if int(float(str(lab))) > 0 else 0
+            except (ValueError, TypeError):
+                return 1 if str(lab).strip().lower() not in {"n", "u", "0", ""} else 0
+        pole_rows = []
+        for o_idx in range(Fn_poles.shape[0]):
+            _order = _ordmin + (o_idx + 1) * _step
+            for p_idx in range(Fn_poles.shape[1]):
+                fn_val = float(Fn_poles[o_idx, p_idx])
+                if not np.isfinite(fn_val) or fn_val <= 0:
+                    continue
+                lab_val = str(Lab[o_idx, p_idx]) if o_idx < Lab.shape[0] and p_idx < Lab.shape[1] else "0"
+                xi_val = float("nan")
+                if Xi_poles is not None and o_idx < Xi_poles.shape[0] and p_idx < Xi_poles.shape[1]:
+                    xi_val = float(Xi_poles[o_idx, p_idx])
+                    if not np.isfinite(xi_val):
+                        xi_val = float("nan")
+                stable_flag = _is_stable(lab_val)
+                pole_rows.append({"order": _order, "frequency_hz": round(fn_val, 6), "damping_ratio": round(xi_val, 6) if np.isfinite(xi_val) else "", "label": lab_val, "stable": stable_flag})
+        import pandas as _pd_poles
+        _pd_poles.DataFrame(pole_rows).to_csv(poles_csv, index=False)
+    except Exception:
+        poles_csv = None
+
     cmif_png = out_dir / "frequency_response_cmif.png"
     nsv_req: int | str
     if cfg.cmif_nsv <= 0:
@@ -403,6 +437,7 @@ def run_pyoma2(data: np.ndarray, fs_hz: float, channel_labels: list[str], out_di
         "files": {
             "raw_csv": str(raw_csv) if raw_csv is not None else None,
             "stabilization_png": str(stab_png),
+            "stabilization_poles_csv": str(poles_csv) if poles_csv is not None else None,
             "cmif_png": str(cmif_png),
             "mode_shapes_png": str(mode_png),
             "mac_png": str(mac_png),
@@ -412,23 +447,30 @@ def run_pyoma2(data: np.ndarray, fs_hz: float, channel_labels: list[str], out_di
     summary_json.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
     props_path = out_dir / "summary.properties"
+
+    def _fp(p) -> str:
+        """Return a path string safe for Java Properties.load() — forward slashes, no backslash escaping issues."""
+        return str(p).replace("\\", "/") if p is not None else ""
+
     props_lines = [
         "status=ok",
-        f"input_csv={source_csv}" if source_csv is not None else "input_csv=",
+        f"input_csv={_fp(source_csv)}",
         f"fs_hz={fs_hz}",
-        f"raw_csv={raw_csv}" if raw_csv is not None else "raw_csv=",
-        f"stabilization_png={stab_png}",
-        f"cmif_png={cmif_png}",
-        f"mode_shapes_png={mode_png}",
-        f"mac_png={mac_png}",
-        f"modal_properties_csv={modes_csv}",
-        f"summary_json={summary_json}",
+        f"raw_csv={_fp(raw_csv)}",
+        f"stabilization_png={_fp(stab_png)}",
+        f"stabilization_poles_csv={_fp(poles_csv)}",
+        f"cmif_png={_fp(cmif_png)}",
+        f"mode_shapes_png={_fp(mode_png)}",
+        f"mac_png={_fp(mac_png)}",
+        f"modal_properties_csv={_fp(modes_csv)}",
+        f"summary_json={_fp(summary_json)}",
     ]
     props_path.write_text("\n".join(props_lines) + "\n", encoding="utf-8")
 
     return {
         "raw_csv": str(raw_csv) if raw_csv is not None else "",
         "stabilization_png": str(stab_png),
+        "stabilization_poles_csv": str(poles_csv) if poles_csv is not None else "",
         "cmif_png": str(cmif_png),
         "mode_shapes_png": str(mode_png),
         "mac_png": str(mac_png),

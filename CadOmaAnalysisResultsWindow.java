@@ -97,6 +97,7 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
     private DockablePanel showDock;
     private DockablePanel dataDock;
     private DockablePanel imagesDock;
+    private PyOma2ResultsPanel pyOma2Panel;
 
     private DockPosition showDockPos = DockPosition.LEFT;
     private DockPosition dataDockPos = DockPosition.RIGHT;
@@ -1602,24 +1603,11 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
     }
 
     private JComponent buildImagesPanel() {
-        JPanel p = new JPanel(new GridLayout(2, 2, 8, 8));
-        p.setBorder(new EmptyBorder(8, 8, 8, 8));
-
-        JLabel stab = new JLabel("No image.", SwingConstants.CENTER);
-        JLabel cmif = new JLabel("No image.", SwingConstants.CENTER);
-        JLabel mode = new JLabel("No image.", SwingConstants.CENTER);
-        JLabel mac = new JLabel("No image.", SwingConstants.CENTER);
-
-        setImageFromSummary(stab, "stabilization_png");
-        setImageFromSummary(cmif, "cmif_png");
-        setImageFromSummary(mode, "mode_shapes_png");
-        setImageFromSummary(mac, "mac_png");
-
-        p.add(wrapImage(stab, "Stabilization"));
-        p.add(wrapImage(cmif, "CMIF"));
-        p.add(wrapImage(mode, "Mode Shapes"));
-        p.add(wrapImage(mac, "MAC"));
-        return new JScrollPane(p);
+        if (pyOma2Panel == null) {
+            pyOma2Panel = new PyOma2ResultsPanel(this);
+            pyOma2Panel.setOnRunComplete(dir -> setModel(OmaResultsModel.loadFromDirOrEmpty(dir)));
+        }
+        return pyOma2Panel;
     }
 
     private JComponent wrapImage(JLabel label, String title) {
@@ -1950,7 +1938,7 @@ public class CadOmaAnalysisResultsWindow extends JFrame {
         viewportA.setModel(model);
         viewportB.setModel(model);
         updateStatusRight();
-        imagesDock.replaceContent(buildImagesPanel());
+        // pyOma2Panel is persistent and manages its own OMA state — don't recreate it here
         updateMacPanel();
         updateRawCsvPanel();
     }

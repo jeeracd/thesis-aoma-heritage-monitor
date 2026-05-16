@@ -52,11 +52,12 @@ public final class EngineerCredentialStore {
         if (!isValidEmail(e)) {
             return false;
         }
+        String oldEmail;
         synchronized (LOCK) {
             if (expectedVersion != version) {
                 return false;
             }
-            String oldEmail = email;
+            oldEmail = email;
             if (e.equalsIgnoreCase(oldEmail)) {
                 return true;
             }
@@ -74,6 +75,7 @@ public final class EngineerCredentialStore {
                 return false;
             }
         }
+        UserStore.updateEmail(oldEmail, e);
         notifyListeners();
         return true;
     }
@@ -82,12 +84,14 @@ public final class EngineerCredentialStore {
         if (!isValidPassword(newPassword)) {
             return false;
         }
-        String newHash = PasswordHasher.hash(newPassword);
+        String currentEmail;
         synchronized (LOCK) {
             if (expectedVersion != version) {
                 return false;
             }
+            currentEmail = email;
             String oldHash = passwordHash;
+            String newHash = PasswordHasher.hash(newPassword);
             try {
                 EngineerPreferences.setPasswordHash(newHash);
                 passwordHash = newHash;
@@ -102,6 +106,7 @@ public final class EngineerCredentialStore {
                 return false;
             }
         }
+        UserStore.updatePassword(currentEmail, newPassword);
         notifyListeners();
         return true;
     }
@@ -111,13 +116,14 @@ public final class EngineerCredentialStore {
         if (!isValidEmail(e) || !isValidPassword(newPassword)) {
             return false;
         }
-        String newHash = PasswordHasher.hash(newPassword);
+        String oldEmail;
         synchronized (LOCK) {
             if (expectedVersion != version) {
                 return false;
             }
-            String oldEmail = email;
+            oldEmail = email;
             String oldHash = passwordHash;
+            String newHash = PasswordHasher.hash(newPassword);
             try {
                 EngineerPreferences.setEmail(e);
                 EngineerPreferences.setPasswordHash(newHash);
@@ -135,6 +141,8 @@ public final class EngineerCredentialStore {
                 return false;
             }
         }
+        UserStore.updateEmail(oldEmail, e);
+        UserStore.updatePassword(e, newPassword);
         notifyListeners();
         return true;
     }

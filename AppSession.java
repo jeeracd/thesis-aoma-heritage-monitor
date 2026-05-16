@@ -9,6 +9,7 @@ public final class AppSession {
     private static volatile long lastUploadedCsvSeq;
     private static volatile long lastPyOma2RunSeq;
     private static volatile UUID activeProjectId;
+    private static volatile RoleMenuBar.Role activeRole;
     private static final Object csvLock = new Object();
     private static final List<Runnable> lastUploadedCsvListeners = new ArrayList<>();
 
@@ -76,6 +77,14 @@ public final class AppSession {
 
     public static UUID getActiveProjectId() {
         return activeProjectId;
+    }
+
+    public static void setActiveRole(RoleMenuBar.Role role) {
+        activeRole = role;
+    }
+
+    public static RoleMenuBar.Role getActiveRole() {
+        return activeRole;
     }
 }
 

@@ -1,0 +1,23 @@
+{
+  "input_csv": "examples\\test_5modes_100hz.csv",
+  "fs_hz": 100.0,
+  "channels": [
+    "accelX",
+    "accelY",
+    "accelZ"
+  ],
+  "ssi": {
+    "ordmax": 20,
+    "br": 10,
+    "modes_exported": 7
+  },
+  "files": {
+    "raw_csv": "_tmp_s2_100hz\\raw_input.csv",
+    "stabilization_png": "_tmp_s2_100hz\\stabilization.png",
+    "stabilization_poles_csv": "_tmp_s2_100hz\\stabilization_poles.csv",
+    "cmif_png": "_tmp_s2_100hz\\frequency_response_cmif.png",
+    "mode_shapes_png": "_tmp_s2_100hz\\mode_shapes.png",
+    "mac_png": "_tmp_s2_100hz\\mac_matrix.png",
+    "modal_properties_csv": "_tmp_s2_100hz\\modal_properties.csv"
+  }
+}

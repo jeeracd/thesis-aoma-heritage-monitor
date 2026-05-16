@@ -15,18 +15,22 @@ public final class SimplePdfWriter {
         String t = title == null ? "" : title;
         List<String> ls = lines == null ? List.of() : lines;
 
+        List<String> allLines = new java.util.ArrayList<>();
+        if (!t.isEmpty()) {
+            allLines.addAll(wrap(t, 85));
+            allLines.add("");
+        }
+        for (String line : ls) {
+            allLines.addAll(wrap(line == null ? "" : line, 85));
+        }
+
         StringBuilder content = new StringBuilder();
         content.append("BT\n");
         content.append("/F1 10 Tf\n");
+        content.append("14 TL\n");
         content.append("72 760 Td\n");
-        if (!t.isEmpty()) {
-            content.append("(").append(escapePdf(t)).append(") Tj\n");
-            content.append("T*\n");
-            content.append("T*\n");
-        }
-        for (String line : ls) {
-            String s = line == null ? "" : line;
-            content.append("(").append(escapePdf(s)).append(") Tj\n");
+        for (String line : allLines) {
+            content.append("(").append(escapePdf(line)).append(") Tj\n");
             content.append("T*\n");
         }
         content.append("ET\n");
@@ -68,6 +72,19 @@ public final class SimplePdfWriter {
         writeAscii(out, "\n%%EOF\n");
 
         Files.write(file.toPath(), out.toByteArray());
+    }
+
+    private static java.util.List<String> wrap(String text, int maxChars) {
+        java.util.List<String> result = new java.util.ArrayList<>();
+        if (text.isEmpty()) { result.add(""); return result; }
+        while (text.length() > maxChars) {
+            int cut = text.lastIndexOf(' ', maxChars);
+            if (cut <= 0) cut = maxChars;
+            result.add(text.substring(0, cut));
+            text = text.substring(cut).stripLeading();
+        }
+        result.add(text);
+        return result;
     }
 
     private static void writeAscii(ByteArrayOutputStream out, String s) throws IOException {

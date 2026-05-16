@@ -57,10 +57,7 @@ public class CreateAccount extends JFrame {
     private static final Font BODY = new Font("SansSerif", Font.PLAIN, 13);
     private static final Font BODY_BOLD = new Font("SansSerif", Font.BOLD, 13);
 
-    private static final String ACCOUNT_TYPE_AUTO = "Auto-detected from email";
     private static final String ACCOUNT_TYPE_ENGINEER = "Structural Engineer";
-    private static final String ACCOUNT_TYPE_OFFICER = "Officer";
-    private static final String ACCOUNT_TYPE_HEAD = "LGU Head";
 
     private final JPanel layoutRoot = new JPanel(new BorderLayout());
     private final JPanel brandPanel = new JPanel();
@@ -68,7 +65,7 @@ public class CreateAccount extends JFrame {
 
     private final JTextField firstNameField = new JTextField();
     private final JTextField lastNameField = new JTextField();
-    private final JComboBox<String> accountType = new JComboBox<>(new String[] { ACCOUNT_TYPE_AUTO, ACCOUNT_TYPE_ENGINEER, ACCOUNT_TYPE_OFFICER, ACCOUNT_TYPE_HEAD });
+    private final JComboBox<String> accountType = new JComboBox<>(new String[] { ACCOUNT_TYPE_ENGINEER });
     private final JTextField emailField = new JTextField();
     private final JTextField phoneField = new JTextField();
     private final JTextField locationField = new JTextField();
@@ -226,7 +223,7 @@ public class CreateAccount extends JFrame {
 
         accountType.setFont(BODY);
         accountType.getAccessibleContext().setAccessibleName("Account type");
-        accountType.setToolTipText("Auto-detected from your email domain");
+        accountType.setToolTipText("Public registration creates Structural Engineer accounts. Contact your administrator for Officer or Head accounts.");
         accountType.setEnabled(false);
         accountType.setPrototypeDisplayValue(ACCOUNT_TYPE_ENGINEER);
         accountTypeWrap = fieldWrap(accountType);
@@ -760,43 +757,13 @@ public class CreateAccount extends JFrame {
     }
 
     private boolean validateAccountType(boolean show) {
-        Object sel = accountType.getSelectedItem();
-        String v = sel == null ? "" : sel.toString().trim();
-        String msg = (v.isEmpty() || ACCOUNT_TYPE_AUTO.equalsIgnoreCase(v))
-                ? "Account type is determined by your email domain: use @engr, @officer, or @head."
-                : null;
-        if (msg == null) {
-            accountTypeError.fadeOut();
-            animateWrapBorder(accountTypeWrap, currentWrapColor(accountTypeWrap), BORDER, 120);
-            return true;
-        }
-        if (show) {
-            accountTypeError.fadeIn(msg);
-            animateWrapBorder(accountTypeWrap, currentWrapColor(accountTypeWrap), ERROR, 120);
-        }
-        return false;
+        accountTypeError.fadeOut();
+        animateWrapBorder(accountTypeWrap, currentWrapColor(accountTypeWrap), BORDER, 120);
+        return true;
     }
 
     private void detectAccountTypeFromEmail() {
-        String v = emailField.getText() == null ? "" : emailField.getText().trim().toLowerCase();
-        String target;
-        if (v.contains("@head")) {
-            target = ACCOUNT_TYPE_HEAD;
-        } else if (v.contains("@officer")) {
-            target = ACCOUNT_TYPE_OFFICER;
-        } else if (v.contains("@engr")) {
-            target = ACCOUNT_TYPE_ENGINEER;
-        } else {
-            target = ACCOUNT_TYPE_AUTO;
-        }
-        Object cur = accountType.getSelectedItem();
-        if (!Objects.equals(cur, target)) {
-            accountType.setSelectedItem(target);
-            if (!ACCOUNT_TYPE_AUTO.equals(target)) {
-                accountTypeError.fadeOut();
-                animateWrapBorder(accountTypeWrap, currentWrapColor(accountTypeWrap), BORDER, 120);
-            }
-        }
+        // Account type is always Structural Engineer for public registration
     }
 
     private boolean validateEmail(boolean show) {
@@ -944,24 +911,38 @@ public class CreateAccount extends JFrame {
         }
 
         setLoading(true);
-        Timer t = new Timer(450, null);
-        t.setRepeats(false);
-        t.addActionListener(e -> {
-            setLoading(false);
-            String acct = accountType.getSelectedItem() == null ? "" : accountType.getSelectedItem().toString();
-            if (ACCOUNT_TYPE_ENGINEER.equals(acct)) {
-                boolean nameOk = EngineerProfileStore.setName(firstNameField.getText(), lastNameField.getText());
-                long ver = EngineerCredentialStore.getVersion();
-                boolean credOk = EngineerCredentialStore.updateCredentials(emailField.getText(), passwordField.getPassword(), ver);
-                if (!nameOk || !credOk) {
-                    formError.fadeIn("Account creation failed due to a synchronization error. Please retry.");
-                    return;
+        String email = emailField.getText().trim();
+        String firstName = firstNameField.getText().trim();
+        String lastName = lastNameField.getText().trim();
+        char[] password = passwordField.getPassword();
+
+        new javax.swing.SwingWorker<Boolean, Void>() {
+            @Override
+            protected Boolean doInBackground() {
+                boolean created = UserStore.createUser(email, RoleMenuBar.Role.ENGINEER, password);
+                if (created) {
+                    EngineerProfileStore.setName(firstName, lastName);
+                }
+                return created;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    boolean ok = get();
+                    setLoading(false);
+                    if (ok) {
+                        new CreateAccountConfirmation().setVisible(true);
+                        dispose();
+                    } else {
+                        formError.fadeIn("An account with this email already exists. Please use a different email or log in.");
+                    }
+                } catch (Exception ex) {
+                    setLoading(false);
+                    formError.fadeIn("Account creation failed. Please retry.");
                 }
             }
-            new CreateAccountConfirmation().setVisible(true);
-            dispose();
-        });
-        t.start();
+        }.execute();
     }
 
     private void setLoading(boolean on) {

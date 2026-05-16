@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
@@ -9,15 +10,32 @@ public final class PyOma2ResultsPanel extends JPanel {
         PyOma2Runner.RunResult run(File csvFile, Path outDir, Double fsHz);
     }
 
+    public interface OnRunComplete {
+        void onSuccess(Path outDir);
+    }
+
+    private static final Color SUCCESS_COLOR = new Color(21, 128, 61);
+
+    private static final Color BADGE_PASS   = new Color(21, 128, 61);
+    private static final Color BADGE_WARN   = new Color(161, 98, 7);
+    private static final Color BADGE_FAIL   = new Color(160, 40, 40);
+    private static final Color BADGE_BLUE   = new Color(29, 78, 216);
+    private static final Color BADGE_GRAY   = Color.DARK_GRAY;
+
     private final Frame owner;
     private final Runner runner;
     private final JTextField fsField = new JTextField();
     private final JButton runButton = new JButton("Run PyOMA2");
     private final JButton openFolderButton = new JButton("Open Output Folder");
+    private final JButton generateReportButton = new JButton("Generate Report");
     private final JLabel statusLabel = new JLabel("");
+    private final JProgressBar spinner = new JProgressBar();
+    private final JLabel complianceBadge = new JLabel("", SwingConstants.LEFT);
+
+    private OnRunComplete onRunComplete;
 
     private final JTabbedPane tabs = new JTabbedPane();
-    private final JLabel stabilizationLabel = new JLabel("", SwingConstants.CENTER);
+    private final StabilizationScatterPanel scatterPanel = new StabilizationScatterPanel();
     private final JLabel cmifLabel = new JLabel("", SwingConstants.CENTER);
     private final JLabel modeShapesLabel = new JLabel("", SwingConstants.CENTER);
     private final JLabel macLabel = new JLabel("", SwingConstants.CENTER);
@@ -67,6 +85,11 @@ public final class PyOma2ResultsPanel extends JPanel {
         openFolderButton.setFont(new Font("Arial", Font.BOLD, 12));
         top.add(openFolderButton, gbc);
 
+        gbc.gridx = 4;
+        generateReportButton.setFont(new Font("Arial", Font.BOLD, 12));
+        generateReportButton.setForeground(new Color(0, 100, 180));
+        top.add(generateReportButton, gbc);
+
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridwidth = 4;
@@ -76,18 +99,31 @@ public final class PyOma2ResultsPanel extends JPanel {
         statusLabel.setForeground(Color.DARK_GRAY);
         top.add(statusLabel, gbc);
 
+        gbc.gridy = 2;
+        spinner.setIndeterminate(true);
+        spinner.setPreferredSize(new Dimension(0, 4));
+        spinner.setVisible(false);
+        top.add(spinner, gbc);
+
+        gbc.gridy = 3;
+        complianceBadge.setFont(new Font("Arial", Font.BOLD, 12));
+        complianceBadge.setForeground(BADGE_GRAY);
+        top.add(complianceBadge, gbc);
+
         add(top, BorderLayout.NORTH);
 
-        tabs.addTab("Stabilization", wrap(stabilizationLabel));
+        tabs.addTab("Stabilization", scatterPanel);
         tabs.addTab("FRF (CMIF)", wrap(cmifLabel));
         tabs.addTab("Mode Shapes", wrap(modeShapesLabel));
         tabs.addTab("MAC", wrap(macLabel));
         add(tabs, BorderLayout.CENTER);
 
         openFolderButton.setEnabled(false);
+        generateReportButton.setEnabled(false);
 
         runButton.addActionListener(e -> run());
         openFolderButton.addActionListener(e -> openOutputFolder());
+        generateReportButton.addActionListener(e -> openReportExport());
 
         removeCsvListener = AppSession.addLastUploadedCsvListener(() -> SwingUtilities.invokeLater(() -> {
             File csv = AppSession.getLastUploadedCsv();
@@ -103,6 +139,10 @@ public final class PyOma2ResultsPanel extends JPanel {
         }
     }
 
+    public void setOnRunComplete(OnRunComplete cb) {
+        this.onRunComplete = cb;
+    }
+
     public void setSourceCsv(File csv) {
         this.sourceCsv = csv;
         CsvFileValidator.CsvProfile profile = AppSession.getLastUploadedCsvProfile();
@@ -113,6 +153,9 @@ public final class PyOma2ResultsPanel extends JPanel {
             setStatus("KPI log CSV detected. OMA run is skipped; use CAD Results → Raw CSV/QA/Time Series/Timeline.", false);
         } else {
             setStatus("", false);
+        }
+        if (csv == null) {
+            scatterPanel.clear();
         }
         maybeAutoRun();
     }
@@ -152,7 +195,9 @@ public final class PyOma2ResultsPanel extends JPanel {
 
         runButton.setEnabled(false);
         openFolderButton.setEnabled(false);
-        setStatus("Running PyOMA2...", false);
+        generateReportButton.setEnabled(false);
+        spinner.setVisible(true);
+        setStatus("Running PyOMA2 analysis… this may take a moment.", false);
 
         SwingWorker<PyOma2Runner.RunResult, Void> worker = new SwingWorker<>() {
             @Override
@@ -165,21 +210,32 @@ public final class PyOma2ResultsPanel extends JPanel {
                 try {
                     PyOma2Runner.RunResult result = get();
                     if (!result.ok()) {
-                        setStatus(result.message(), true);
+                        String msg = result.message();
+                        if (msg == null || msg.isBlank()) {
+                            msg = "PyOMA2 pipeline failed with no error detail. Check that Python is installed and pyoma2_oma_results.py is in the working directory.";
+                        }
+                        setStatus(msg, true);
                         if (owner != null) {
                             Toast.show(owner, "PyOMA2 failed", new Color(160, 40, 40), 2200);
                         }
                         return;
                     }
-                    setStatus(result.message(), false);
+                    setStatusSuccess("Analysis complete. Results loaded.");
                     if (owner != null) {
                         Toast.show(owner, "PyOMA2 results ready", new Color(0, 128, 0), 1600);
                     }
                     openFolderButton.setEnabled(true);
+                    generateReportButton.setEnabled(true);
                     applySummary(result.summary());
+                    if (onRunComplete != null) {
+                        onRunComplete.onSuccess(lastOutDir);
+                    }
+                    PyOma2ResultsPanel.this.runCompliance(lastOutDir);
                 } catch (Exception ex) {
-                    setStatus(ex.getMessage() == null ? "PyOMA2 failed." : ex.getMessage(), true);
+                    String msg = ex.getMessage();
+                    setStatus(msg == null ? "PyOMA2 failed. Check the console for details." : msg, true);
                 } finally {
+                    spinner.setVisible(false);
                     runButton.setEnabled(true);
                     running = false;
                 }
@@ -226,7 +282,9 @@ public final class PyOma2ResultsPanel extends JPanel {
     }
 
     private void applySummary(Properties props) {
-        setImageFromPath(stabilizationLabel, props.getProperty("stabilization_png"));
+        String polesCsv = props.getProperty("stabilization_poles_csv");
+        String modalCsv = props.getProperty("modal_properties_csv");
+        scatterPanel.loadFromPaths(polesCsv, modalCsv);
         setImageFromPath(cmifLabel, props.getProperty("cmif_png"));
         setImageFromPath(modeShapesLabel, props.getProperty("mode_shapes_png"));
         setImageFromPath(macLabel, props.getProperty("mac_png"));
@@ -287,9 +345,59 @@ public final class PyOma2ResultsPanel extends JPanel {
         }
     }
 
+    private void openReportExport() {
+        RoleMenuBar.Role role = AppSession.getActiveRole();
+        if (role == RoleMenuBar.Role.HEAD) {
+            new HeadConfigureReportExport();
+        } else {
+            new EngineerConfigureReportExport();
+        }
+    }
+
+    private void runCompliance(Path outDir) {
+        if (outDir == null) return;
+        complianceBadge.setText("Compliance: checking…");
+        complianceBadge.setForeground(BADGE_GRAY);
+        new SwingWorker<ComplianceEngine.Status, Void>() {
+            @Override
+            protected ComplianceEngine.Status doInBackground() throws Exception {
+                Path baseline = Path.of(System.getProperty("user.home"),
+                        ".aoma-heritage-monitor", "oma-baseline.csv");
+                boolean setBaseline = !Files.exists(baseline);
+                return ComplianceEngine.apply(outDir, baseline, setBaseline);
+            }
+            @Override
+            protected void done() {
+                try {
+                    ComplianceEngine.Status status = get();
+                    String label;
+                    Color color;
+                    switch (status) {
+                        case PASS:         label = "Compliance: PASS";         color = BADGE_PASS; break;
+                        case WARN:         label = "Compliance: WARN";         color = BADGE_WARN; break;
+                        case FAIL:         label = "Compliance: FAIL";         color = BADGE_FAIL; break;
+                        case BASELINE_SET: label = "Compliance: BASELINE SET"; color = BADGE_BLUE; break;
+                        case NO_MATCH:     label = "Compliance: NO MATCH";     color = BADGE_GRAY; break;
+                        default:           label = "Compliance: NO BASELINE";  color = BADGE_GRAY; break;
+                    }
+                    complianceBadge.setText(label);
+                    complianceBadge.setForeground(color);
+                } catch (Exception ex) {
+                    complianceBadge.setText("Compliance: error");
+                    complianceBadge.setForeground(BADGE_GRAY);
+                }
+            }
+        }.execute();
+    }
+
     private void setStatus(String msg, boolean error) {
         statusLabel.setText(msg == null ? "" : msg);
         statusLabel.setForeground(error ? new Color(160, 40, 40) : Color.DARK_GRAY);
+    }
+
+    private void setStatusSuccess(String msg) {
+        statusLabel.setText(msg == null ? "" : msg);
+        statusLabel.setForeground(SUCCESS_COLOR);
     }
 }
 
